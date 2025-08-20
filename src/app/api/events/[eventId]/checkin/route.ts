@@ -356,6 +356,14 @@ export async function POST(
       }
     });
 
+    // Update registration status to CHECKED_IN when status is OK
+    if (status === 'OK') {
+      await prisma.registration.update({
+        where: { id: registrationId },
+        data: { status: 'CHECKED_IN' }
+      });
+    }
+
     // Determine which vehicle to use (same logic as GET)
     let vehicleInfo = null;
     if (registration.registrationVehicles && registration.registrationVehicles.length > 0) {
