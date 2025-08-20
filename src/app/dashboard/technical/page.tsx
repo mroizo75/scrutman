@@ -175,15 +175,12 @@ export default function TechnicalDashboard() {
   };
 
   const handleStatusClick = (vehicle: VehicleForInspection, status: 'APPROVED' | 'CONDITIONAL' | 'REJECTED') => {
-    if (status === 'CONDITIONAL' || status === 'REJECTED') {
-      setShowNotes(vehicle.startNumber.toString());
-      setNotes(vehicle.inspection?.notes || '');
-    } else {
-      updateInspectionStatus(vehicle, status);
-    }
+    // Always show notes option for all statuses
+    setShowNotes(vehicle.startNumber.toString());
+    setNotes(vehicle.inspection?.notes || '');
   };
 
-  const handleNotesSubmit = (vehicle: VehicleForInspection, status: 'CONDITIONAL' | 'REJECTED') => {
+  const handleNotesSubmit = (vehicle: VehicleForInspection, status: 'APPROVED' | 'CONDITIONAL' | 'REJECTED') => {
     updateInspectionStatus(vehicle, status, notes);
   };
 
@@ -404,7 +401,14 @@ export default function TechnicalDashboard() {
                         value={notes}
                         onChange={(e) => setNotes(e.target.value)}
                       />
-                      <div className="flex gap-2">
+                      <div className="flex gap-2 flex-wrap">
+                        <Button
+                          size="sm"
+                          onClick={() => handleNotesSubmit(vehicle, 'APPROVED')}
+                          className="bg-green-600 hover:bg-green-700"
+                        >
+                          🟢 Approve
+                        </Button>
                         <Button
                           size="sm"
                           onClick={() => handleNotesSubmit(vehicle, 'CONDITIONAL')}

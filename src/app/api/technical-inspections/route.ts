@@ -112,8 +112,8 @@ export async function POST(request: Request) {
     }
 
     const user = JSON.parse(userData.value);
-    if (user.role !== "TECHNICAL_INSPECTOR") {
-      return NextResponse.json({ error: "Forbidden - Only technical inspectors can perform inspections" }, { status: 403 });
+    if (user.role !== "TECHNICAL_INSPECTOR" && user.role !== "CLUBADMIN" && user.role !== "SUPERADMIN") {
+      return NextResponse.json({ error: "Forbidden - Only technical inspectors, club admins, and superadmins can perform inspections" }, { status: 403 });
     }
 
     const {
