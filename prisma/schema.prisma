@@ -1,0 +1,463 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  SUPERADMIN      // System administrator
+  CLUBADMIN       // Club administrator
+  ATHLETE         // Participant/driver
+  TECHNICAL_INSPECTOR // Technical control officer
+  WEIGHT_CONTROLLER   // Weight control officer  
+  RACE_OFFICIAL      // Race official/marshal
+  FEDERATION_ADMIN    // Federation administrator (approves events)
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String?
+  password      String
+  phone         String?
+  licenseNumber String?   // Lisensnummer for utøvere
+  dateOfBirth   DateTime? // Fødselsdato
+  address       String?   // Adresse
+  city          String?   // By
+  postalCode    String?   // Postnummer
+  country       String?   // Land
+  emergencyContact String? // Nødkontakt
+  emergencyPhone String?   // Nødkontakt telefon
+  role          UserRole
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  club          Club?     @relation(fields: [clubId], references: [id])
+  clubId        String?
+  registrations Registration[]
+  vehicles      UserVehicle[] // Brukerens kjøretøy
+  technicalInspections TechnicalInspection[] // Inspections performed by this user
+  weightControls WeightControl[] // Weight controls performed by this user
+  reviewedEvents Event[]  @relation("EventReviewer") // Events reviewed by this federation admin
+  checkIns      CheckIn[] // Check-ins performed by this user
+  checkInStaff  CheckIn[] @relation("CheckInStaff") // Check-ins processed by this staff member
+
+  @@index([clubId])
+}
+
+model Club {
+  id            String    @id @default(cuid())
+  name          String
+  description   String?   @db.Text
+  address       String?
+  city          String?
+  postalCode    String?
+  country       String    @default("Norway")
+  phone         String?
+  email         String?
+  website       String?
+  logo          String?
+  users         User[]
+  events        Event[]
+  // Pre-defined classes that this club can use
+  clubClasses   ClubClass[] // Klub sine tilgjengelige klasser
+  technicalInspections TechnicalInspection[] // Technical inspections performed by this club
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model Event {
+  id                    String         @id @default(cuid())
+  title                 String
+  description           String?        @db.Text
+  startDate             DateTime
+  endDate               DateTime
+  location              String?
+  status                EventStatus    @default(DRAFT)
+  maxParticipants       Int           @default(0)  // 0 betyr ubegrenset
+  registrationStartDate DateTime?     // Når påmelding åpner
+  registrationEndDate   DateTime?     // Når påmelding stenger
+  requiresVehicle       Boolean       @default(true)  // Om event krever kjøretøy-registrering
+  clubId                String
+  club                  Club          @relation(fields: [clubId], references: [id])
+  registrations         Registration[]
+  classes               Class[]
+  files                 EventFile[]
+  images                EventImage[]
+  technicalInspections  TechnicalInspection[] // Technical inspections for this event
+  weightControls        WeightControl[] // Weight controls for this event
+  checkIns              CheckIn[] // Check-ins for this event
+  weightLimits          WeightLimit[] // Weight limits for this event
+  
+  // Federation approval fields
+  submittedAt           DateTime?     // When submitted for approval
+  reviewedAt            DateTime?     // When reviewed by federation
+  reviewedBy            String?       // ID of federation admin who reviewed
+  reviewer              User?         @relation("EventReviewer", fields: [reviewedBy], references: [id])
+  rejectionReason       String?       @db.Text // Reason for rejection if applicable
+  
+  createdAt             DateTime      @default(now())
+  updatedAt             DateTime      @updatedAt
+
+  @@index([clubId])
+  @@index([status])
+  @@index([reviewedBy])
+}
+
+model EventFile {
+  id        String   @id @default(cuid())
+  name      String
+  url       String
+  type      String
+  size      Int
+  eventId   String
+  event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([eventId])
+}
+
+model EventImage {
+  id        String   @id @default(cuid())
+  name      String
+  url       String
+  type      String
+  size      Int
+  eventId   String
+  event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([eventId])
+}
+
+model Class {
+  id            String    @id @default(cuid())
+  name          String
+  minWeight     Float?
+  maxWeight     Float?
+  event         Event     @relation(fields: [eventId], references: [id])
+  eventId       String
+  registrations Registration[]
+  weightLimits  WeightLimit[] // Weight limits for this class
+}
+
+model Registration {
+  id            String              @id @default(cuid())
+  startNumber   Int
+  status        RegistrationStatus  @default(PENDING)
+  user          User                @relation(fields: [userId], references: [id])
+  userId        String
+  event         Event               @relation(fields: [eventId], references: [id])
+  eventId       String
+  class         Class               @relation(fields: [classId], references: [id])
+  classId       String
+  userVehicle   UserVehicle?        @relation(fields: [userVehicleId], references: [id])
+  userVehicleId String?
+  vehicle       Vehicle?
+  // Depot informasjon
+  depotSize     DepotSize?          // Størrelse på depot-plass
+  needsPower    Boolean             @default(false) // Trenger strøm
+  depotNotes    String?             // Ekstra notater for depot
+  technicalCheck TechnicalCheck?
+  weightCheck   WeightCheck?
+  checkIn       CheckIn? // Check-in record for this registration
+
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
+
+  registrationVehicles RegistrationVehicle[] // Flere kjøretøy per registrering
+  @@unique([eventId, startNumber])
+}
+
+// Junction table for multiple vehicles per registration
+model RegistrationVehicle {
+  id             String        @id @default(cuid())
+  registration   Registration  @relation(fields: [registrationId], references: [id], onDelete: Cascade)
+  registrationId String
+  userVehicle    UserVehicle   @relation(fields: [userVehicleId], references: [id])
+  userVehicleId  String
+  startNumber    Int           // Startnummer for denne bilen i dette eventet
+  createdAt      DateTime      @default(now())
+
+  @@unique([registrationId, userVehicleId]) // En bil kan kun registreres én gang per registrering
+  @@unique([registrationId, startNumber])   // Unikt startnummer per registrering
+  @@index([registrationId])
+  @@index([userVehicleId])
+}
+
+model TechnicalCheck {
+  id            String    @id @default(cuid())
+  registration  Registration @relation(fields: [registrationId], references: [id])
+  registrationId String    @unique
+  status        Boolean
+  notes         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model WeightCheck {
+  id            String    @id @default(cuid())
+  registration  Registration @relation(fields: [registrationId], references: [id])
+  registrationId String    @unique
+  weight        Float
+  status        Boolean
+  notes         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+enum Role {
+  SUPERADMIN
+  CLUB_ADMIN
+  USER
+}
+
+enum EventStatus {
+  DRAFT        // Club is working on the event
+  SUBMITTED    // Submitted to federation for approval
+  APPROVED     // Approved by federation (can be published)
+  REJECTED     // Rejected by federation (needs changes)
+  PUBLISHED    // Published and open for registration
+  CANCELLED    // Event cancelled
+  COMPLETED    // Event completed
+}
+
+enum RegistrationStatus {
+  PENDING
+  CONFIRMED
+  WAITLISTED
+  CANCELLED
+  CHECKED_IN
+}
+
+enum VehicleCategory {
+  AUTOCROSS
+  BILCROSS
+  RACING
+  RALLYCROSS
+  DRIFTING
+  TIME_ATTACK
+  DRAG_RACING
+  CIRCUIT
+  HILLCLIMB
+  OTHER
+}
+
+enum DepotSize {
+  SMALL     // Liten plass (1 bil)
+  MEDIUM    // Medium plass (2-3 biler)
+  LARGE     // Stor plass (4+ biler)
+  EXTRA_LARGE // Ekstra stor plass (team/flere biler)
+}
+
+model UserVehicle {
+  id             String          @id @default(cuid())
+  startNumber    String          // Startnummer
+  chassisNumber  String?         // Chassisnummer
+  transponderNumber String?      // Transpondernummer
+  make           String          // Merke (f.eks. "Toyota")
+  model          String          // Modell (f.eks. "Corolla")
+  year           Int?            // Årsmodell
+  color          String?         // Farge
+  licensePlate   String?         // Registreringsnummer
+  engineVolume   Float?          // Motorvolum (liter)
+  weight         Float?          // Vekt (kg)
+  category       VehicleCategory // Kjøretøy kategori
+  memberClub     String?         // Klubb medlemskap
+  user           User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId         String
+  registrations  Registration[]  // Registreringer som bruker dette kjøretøyet
+  registrationVehicles RegistrationVehicle[] // Junction table referanser
+  technicalInspections TechnicalInspection[] // Technical inspection history for this vehicle
+
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  @@unique([userId, startNumber]) // En bruker kan ikke ha samme startnummer på flere kjøretøy
+  @@index([userId])
+}
+
+model Vehicle {
+  id            String      @id @default(cuid())
+  make          String      // Merke (f.eks. "Toyota")
+  model         String      // Modell (f.eks. "Corolla")
+  year          Int?        // Årsmodell
+  color         String?     // Farge
+  licensePlate  String?     // Registreringsnummer
+  engineSize    Float?      // Motorstørrelse (liter)
+  weight        Float?      // Vekt (kg)
+  fuelType      String?     // Drivstofftype
+  category      String      // Kategori (f.eks. "Rally", "Circuit")
+  registration  Registration @relation(fields: [registrationId], references: [id], onDelete: Cascade)
+  registrationId String      @unique
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+}
+
+// Pre-defined classes that clubs can choose from (kept for backwards compatibility)
+model GlobalClass {
+  id          String      @id @default(cuid())
+  name        String      @unique
+  description String?
+  minWeight   Float?
+  maxWeight   Float?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+}
+
+// Club-specific classes that each club can create and manage
+model ClubClass {
+  id          String      @id @default(cuid())
+  name        String      // Class name (e.g., "Autocross", "Rallycross")
+  description String?     // Optional description
+  minWeight   Float?      // Minimum weight requirement (kg)
+  maxWeight   Float?      // Maximum weight requirement (kg)
+  isActive    Boolean     @default(true)
+  club        Club        @relation(fields: [clubId], references: [id], onDelete: Cascade)
+  clubId      String
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  @@unique([clubId, name]) // Each club can only have one class with a specific name
+  @@index([clubId])
+}
+
+// Technical inspection records - tracks vehicle history across events and clubs
+model TechnicalInspection {
+  id              String    @id @default(cuid())
+  eventId         String    // Which event this inspection is for
+  event           Event     @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  startNumber     Int       // The start number for this specific event
+  
+  // Vehicle identification - critical for cross-event/club tracking
+  vehicleId       String?   // Link to UserVehicle if registered
+  vehicle         UserVehicle? @relation(fields: [vehicleId], references: [id])
+  chassisNumber   String?   // Chassisnummer - permanent identifier
+  licensePlate    String?   // Registreringsnummer - backup identifier
+  make            String    // Merke (e.g., "Toyota")
+  model           String    // Modell (e.g., "Corolla") 
+  year            Int?      // Årsmodell
+  
+  inspector       User      @relation(fields: [inspectorId], references: [id])
+  inspectorId     String
+  inspectionDate  DateTime  @default(now())
+  status          TechnicalStatus @default(PENDING)
+  notes           String?   @db.Text // Anmerkning
+  
+  // Club context for tracking
+  clubId          String    // Which club performed this inspection
+  club            Club      @relation(fields: [clubId], references: [id])
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@unique([eventId, startNumber]) // Only one inspection per start number per event
+  @@index([eventId])
+  @@index([inspectorId])
+  @@index([chassisNumber]) // Fast lookup by chassis number
+  @@index([licensePlate]) // Fast lookup by license plate
+  @@index([clubId])
+}
+
+// Simple enum for technical inspection status with colors
+enum TechnicalStatus {
+  PENDING       // Not yet inspected
+  APPROVED      // Grønn - Godkjent (goes to start list)
+  CONDITIONAL   // Gul - OK med mangel som må rettes  
+  REJECTED      // Rød - Ikke godkjent
+}
+
+// Weight control records - simplified for start number workflow  
+model WeightControl {
+  id              String    @id @default(cuid())
+  eventId         String    // Which event this weight control is for
+  event           Event     @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  startNumber     Int       // The start number being weight controlled
+  heat            HeatType  @default(TRAINING) // Which heat this weight control is for
+  controller      User      @relation(fields: [controllerId], references: [id])
+  controllerId    String
+  controlDate     DateTime  @default(now())
+  measuredWeight  Float?    // Measured weight in kg
+  minimumWeight   Float?    // Required minimum weight for class
+  result          WeightResult @default(PENDING)
+  notes           String?   @db.Text
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@unique([eventId, startNumber, heat]) // One weight control per start number per event per heat
+  @@index([eventId])
+  @@index([controllerId])
+  @@index([heat])
+}
+
+// Check-in tracking for events
+model CheckIn {
+  id          String    @id @default(cuid())
+  userId      String    // Person checking in
+  user        User      @relation(fields: [userId], references: [id])
+  eventId     String    // Event being checked in for
+  event       Event     @relation(fields: [eventId], references: [id])
+  registrationId String @unique // Registration this check-in is for
+  registration Registration @relation(fields: [registrationId], references: [id])
+  checkedInAt DateTime  @default(now()) // When they checked in
+  checkedInBy String?   // Staff member who processed check-in
+  checkedInByUser User? @relation("CheckInStaff", fields: [checkedInBy], references: [id])
+  notes       String?   @db.Text // Check-in notes
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@unique([userId, eventId]) // One check-in per user per event
+  @@index([eventId])
+  @@index([userId])
+}
+
+// Weight limits for event classes
+model WeightLimit {
+  id        String  @id @default(cuid())
+  eventId   String  // Event this limit applies to
+  event     Event   @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  classId   String  // Class this limit applies to
+  class     Class   @relation(fields: [classId], references: [id])
+  minWeight Float   // Minimum weight in kg
+  maxWeight Float   // Maximum weight in kg
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([eventId, classId]) // One weight limit per event/class combination
+  @@index([eventId])
+  @@index([classId])
+}
+
+enum WeightControlStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum WeightResult {
+  PENDING
+  PASS
+  FAIL
+  UNDERWEIGHT
+  OVERWEIGHT
+}
+
+enum HeatType {
+  TRAINING     // Trening
+  QUALIFYING   // Kval
+  FINAL1       // Finale 1
+  FINAL2       // Finale 2
+  FINAL3       // Finale 3
+  FINAL4       // Finale 4
+}
