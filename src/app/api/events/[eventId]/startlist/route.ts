@@ -47,7 +47,7 @@ export async function GET(
     const registrations = await prisma.registration.findMany({
       where: {
         eventId: resolvedParams.eventId,
-        status: "CONFIRMED" // Only confirmed registrations
+        status: { in: ["CONFIRMED", "CHECKED_IN"] } // Include both confirmed and checked-in registrations
       },
       include: {
         user: {
