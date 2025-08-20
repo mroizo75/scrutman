@@ -43,7 +43,7 @@ export async function GET() {
           select: {
             registrations: {
               where: {
-                status: 'CONFIRMED'
+                status: { in: ['CONFIRMED', 'CHECKED_IN'] }
               }
             }
           }

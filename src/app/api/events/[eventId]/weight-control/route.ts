@@ -59,11 +59,11 @@ export async function GET(
       }
     });
 
-    // Get participants who have checked in (only they can do weight control)
+    // Get participants who have checked in AND passed technical inspection (only they can do weight control)
     const participants = await prisma.registration.findMany({
       where: {
         eventId: resolvedParams.eventId,
-        status: "CONFIRMED",
+        status: { in: ["CONFIRMED", "CHECKED_IN"] }, // Include both confirmed and checked-in registrations
         checkIn: {
           notes: {
             startsWith: "OK"
@@ -144,8 +144,24 @@ export async function GET(
       }
     });
 
+    // Get technical inspections for participants
+    const startNumbers = participants.map(p => p.startNumber);
+    const technicalInspections = await prisma.technicalInspection.findMany({
+      where: {
+        eventId: resolvedParams.eventId,
+        startNumber: { in: startNumbers },
+        status: 'APPROVED' // Only approved technical inspections
+      }
+    });
+
+    // Only include participants who have passed technical inspection
+    const approvedStartNumbers = technicalInspections.map(ti => ti.startNumber);
+    const approvedParticipants = participants.filter(p => 
+      approvedStartNumbers.includes(p.startNumber)
+    );
+
     // Add weight controls to participants
-    const participantsWithWeightControls = participants.map(participant => {
+    const participantsWithWeightControls = approvedParticipants.map(participant => {
       const participantWeightControls = weightControls.filter(
         wc => wc.startNumber === participant.startNumber
       );
