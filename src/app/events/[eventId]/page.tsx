@@ -176,14 +176,18 @@ export default function EventDetailsPage({ params }: PageProps) {
     );
   }
 
+  // All participants (for participants tab - includes CONFIRMED and CHECKED_IN)
+  const allParticipants = event.registrations.filter(r => r.status !== 'CANCELLED');
+  
+  // Only confirmed registrations (for capacity calculations)
   const confirmedRegistrations = event.registrations.filter(r => r.status === 'CONFIRMED');
   const spotsLeft = event.maxParticipants > 0 ? event.maxParticipants - confirmedRegistrations.length : null;
   const isFull = event.maxParticipants > 0 && confirmedRegistrations.length >= event.maxParticipants;
 
-  // Pagination functions
-  const totalPages = Math.ceil(confirmedRegistrations.length / itemsPerPage);
+  // Pagination functions (use allParticipants for participants tab)
+  const totalPages = Math.ceil(allParticipants.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
-  const paginatedRegistrations = confirmedRegistrations.slice(startIndex, startIndex + itemsPerPage);
+  const paginatedRegistrations = allParticipants.slice(startIndex, startIndex + itemsPerPage);
 
   const goToPage = (page: number) => {
     setCurrentPage(page);
@@ -235,7 +239,7 @@ export default function EventDetailsPage({ params }: PageProps) {
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="details">Event Details</TabsTrigger>
             <TabsTrigger value="participants">
-              Participants ({confirmedRegistrations.length})
+              Participants ({allParticipants.length})
             </TabsTrigger>
             <TabsTrigger value="files">
               Files ({event.files.length + event.images.length})
@@ -433,10 +437,10 @@ export default function EventDetailsPage({ params }: PageProps) {
           <TabsContent value="participants" className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle>Event Participants ({confirmedRegistrations.length})</CardTitle>
+                <CardTitle>Event Participants ({allParticipants.length})</CardTitle>
               </CardHeader>
               <CardContent>
-                {confirmedRegistrations.length === 0 ? (
+                {allParticipants.length === 0 ? (
                   <div className="text-center py-8">
                     <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                     <p className="text-lg font-medium mb-2">No participants yet</p>
@@ -462,8 +466,18 @@ export default function EventDetailsPage({ params }: PageProps) {
                             <p className="text-sm text-muted-foreground">
                               #{startIndex + index + 1}
                             </p>
-                            <Badge className="bg-green-100 text-green-800">
-                              {registration.status}
+                            <Badge 
+                              className={
+                                registration.status === 'CONFIRMED' 
+                                  ? "bg-blue-100 text-blue-800" 
+                                  : registration.status === 'CHECKED_IN'
+                                  ? "bg-green-100 text-green-800"
+                                  : "bg-gray-100 text-gray-800"
+                              }
+                            >
+                              {registration.status === 'CONFIRMED' ? 'Registered' : 
+                               registration.status === 'CHECKED_IN' ? 'Checked In' : 
+                               registration.status}
                             </Badge>
                           </div>
                         </div>
@@ -474,7 +488,7 @@ export default function EventDetailsPage({ params }: PageProps) {
                     {totalPages > 1 && (
                       <div className="flex items-center justify-between mt-6">
                         <p className="text-sm text-muted-foreground">
-                          Showing {startIndex + 1} to {Math.min(startIndex + itemsPerPage, confirmedRegistrations.length)} of {confirmedRegistrations.length} participants
+                          Showing {startIndex + 1} to {Math.min(startIndex + itemsPerPage, allParticipants.length)} of {allParticipants.length} participants
                         </p>
                         <div className="flex items-center gap-2">
                           <Button

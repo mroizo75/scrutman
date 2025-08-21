@@ -19,7 +19,8 @@ import {
   ArrowLeft,
   CheckCircle,
   AlertCircle,
-  UserCheck
+  UserCheck,
+  Loader2
 } from "lucide-react";
 import Link from "next/link";
 import Cookies from "js-cookie";
@@ -157,6 +158,12 @@ export default function EventRegistrationPage({ params }: PageProps) {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     
+    // Prevent double submission
+    if (submitting) {
+      console.log("Already submitting, ignoring duplicate submission");
+      return;
+    }
+    
     if (!user) {
       setError("You must be logged in to register for events");
       return;
@@ -167,14 +174,16 @@ export default function EventRegistrationPage({ params }: PageProps) {
       return;
     }
 
+    console.log("Setting submitting to true");
+    setSubmitting(true);
+    setError(null);
+
     // Validate vehicle selection if user has vehicles
     if (user.role === "ATHLETE" && userVehicles.length > 0 && selectedVehicleIds.length === 0) {
       setError("Please select at least one vehicle to register");
+      setSubmitting(false);
       return;
     }
-
-    setSubmitting(true);
-    setError(null);
 
     const formData = new FormData(e.currentTarget);
     
@@ -232,6 +241,7 @@ export default function EventRegistrationPage({ params }: PageProps) {
       console.error("Registration error:", error);
       setError("Network error. Please try again.");
     } finally {
+      console.log("Setting submitting to false in finally block");
       setSubmitting(false);
     }
   };
@@ -731,8 +741,16 @@ export default function EventRegistrationPage({ params }: PageProps) {
                   type="submit" 
                   className="w-full" 
                   disabled={submitting}
+                  onClick={() => console.log("Button clicked, submitting state:", submitting)}
                 >
-                  {submitting ? "Registering..." : "Register for Event"}
+                  {submitting ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Registering...
+                    </>
+                  ) : (
+                    "Register for Event"
+                  )}
                 </Button>
               </form>
             </CardContent>
