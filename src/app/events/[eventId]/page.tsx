@@ -179,10 +179,10 @@ export default function EventDetailsPage({ params }: PageProps) {
   // All participants (for participants tab - includes CONFIRMED and CHECKED_IN)
   const allParticipants = event.registrations.filter(r => r.status !== 'CANCELLED');
   
-  // Only confirmed registrations (for capacity calculations)
-  const confirmedRegistrations = event.registrations.filter(r => r.status === 'CONFIRMED');
-  const spotsLeft = event.maxParticipants > 0 ? event.maxParticipants - confirmedRegistrations.length : null;
-  const isFull = event.maxParticipants > 0 && confirmedRegistrations.length >= event.maxParticipants;
+  // Active registrations (for capacity calculations - includes CONFIRMED and CHECKED_IN)
+  const activeRegistrations = event.registrations.filter(r => r.status === 'CONFIRMED' || r.status === 'CHECKED_IN');
+  const spotsLeft = event.maxParticipants > 0 ? event.maxParticipants - activeRegistrations.length : null;
+  const isFull = event.maxParticipants > 0 && activeRegistrations.length >= event.maxParticipants;
 
   // Pagination functions (use allParticipants for participants tab)
   const totalPages = Math.ceil(allParticipants.length / itemsPerPage);
@@ -303,7 +303,7 @@ export default function EventDetailsPage({ params }: PageProps) {
                         <div>
                           <p className="font-medium">Capacity</p>
                           <p className="text-sm text-muted-foreground">
-                            {confirmedRegistrations.length}/{event.maxParticipants} participants
+                            {activeRegistrations.length}/{event.maxParticipants} participants
                             {spotsLeft !== null && spotsLeft > 0 && (
                               <span className="text-green-600 ml-2">({spotsLeft} spots left)</span>
                             )}

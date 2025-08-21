@@ -262,8 +262,8 @@ export default function EventRegistrationPage({ params }: PageProps) {
 
   const isEventFull = () => {
     if (!event || event.maxParticipants === 0 || !event.registrations) return false;
-    const confirmedRegistrations = event.registrations.filter(r => r.status === 'CONFIRMED');
-    return confirmedRegistrations.length >= event.maxParticipants;
+    const activeRegistrations = event.registrations.filter(r => r.status === 'CONFIRMED' || r.status === 'CHECKED_IN');
+    return activeRegistrations.length >= event.maxParticipants;
   };
 
   const isUserRegistered = () => {
@@ -397,7 +397,7 @@ export default function EventRegistrationPage({ params }: PageProps) {
               {event.maxParticipants > 0 && (
                 <div className="flex items-center gap-2">
                   <Users className="h-4 w-4" />
-                  <span>{event.registrations ? event.registrations.filter(r => r.status === 'CONFIRMED').length : 0}/{event.maxParticipants}</span>
+                  <span>{event.registrations ? event.registrations.filter(r => r.status === 'CONFIRMED' || r.status === 'CHECKED_IN').length : 0}/{event.maxParticipants}</span>
                 </div>
               )}
             </div>

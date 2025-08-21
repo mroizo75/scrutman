@@ -25,7 +25,7 @@ interface Event {
   maxParticipants: number;
   registrations: {
     id: string;
-    status: 'CONFIRMED' | 'WAITLIST' | 'CANCELLED';
+    status: 'CONFIRMED' | 'WAITLIST' | 'CANCELLED' | 'CHECKED_IN';
     user: {
       name: string;
       email: string;
@@ -304,7 +304,7 @@ export default function EventsPage() {
   const getRegistrationStats = (registrations: Event['registrations']) => {
     return {
       total: registrations.length,
-      confirmed: registrations.filter(r => r.status === 'CONFIRMED').length,
+      confirmed: registrations.filter(r => r.status === 'CONFIRMED' || r.status === 'CHECKED_IN').length,
       waitlisted: registrations.filter(r => r.status === 'WAITLIST').length,
       cancelled: registrations.filter(r => r.status === 'CANCELLED').length
     };
