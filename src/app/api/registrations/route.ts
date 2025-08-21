@@ -58,6 +58,7 @@ export async function POST(request: Request) {
     }
 
     // Check if user is already registered for this event
+    console.log("Checking existing registration for user:", user.id, "event:", eventId);
     const existingRegistration = await prisma.registration.findFirst({
       where: {
         userId: user.id,
@@ -66,8 +67,17 @@ export async function POST(request: Request) {
       }
     });
 
+    console.log("Existing registration found:", existingRegistration);
     if (existingRegistration) {
-      return NextResponse.json({ error: "You are already registered for this event" }, { status: 400 });
+      console.log("Registration exists with status:", existingRegistration.status);
+      return NextResponse.json({ 
+        error: "You are already registered for this event",
+        debug: {
+          existingRegistrationId: existingRegistration.id,
+          status: existingRegistration.status,
+          startNumber: existingRegistration.startNumber
+        }
+      }, { status: 400 });
     }
 
     // Check if event is full

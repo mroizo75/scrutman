@@ -46,11 +46,11 @@ export async function GET(
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    // Get all confirmed registrations with related data
+    // Get all confirmed and checked-in registrations with related data
     const registrations = await prisma.registration.findMany({
       where: {
         eventId: resolvedParams.eventId,
-        status: "CONFIRMED"
+        status: { in: ["CONFIRMED", "CHECKED_IN"] }
       },
       include: {
         user: {
