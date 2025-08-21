@@ -51,6 +51,12 @@ interface Event {
     id: string;
     status: string;
     startNumber: number;
+    userId?: string;
+    user?: {
+      id: string;
+      name: string;
+      email: string;
+    };
   }>;
 }
 
@@ -194,6 +200,9 @@ export default function EventRegistrationPage({ params }: PageProps) {
     };
 
     try {
+      console.log("=== FRONTEND REGISTRATION ===");
+      console.log("Registration data being sent:", registrationData);
+      
       const response = await fetch("/api/registrations", {
         method: "POST",
         headers: {
@@ -202,9 +211,12 @@ export default function EventRegistrationPage({ params }: PageProps) {
         body: JSON.stringify(registrationData),
       });
 
+      console.log("Registration response status:", response.status);
       const data = await response.json();
+      console.log("Registration response data:", data);
 
       if (!response.ok) {
+        console.log("Registration failed with error:", data.error);
         setError(data.error || "Registration failed");
         return;
       }
@@ -246,7 +258,28 @@ export default function EventRegistrationPage({ params }: PageProps) {
 
   const isUserRegistered = () => {
     if (!event || !user || !event.registrations) return false;
-    return event.registrations.some(r => r.status !== 'CANCELLED');
+    
+    console.log("=== CHECKING USER REGISTRATION ===");
+    console.log("Current user ID:", user.id);
+    console.log("Event registrations:", event.registrations.length);
+    console.log("Registrations details:", event.registrations.map(r => ({
+      id: r.id,
+      userId: r.userId,
+      userFromInclude: r.user?.id,
+      status: r.status
+    })));
+    
+    // Check if THIS USER has a non-cancelled registration for this event
+    // Registration can have userId directly or user.id from the include
+    const isRegistered = event.registrations.some(r => {
+      const registrationUserId = r.userId || (r.user && r.user.id);
+      const matches = registrationUserId === user.id && r.status !== 'CANCELLED';
+      console.log(`Registration ${r.id}: userId=${registrationUserId}, matches=${matches}, status=${r.status}`);
+      return matches;
+    });
+    
+    console.log("Final isRegistered result:", isRegistered);
+    return isRegistered;
   };
 
   if (loading || !event) {
