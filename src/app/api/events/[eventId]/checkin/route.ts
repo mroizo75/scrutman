@@ -47,6 +47,7 @@ export async function GET(
     }
 
     // Get all confirmed and checked-in registrations with related data
+    console.log("CHECK-IN: Fetching registrations for event:", resolvedParams.eventId);
     const registrations = await prisma.registration.findMany({
       where: {
         eventId: resolvedParams.eventId,
@@ -130,7 +131,9 @@ export async function GET(
     });
 
     // Handle empty registrations
+    console.log("CHECK-IN: Found registrations:", registrations.length);
     if (!registrations || registrations.length === 0) {
+      console.log("CHECK-IN: No registrations found, returning empty participants");
       return NextResponse.json({
         event: {
           id: event.id,
@@ -188,6 +191,7 @@ export async function GET(
       };
     });
 
+    console.log("CHECK-IN: Returning participants:", participants.length);
     return NextResponse.json({
       event: {
         id: event.id,
