@@ -796,8 +796,8 @@ export default function EventsPage() {
                         </Link>
                       </Button>
                       
-                      {/* Edit - only for DRAFT and REJECTED events */}
-                      {(event.status === 'DRAFT' || event.status === 'REJECTED') && (
+                      {/* Edit - for DRAFT, REJECTED, and APPROVED events */}
+                      {(event.status === 'DRAFT' || event.status === 'REJECTED' || event.status === 'APPROVED') && (
                         <Button
                           variant="outline"
                           size="sm"
