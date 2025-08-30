@@ -122,12 +122,57 @@ export async function PUT(
       }, { status: 400 });
     }
 
+    // Extract classIds for separate handling
+    const { classIds, ...eventData } = data;
+
+    // Update event basic data first
     const updatedEvent = await prisma.event.update({
       where: { id: resolvedParams.eventId },
-      data,
+      data: eventData,
     });
 
-    return NextResponse.json(updatedEvent);
+    // Handle class updates if classIds are provided
+    if (classIds && Array.isArray(classIds)) {
+      // First, disconnect all existing classes
+      await prisma.event.update({
+        where: { id: resolvedParams.eventId },
+        data: {
+          classes: {
+            set: [] // This disconnects all classes
+          }
+        }
+      });
+
+      // Then connect the new classes
+      if (classIds.length > 0) {
+        await prisma.event.update({
+          where: { id: resolvedParams.eventId },
+          data: {
+            classes: {
+              connect: classIds.map((classId: string) => ({ id: classId }))
+            }
+          }
+        });
+      }
+    }
+
+    // Fetch the complete updated event with relations
+    const finalEvent = await prisma.event.findUnique({
+      where: { id: resolvedParams.eventId },
+      include: {
+        registrations: {
+          include: {
+            user: true
+          }
+        },
+        files: true,
+        images: true,
+        club: true,
+        classes: true
+      }
+    });
+
+    return NextResponse.json(finalEvent);
   } catch (error) {
     console.error("Error updating event:", error);
     return NextResponse.json(
