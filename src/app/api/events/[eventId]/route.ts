@@ -66,14 +66,54 @@ export async function PUT(
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    // Only allow editing if event is in DRAFT or REJECTED status
-    if (event.status !== "DRAFT" && event.status !== "REJECTED") {
+    // Only allow editing if event is in DRAFT, REJECTED, or APPROVED status
+    if (event.status !== "DRAFT" && event.status !== "REJECTED" && event.status !== "APPROVED") {
       return NextResponse.json({ 
-        error: "Event can only be edited when in DRAFT or REJECTED status" 
+        error: "Event can only be edited when in DRAFT, REJECTED, or APPROVED status" 
       }, { status: 400 });
     }
 
-    const data = await request.json();
+    let data;
+    const contentType = request.headers.get("content-type");
+    
+    try {
+      if (contentType && contentType.includes("application/json")) {
+        data = await request.json();
+      } else if (contentType && contentType.includes("multipart/form-data")) {
+        // Handle FormData from frontend
+        const formData = await request.formData();
+        data = {};
+        
+        for (const [key, value] of formData.entries()) {
+          if (key === 'classIds') {
+            if (!data.classIds) data.classIds = [];
+            data.classIds.push(value);
+          } else if (key === 'files' || key === 'images') {
+            // Skip file handling for now - just update text fields
+            continue;
+          } else if (key === 'startDate' || key === 'endDate') {
+            data[key] = new Date(value as string);
+          } else if (key === 'maxParticipants') {
+            data[key] = parseInt(value as string);
+          } else {
+            data[key] = value;
+          }
+        }
+      } else {
+        return NextResponse.json({ 
+          error: "Unsupported content type" 
+        }, { status: 400 });
+      }
+    } catch (error) {
+      console.error("Data parsing error:", error);
+      console.error("Content-Type:", contentType);
+      console.error("Request URL:", request.url);
+      return NextResponse.json({ 
+        error: "Invalid data provided" 
+      }, { status: 400 });
+    }
+    
+    console.log("Received data for event update:", data);
     
     // Prevent changing status through general update - use PATCH for status changes
     if (data.status && data.status !== event.status) {
@@ -126,7 +166,29 @@ export async function PATCH(
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    const { status } = await request.json();
+    let requestData;
+    const contentType = request.headers.get("content-type");
+    
+    try {
+      if (contentType && contentType.includes("application/json")) {
+        requestData = await request.json();
+      } else if (contentType && contentType.includes("multipart/form-data")) {
+        const formData = await request.formData();
+        requestData = {};
+        for (const [key, value] of formData.entries()) {
+          requestData[key] = value;
+        }
+      } else {
+        requestData = await request.json(); // fallback
+      }
+    } catch (error) {
+      console.error("PATCH data parsing error:", error);
+      return NextResponse.json({ 
+        error: "Invalid data provided" 
+      }, { status: 400 });
+    }
+
+    const { status } = requestData;
 
     if (!status) {
       return NextResponse.json({ error: "Status is required" }, { status: 400 });
