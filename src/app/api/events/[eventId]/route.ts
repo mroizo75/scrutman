@@ -73,7 +73,7 @@ export async function PUT(
       }, { status: 400 });
     }
 
-    let data;
+    let data: any;
     const contentType = request.headers.get("content-type");
     
     try {
@@ -82,7 +82,7 @@ export async function PUT(
       } else if (contentType && contentType.includes("multipart/form-data")) {
         // Handle FormData from frontend
         const formData = await request.formData();
-        data = {};
+        data = {} as any;
         
         for (const [key, value] of formData.entries()) {
           if (key === 'classIds') {
@@ -166,7 +166,7 @@ export async function PATCH(
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    let requestData;
+    let requestData: any;
     const contentType = request.headers.get("content-type");
     
     try {
@@ -174,7 +174,7 @@ export async function PATCH(
         requestData = await request.json();
       } else if (contentType && contentType.includes("multipart/form-data")) {
         const formData = await request.formData();
-        requestData = {};
+        requestData = {} as any;
         for (const [key, value] of formData.entries()) {
           requestData[key] = value;
         }

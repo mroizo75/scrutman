@@ -41,6 +41,10 @@ interface Event {
     name: string;
     url: string;
   }[];
+  classes?: {
+    id: string;
+    name: string;
+  }[];
 }
 
 export default function EventsPage() {
@@ -174,6 +178,14 @@ export default function EventsPage() {
       location: event.location,
       maxParticipants: event.maxParticipants
     });
+    
+    // Set selected classes
+    setSelectedClasses(event.classes ? event.classes.map(c => c.id) : []);
+    
+    // Reset file uploads (can't pre-fill file inputs for security reasons)
+    setSelectedFiles([]);
+    setSelectedImages([]);
+    
     setShowForm(true);
   };
 
@@ -508,6 +520,30 @@ export default function EventsPage() {
                 <div className="space-y-4">
                   <div>
                     <Label>Files (Optional)</Label>
+                    
+                    {/* Show existing files when editing */}
+                    {editingEvent && editingEvent.files && editingEvent.files.length > 0 && (
+                      <div className="mt-2 mb-4">
+                        <p className="text-sm text-muted-foreground mb-2">Current files:</p>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                          {editingEvent.files.map((file) => (
+                            <div key={file.id} className="flex items-center gap-2 p-2 border rounded-md">
+                              <File className="h-4 w-4 text-muted-foreground" />
+                              <span className="text-sm truncate flex-1">{file.name}</span>
+                              <a
+                                href={file.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-xs text-blue-600 hover:underline"
+                              >
+                                View
+                              </a>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    
                     <div className="mt-2 flex items-center gap-4">
                       <Input
                         type="file"
@@ -521,11 +557,11 @@ export default function EventsPage() {
                         className="cursor-pointer flex items-center gap-2 px-4 py-2 border rounded-md hover:bg-accent"
                       >
                         <Upload className="h-4 w-4" />
-                        Upload Files
+                        {editingEvent ? 'Add More Files' : 'Upload Files'}
                       </Label>
                       {selectedFiles.length > 0 && (
                         <span className="text-sm text-muted-foreground">
-                          {selectedFiles.length} file(s) selected
+                          {selectedFiles.length} new file(s) selected
                         </span>
                       )}
                     </div>
@@ -533,6 +569,35 @@ export default function EventsPage() {
 
                   <div>
                     <Label>Images (Optional)</Label>
+                    
+                    {/* Show existing images when editing */}
+                    {editingEvent && editingEvent.images && editingEvent.images.length > 0 && (
+                      <div className="mt-2 mb-4">
+                        <p className="text-sm text-muted-foreground mb-2">Current images:</p>
+                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+                          {editingEvent.images.map((image) => (
+                            <div key={image.id} className="relative group">
+                              <img
+                                src={image.url}
+                                alt={image.name}
+                                className="w-full h-20 object-cover rounded-md border"
+                              />
+                              <div className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity rounded-md flex items-center justify-center">
+                                <a
+                                  href={image.url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-xs text-white bg-black bg-opacity-70 px-2 py-1 rounded"
+                                >
+                                  View
+                                </a>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    
                     <div className="mt-2 flex items-center gap-4">
                       <Input
                         type="file"
@@ -547,11 +612,11 @@ export default function EventsPage() {
                         className="cursor-pointer flex items-center gap-2 px-4 py-2 border rounded-md hover:bg-accent"
                       >
                         <ImageIcon className="h-4 w-4" />
-                        Upload Images
+                        {editingEvent ? 'Add More Images' : 'Upload Images'}
                       </Label>
                       {selectedImages.length > 0 && (
                         <span className="text-sm text-muted-foreground">
-                          {selectedImages.length} image(s) selected
+                          {selectedImages.length} new image(s) selected
                         </span>
                       )}
                     </div>
