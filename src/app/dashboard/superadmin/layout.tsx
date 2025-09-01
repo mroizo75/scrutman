@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Cookies from "js-cookie";
-import SuperAdminNav from "@/components/SuperAdminNav";
+
 
 export default function SuperAdminLayout({
   children,
@@ -26,14 +26,13 @@ export default function SuperAdminLayout({
         return;
       }
     } catch (error) {
-      console.error("Error parsing user data:", error);
+
       router.push("/login");
     }
   }, [router]);
 
   return (
     <div className="min-h-screen bg-background">
-      <SuperAdminNav />
       {children}
     </div>
   );

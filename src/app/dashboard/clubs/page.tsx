@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Cookies from "js-cookie";
-import AdminNav from "@/components/AdminNav";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -134,7 +134,6 @@ export default function ClubsPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <AdminNav />
       <main className="container mx-auto px-4 py-8">
         {isLoading ? (
           <div className="flex justify-center items-center h-64">

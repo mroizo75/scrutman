@@ -5,6 +5,7 @@ import { useRouter, usePathname } from "next/navigation";
 import Cookies from "js-cookie";
 import AdminNav from "@/components/AdminNav";
 import FederationNav from "@/components/FederationNav";
+import SuperAdminNav from "@/components/SuperAdminNav";
 
 export default function DashboardLayout({
   children,
@@ -47,16 +48,22 @@ export default function DashboardLayout({
   const userData = Cookies.get("user");
   const user = userData ? JSON.parse(userData) : null;
   
-  const isSuperAdminRoute = pathname?.startsWith("/dashboard/superadmin");
+  // SuperAdmin gets SuperAdminNav for all their dashboard routes
+  const isSuperAdmin = user?.role === "SUPERADMIN";
+  
+  // Federation Admin gets FederationNav for their routes  
   const isFederationAdminRoute = pathname?.startsWith("/dashboard/federation");
   const isFederationAdmin = user?.role === "FEDERATION_ADMIN";
-
   const showFederationNav = isFederationAdminRoute || isFederationAdmin;
-  const showAdminNav = !isSuperAdminRoute && !showFederationNav;
+  
+  // Show SuperAdminNav for SuperAdmin, FederationNav for Federation Admin, else AdminNav
+  const showSuperAdminNav = isSuperAdmin && !showFederationNav;
+  const showAdminNav = !showSuperAdminNav && !showFederationNav;
 
   return (
     <div className="min-h-screen bg-background">
       {showFederationNav && <FederationNav />}
+      {showSuperAdminNav && <SuperAdminNav />}
       {showAdminNav && <AdminNav />}
       {children}
     </div>

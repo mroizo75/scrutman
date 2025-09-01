@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Upload, File, Image as ImageIcon, X, Users, Calendar } from "lucide-react";
+import { Upload, File, Image as ImageIcon, X, Users, Calendar, Search, Building2, MapPin, Clock } from "lucide-react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import Link from "next/link";
@@ -45,11 +45,18 @@ interface Event {
     id: string;
     name: string;
   }[];
+  club?: {
+    id: string;
+    name: string;
+    city: string;
+    country: string;
+  };
 }
 
 export default function EventsPage() {
   const router = useRouter();
   const [events, setEvents] = useState<Event[]>([]);
+  const [filteredEvents, setFilteredEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -59,6 +66,10 @@ export default function EventsPage() {
   const [selectedImages, setSelectedImages] = useState<File[]>([]);
   const [availableClasses, setAvailableClasses] = useState<any[]>([]);
   const [selectedClasses, setSelectedClasses] = useState<string[]>([]);
+  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(20);
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -76,13 +87,17 @@ export default function EventsPage() {
     }
 
     const user = JSON.parse(userData);
-    if (user.role !== 'CLUBADMIN') {
+    setCurrentUser(user);
+    
+    if (user.role !== 'CLUBADMIN' && user.role !== 'SUPERADMIN') {
       router.push('/dashboard');
       return;
     }
 
     fetchEvents();
-    fetchAvailableClasses();
+    if (user.role === 'CLUBADMIN') {
+      fetchAvailableClasses();
+    }
   }, [router]);
 
   const fetchAvailableClasses = async () => {
@@ -96,7 +111,7 @@ export default function EventsPage() {
       const data = await response.json();
       setAvailableClasses(data);
     } catch (err) {
-      console.error('Error fetching club classes:', err);
+
     }
   };
 
@@ -106,12 +121,38 @@ export default function EventsPage() {
       if (!response.ok) throw new Error('Could not fetch events');
       const data = await response.json();
       setEvents(data);
+      setFilteredEvents(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
       setLoading(false);
     }
   };
+
+  // Search and filter functionality
+  useEffect(() => {
+    if (!searchTerm) {
+      setFilteredEvents(events);
+      setCurrentPage(1);
+      return;
+    }
+
+    const filtered = events.filter(event => 
+      event.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      event.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      event.club?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      event.club?.city.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+    
+    setFilteredEvents(filtered);
+    setCurrentPage(1);
+  }, [searchTerm, events]);
+
+  // Pagination
+  const totalPages = Math.ceil(filteredEvents.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentEvents = filteredEvents.slice(startIndex, endIndex);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -149,12 +190,12 @@ export default function EventsPage() {
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         const errorMessage = errorData.error || `HTTP ${response.status}: Could not save event`;
-        console.error('Event save failed:', { status: response.status, error: errorData });
+
         throw new Error(errorMessage);
       }
 
       const result = await response.json();
-      console.log('Event saved successfully:', result);
+
       
       await fetchEvents();
       resetForm();
@@ -343,15 +384,40 @@ export default function EventsPage() {
   return (
     <main className="container mx-auto px-4 py-8">
       <div className="space-y-8">
-        <div className="flex justify-between items-center">
-          <h1 className="text-3xl font-bold">Events</h1>
-          <Button onClick={() => {
-            setShowForm(!showForm);
-            setError(null);
-            setSuccess(null);
-          }}>
-            {showForm ? 'Cancel' : 'New Event'}
-          </Button>
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+          <div>
+            <h1 className="text-3xl font-bold">
+              {currentUser?.role === 'SUPERADMIN' ? 'All Events' : 'Events'}
+            </h1>
+            <p className="text-muted-foreground">
+              {currentUser?.role === 'SUPERADMIN' 
+                ? `Showing ${filteredEvents.length} of ${events.length} events` 
+                : 'Manage your club events'
+              }
+            </p>
+          </div>
+          
+          {currentUser?.role === 'SUPERADMIN' ? (
+            <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
+              <div className="relative flex-1 sm:w-80">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                <Input
+                  placeholder="Search events or clubs..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+            </div>
+          ) : (
+            <Button onClick={() => {
+              setShowForm(!showForm);
+              setError(null);
+              setSuccess(null);
+            }}>
+              {showForm ? 'Cancel' : 'New Event'}
+            </Button>
+          )}
         </div>
 
         {error && (
@@ -366,7 +432,7 @@ export default function EventsPage() {
           </div>
         )}
 
-        {showForm && (
+        {showForm && currentUser?.role === 'CLUBADMIN' && (
           <Card>
             <CardHeader>
               <CardTitle>{editingEvent ? 'Edit Event' : 'New Event'}</CardTitle>
@@ -637,7 +703,7 @@ export default function EventsPage() {
         )}
 
         <div className="space-y-6">
-          {getSortedEvents().map((event) => {
+          {currentEvents.map((event) => {
             const stats = getRegistrationStats(event.registrations);
             const isFull = event.maxParticipants > 0 && stats.confirmed >= event.maxParticipants;
             const spotsLeft = event.maxParticipants > 0 ? event.maxParticipants - stats.confirmed : null;
@@ -648,16 +714,27 @@ export default function EventsPage() {
                   <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
                     <div className="space-y-1">
                       <CardTitle className="text-xl">{event.title}</CardTitle>
-                      <p className="text-sm text-muted-foreground">
-                        {new Date(event.startDate).toLocaleString('en-US', {
-                          weekday: 'long',
-                          year: 'numeric',
-                          month: 'long',
-                          day: 'numeric',
-                          hour: '2-digit',
-                          minute: '2-digit'
-                        })}
-                      </p>
+                      {currentUser?.role === 'SUPERADMIN' && event.club && (
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                          <Building2 className="h-4 w-4" />
+                          <span>{event.club.name}</span>
+                          <MapPin className="h-4 w-4 ml-2" />
+                          <span>{event.club.city}, {event.club.country}</span>
+                        </div>
+                      )}
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <Clock className="h-4 w-4" />
+                        <span>
+                          {new Date(event.startDate).toLocaleString('en-US', {
+                            weekday: 'long',
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                          })}
+                        </span>
+                      </div>
                     </div>
                     <Badge className={getStatusColor(event.status)}>
                       {getStatusText(event.status)}
@@ -789,98 +866,105 @@ export default function EventsPage() {
                     )}
 
                     <div className="flex justify-end gap-2 flex-wrap">
-                      {/* Submit for Approval - only for DRAFT and REJECTED events */}
-                      {(event.status === 'DRAFT' || event.status === 'REJECTED') && (
-                        <Button
-                          variant="default"
-                          size="sm"
-                          onClick={() => handleSubmitForApproval(event.id)}
-                          className="bg-blue-600 hover:bg-blue-700"
-                        >
-                          Send for Approval
-                        </Button>
-                      )}
-                      
-                      {/* Publish - only for APPROVED events */}
-                      {event.status === 'APPROVED' && (
-                        <Button
-                          variant="default"
-                          size="sm"
-                          onClick={() => handlePublishEvent(event.id)}
-                          className="bg-green-600 hover:bg-green-700"
-                        >
-                          Publish Event
-                        </Button>
-                      )}
-                      
-                      {/* Classes - for all events that can be edited */}
-                      {(event.status === 'DRAFT' || event.status === 'REJECTED') && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          asChild
-                        >
-                          <Link href={`/dashboard/events/${event.id}/classes`}>
-                            Classes
-                          </Link>
-                        </Button>
-                      )}
-                      
-                      {/* Start List - for all events */}
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        asChild
-                      >
-                        <Link href={`/dashboard/events/${event.id}/startliste`}>
-                          Start List
-                        </Link>
-                      </Button>
-                      
-                      {/* Check-In - for published events */}
-                      {event.status === 'PUBLISHED' && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          asChild
-                        >
-                          <Link href={`/dashboard/checkin/${event.id}`}>
-                            Check-In
-                          </Link>
-                        </Button>
-                      )}
-                      
-                      {/* Weight Limits - for all events */}
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        asChild
-                      >
-                        <Link href={`/dashboard/events/${event.id}/weight-limits`}>
-                          Weight Limits
-                        </Link>
-                      </Button>
-                      
-                      {/* Edit - for DRAFT, REJECTED, and APPROVED events */}
-                      {(event.status === 'DRAFT' || event.status === 'REJECTED' || event.status === 'APPROVED') && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleEdit(event)}
-                        >
-                          Edit
-                        </Button>
-                      )}
-                      
-                      {/* Delete - only for DRAFT and REJECTED events */}
-                      {(event.status === 'DRAFT' || event.status === 'REJECTED') && (
-                        <Button
-                          variant="destructive"
-                          size="sm"
-                          onClick={() => handleDelete(event.id)}
-                        >
-                          Delete
-                        </Button>
+                      {currentUser?.role === 'CLUBADMIN' ? (
+                        <>
+                          {/* Submit for Approval - only for DRAFT and REJECTED events */}
+                          {(event.status === 'DRAFT' || event.status === 'REJECTED') && (
+                            <Button
+                              variant="default"
+                              size="sm"
+                              onClick={() => handleSubmitForApproval(event.id)}
+                              className="bg-blue-600 hover:bg-blue-700"
+                            >
+                              Send for Approval
+                            </Button>
+                          )}
+                          
+                          {/* Publish - only for APPROVED events */}
+                          {event.status === 'APPROVED' && (
+                            <Button
+                              variant="default"
+                              size="sm"
+                              onClick={() => handlePublishEvent(event.id)}
+                              className="bg-green-600 hover:bg-green-700"
+                            >
+                              Publish Event
+                            </Button>
+                          )}
+                          
+                          {/* Classes - for all events that can be edited */}
+                          {(event.status === 'DRAFT' || event.status === 'REJECTED') && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              asChild
+                            >
+                              <Link href={`/dashboard/events/${event.id}/classes`}>
+                                Classes
+                              </Link>
+                            </Button>
+                          )}
+                          
+                          {/* Start List - for all events */}
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            asChild
+                          >
+                            <Link href={`/dashboard/events/${event.id}/startliste`}>
+                              Start List
+                            </Link>
+                          </Button>
+                          
+                          {/* Check-In - for published events */}
+                          {event.status === 'PUBLISHED' && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              asChild
+                            >
+                              <Link href={`/dashboard/checkin/${event.id}`}>
+                                Check-In
+                              </Link>
+                            </Button>
+                          )}
+                          
+                          {/* Weight Limits - for all events */}
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            asChild
+                          >
+                            <Link href={`/dashboard/events/${event.id}/weight-limits`}>
+                              Weight Limits
+                            </Link>
+                          </Button>
+                          
+                          {/* Edit - for DRAFT, REJECTED, and APPROVED events */}
+                          {(event.status === 'DRAFT' || event.status === 'REJECTED' || event.status === 'APPROVED') && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleEdit(event)}
+                            >
+                              Edit
+                            </Button>
+                          )}
+                          
+                          {/* Delete - only for DRAFT and REJECTED events */}
+                          {(event.status === 'DRAFT' || event.status === 'REJECTED') && (
+                            <Button
+                              variant="destructive"
+                              size="sm"
+                              onClick={() => handleDelete(event.id)}
+                            >
+                              Delete
+                            </Button>
+                          )}
+                        </>
+                      ) : (
+                        /* SuperAdmin only gets view details */
+                        <></>
                       )}
                       
                       {/* View Details - for all events */}
@@ -899,6 +983,64 @@ export default function EventsPage() {
               </Card>
             );
           })}
+
+          {/* No events found */}
+          {currentEvents.length === 0 && !loading && (
+            <div className="text-center py-12">
+              <Calendar className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-muted-foreground mb-2">
+                {searchTerm ? 'No events found' : 'No events yet'}
+              </h3>
+              <p className="text-sm text-muted-foreground">
+                {searchTerm 
+                  ? `No events match "${searchTerm}". Try a different search term.`
+                  : currentUser?.role === 'SUPERADMIN' 
+                    ? 'No events have been created yet.'
+                    : 'Create your first event to get started.'
+                }
+              </p>
+            </div>
+          )}
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between border-t pt-6">
+              <div className="text-sm text-muted-foreground">
+                Showing {startIndex + 1} to {Math.min(endIndex, filteredEvents.length)} of {filteredEvents.length} events
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage(currentPage - 1)}
+                  disabled={currentPage === 1}
+                >
+                  Previous
+                </Button>
+                <div className="flex items-center gap-1">
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => (
+                    <Button
+                      key={pageNum}
+                      variant={currentPage === pageNum ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setCurrentPage(pageNum)}
+                      className="w-10 h-10"
+                    >
+                      {pageNum}
+                    </Button>
+                  ))}
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                >
+                  Next
+                </Button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </main>

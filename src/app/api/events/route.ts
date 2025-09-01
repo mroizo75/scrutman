@@ -65,14 +65,15 @@ export async function GET() {
         images: true,
         club: true
       },
-      orderBy: {
-        startDate: 'asc'
-      }
+      orderBy: [
+        { startDate: 'asc' },
+        { title: 'asc' }
+      ]
     });
 
     return NextResponse.json(events);
   } catch (error) {
-    console.error('Error fetching events:', error);
+
     return NextResponse.json(
       { error: 'Failed to fetch events' },
       { status: 500 }
