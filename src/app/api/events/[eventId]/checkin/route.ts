@@ -60,7 +60,17 @@ export async function GET(
             name: true,
             email: true,
             phone: true,
-            licenseNumber: true
+            licenseNumber: true,
+            licenseReceiptUrl: true,
+            licenseExpiryDate: true,
+            club: {
+              select: {
+                id: true,
+                name: true,
+                city: true,
+                country: true
+              }
+            }
           }
         },
         class: {

@@ -117,8 +117,8 @@ export default function NewUserPage() {
                       <SelectValue placeholder="Velg rolle" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="ATHLETE">Utøver</SelectItem>
-                      <SelectItem value="CLUBADMIN">Klubbadministrator</SelectItem>
+                      <SelectItem value="ATHLETE">Athlete</SelectItem>
+                      <SelectItem value="CLUBADMIN">Club Administrator</SelectItem>
                       <SelectItem value="TECHNICAL_INSPECTOR">Technical Inspector</SelectItem>
                       <SelectItem value="WEIGHT_CONTROLLER">Weight Controller</SelectItem>
                       <SelectItem value="RACE_OFFICIAL">Race Official</SelectItem>

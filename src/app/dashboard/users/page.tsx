@@ -56,7 +56,7 @@ export default function UsersPage() {
   };
 
   const handleDelete = async (userId: string, userName: string) => {
-    if (!confirm(`Er du sikker på at du vil slette brukeren "${userName}"? Dette kan ikke angres.`)) {
+    if (!confirm(`Are you sure you want to delete user "${userName}"? This action cannot be undone.`)) {
       return;
     }
 
@@ -67,12 +67,12 @@ export default function UsersPage() {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || 'Kunne ikke slette bruker');
+        throw new Error(errorData.error || 'Could not delete user');
       }
       
       await fetchUsers(); // Refresh list
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'En feil oppstod');
+      setError(err instanceof Error ? err.message : 'An error occurred');
     }
   };
 
@@ -96,15 +96,15 @@ export default function UsersPage() {
   const getRoleText = (role: User['role']) => {
     switch (role) {
       case 'CLUBADMIN':
-        return 'Klubbadministrator';
+        return 'Club Administrator';
       case 'ATHLETE':
-        return 'Utøver';
+        return 'Athlete';
       case 'TECHNICAL_INSPECTOR':
-        return 'Teknisk Kontrollør';
+        return 'Technical Inspector';
       case 'WEIGHT_CONTROLLER':
         return 'Weight Controller';
       case 'RACE_OFFICIAL':
-        return 'Løpsleder';
+        return 'Race Official';
       default:
         return role;
     }

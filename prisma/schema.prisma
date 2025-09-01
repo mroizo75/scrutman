@@ -30,6 +30,8 @@ model User {
   password      String
   phone         String?
   licenseNumber String?   // Lisensnummer for utøvere
+  licenseReceiptUrl String? // URL til kvittering for betalt lisens
+  licenseExpiryDate DateTime? // Utløpsdato for lisens
   dateOfBirth   DateTime? // Fødselsdato
   address       String?   // Adresse
   city          String?   // By

@@ -40,7 +40,7 @@ interface Vehicle {
   engineVolume?: number;
   weight?: number;
   category: string;
-  memberClub?: string;
+
   createdAt: string;
   updatedAt: string;
 }
@@ -125,7 +125,7 @@ export default function VehiclesPage() {
       engineVolume: formData.get("engineVolume") as string,
       weight: formData.get("weight") as string,
       category: formData.get("category") as string,
-      memberClub: formData.get("memberClub") as string,
+
     };
 
     try {
@@ -439,15 +439,7 @@ export default function VehiclesPage() {
                           placeholder="e.g. 1200"
                         />
                       </div>
-                      <div>
-                        <Label htmlFor="memberClub">Member Club</Label>
-                        <Input
-                          id="memberClub"
-                          name="memberClub"
-                          defaultValue={editingVehicle?.memberClub || ""}
-                          placeholder="e.g. Oslo Racing Club"
-                        />
-                      </div>
+
                     </div>
                   </div>
 
@@ -551,12 +543,7 @@ export default function VehiclesPage() {
                           <p className="font-medium">{vehicle.weight}kg</p>
                         </div>
                       )}
-                      {vehicle.memberClub && (
-                        <div className="col-span-2">
-                          <span className="text-muted-foreground">Club:</span>
-                          <p className="font-medium">{vehicle.memberClub}</p>
-                        </div>
-                      )}
+
                     </div>
 
                     <div className="flex gap-2">

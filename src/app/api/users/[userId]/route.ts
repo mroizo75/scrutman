@@ -30,6 +30,8 @@ export async function GET(
         name: true,
         phone: true,
         licenseNumber: true,
+        licenseReceiptUrl: true,
+        licenseExpiryDate: true,
         dateOfBirth: true,
         address: true,
         city: true,
@@ -38,6 +40,14 @@ export async function GET(
         emergencyContact: true,
         emergencyPhone: true,
         role: true,
+        club: {
+          select: {
+            id: true,
+            name: true,
+            city: true,
+            country: true
+          }
+        },
         createdAt: true,
         updatedAt: true,
         registrations: {
@@ -116,6 +126,8 @@ export async function PUT(
       phone,
       role,
       licenseNumber,
+      licenseReceiptUrl,
+      licenseExpiryDate,
       dateOfBirth,
       address,
       city,
@@ -143,6 +155,8 @@ export async function PUT(
         phone: phone || null,
         role: role || undefined,
         licenseNumber: licenseNumber || null,
+        licenseReceiptUrl: licenseReceiptUrl || null,
+        licenseExpiryDate: licenseExpiryDate ? new Date(licenseExpiryDate) : null,
         dateOfBirth: dateOfBirth ? new Date(dateOfBirth) : null,
         address: address || null,
         city: city || null,
@@ -157,6 +171,8 @@ export async function PUT(
         name: true,
         phone: true,
         licenseNumber: true,
+        licenseReceiptUrl: true,
+        licenseExpiryDate: true,
         dateOfBirth: true,
         address: true,
         city: true,

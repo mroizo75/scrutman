@@ -154,15 +154,15 @@ export default function UserDetailPage({ params }: { params: Promise<{ userId: s
   const getRoleText = (role: string) => {
     switch (role) {
       case 'CLUBADMIN':
-        return 'Klubbadministrator';
+        return 'Club Administrator';
       case 'ATHLETE':
-        return 'Utøver';
+        return 'Athlete';
       case 'TECHNICAL_INSPECTOR':
-        return 'Teknisk Kontrollør';
+        return 'Technical Inspector';
       case 'WEIGHT_CONTROLLER':
         return 'Weight Controller';
       case 'RACE_OFFICIAL':
-        return 'Løpsleder';
+        return 'Race Official';
       default:
         return role;
     }
@@ -332,8 +332,8 @@ export default function UserDetailPage({ params }: { params: Promise<{ userId: s
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="ATHLETE">Utøver</SelectItem>
-                        <SelectItem value="CLUBADMIN">Klubbadministrator</SelectItem>
+                        <SelectItem value="ATHLETE">Athlete</SelectItem>
+                        <SelectItem value="CLUBADMIN">Club Administrator</SelectItem>
                         <SelectItem value="TECHNICAL_INSPECTOR">Technical Inspector</SelectItem>
                         <SelectItem value="WEIGHT_CONTROLLER">Weight Controller</SelectItem>
                         <SelectItem value="RACE_OFFICIAL">Race Official</SelectItem>

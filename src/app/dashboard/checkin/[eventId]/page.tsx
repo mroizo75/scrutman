@@ -19,7 +19,10 @@ import {
   AlertTriangle,
   RefreshCw,
   ArrowLeft,
-  CheckCircle2
+  CheckCircle2,
+  Building2,
+  FileText,
+  Shield
 } from "lucide-react";
 import Link from "next/link";
 
@@ -32,6 +35,14 @@ interface Participant {
     email: string;
     phone: string;
     licenseNumber: string;
+    licenseReceiptUrl?: string;
+    licenseExpiryDate?: string;
+    club?: {
+      id: string;
+      name: string;
+      city: string;
+      country: string;
+    };
   };
   class: {
     id: string;
@@ -533,6 +544,9 @@ export default function CheckInPage({ params }: { params: Promise<{ eventId: str
                         <p><strong>Phone:</strong> {selectedParticipant.user.phone || 'N/A'}</p>
                         <p><strong>License:</strong> {selectedParticipant.user.licenseNumber || 'N/A'}</p>
                         <p><strong>Class:</strong> {selectedParticipant.class.name}</p>
+                        {selectedParticipant.user.club && (
+                          <p><strong>Club:</strong> {selectedParticipant.user.club.name}</p>
+                        )}
                       </div>
                       <div>
                         <p><strong>Vehicle:</strong> {selectedParticipant.userVehicle?.make || 'Unknown'} {selectedParticipant.userVehicle?.model || 'Vehicle'}</p>
@@ -574,6 +588,111 @@ export default function CheckInPage({ params }: { params: Promise<{ eventId: str
                         )}
                       </div>
                     )}
+                  </div>
+
+                  {/* License Verification */}
+                  <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                    <h4 className="text-sm font-medium mb-3 flex items-center gap-2">
+                      <Shield className="h-4 w-4 text-blue-600" />
+                      License Verification
+                    </h4>
+                    <div className="space-y-3 text-sm">
+                      {/* License Number */}
+                      <div className="flex items-center justify-between">
+                        <span className="text-muted-foreground">License Number:</span>
+                        <span className={selectedParticipant.user.licenseNumber ? 'text-green-600 font-medium' : 'text-red-600'}>
+                          {selectedParticipant.user.licenseNumber || 'Missing'}
+                        </span>
+                      </div>
+
+                      {/* License Expiry */}
+                      {selectedParticipant.user.licenseExpiryDate && (
+                        <div className="flex items-center justify-between">
+                          <span className="text-muted-foreground">Expires:</span>
+                          <span className={
+                            new Date(selectedParticipant.user.licenseExpiryDate) > new Date() 
+                              ? 'text-green-600 font-medium' 
+                              : 'text-red-600 font-medium'
+                          }>
+                            {new Date(selectedParticipant.user.licenseExpiryDate).toLocaleDateString()}
+                            {new Date(selectedParticipant.user.licenseExpiryDate) <= new Date() && ' (EXPIRED)'}
+                          </span>
+                        </div>
+                      )}
+
+                      {/* License Receipt */}
+                      <div className="flex items-center justify-between">
+                        <span className="text-muted-foreground">Payment Receipt:</span>
+                        <div className="flex items-center gap-2">
+                          {selectedParticipant.user.licenseReceiptUrl ? (
+                            <>
+                              <CheckCircle2 className="h-4 w-4 text-green-600" />
+                              <a 
+                                href={selectedParticipant.user.licenseReceiptUrl} 
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                                className="text-blue-600 hover:underline text-sm"
+                              >
+                                View Receipt
+                              </a>
+                            </>
+                          ) : (
+                            <>
+                              <X className="h-4 w-4 text-red-600" />
+                              <span className="text-red-600 font-medium">No Receipt</span>
+                            </>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Club Membership */}
+                      <div className="flex items-center justify-between">
+                        <span className="text-muted-foreground">Club Member:</span>
+                        <div className="flex items-center gap-2">
+                          {selectedParticipant.user.club ? (
+                            <>
+                              <Building2 className="h-4 w-4 text-green-600" />
+                              <span className="text-green-600 font-medium">
+                                {selectedParticipant.user.club.name}
+                              </span>
+                            </>
+                          ) : (
+                            <>
+                              <X className="h-4 w-4 text-red-600" />
+                              <span className="text-red-600 font-medium">No Club</span>
+                            </>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Overall License Status */}
+                      <div className="pt-2 mt-2 border-t border-blue-200">
+                        <div className="flex items-center gap-2">
+                          <span className="text-muted-foreground">License Status:</span>
+                          {(() => {
+                            const hasLicense = selectedParticipant.user.licenseNumber;
+                            const hasReceipt = selectedParticipant.user.licenseReceiptUrl;
+                            const hasClub = selectedParticipant.user.club;
+                            const isExpired = selectedParticipant.user.licenseExpiryDate && 
+                              new Date(selectedParticipant.user.licenseExpiryDate) <= new Date();
+                            
+                            if (hasLicense && hasReceipt && hasClub && !isExpired) {
+                              return (
+                                <Badge className="bg-green-100 text-green-800 border-green-200">
+                                  ✓ Valid
+                                </Badge>
+                              );
+                            } else {
+                              return (
+                                <Badge className="bg-red-100 text-red-800 border-red-200">
+                                  ⚠ Issues Found
+                                </Badge>
+                              );
+                            }
+                          })()}
+                        </div>
+                      </div>
+                    </div>
                   </div>
 
                   {/* Status Selection */}

@@ -22,7 +22,10 @@ import {
   MapPin,
   Phone,
   Mail,
-  CreditCard
+  CreditCard,
+  Upload,
+  FileText,
+  Trash2
 } from "lucide-react";
 import Link from "next/link";
 import Cookies from "js-cookie";
@@ -34,6 +37,8 @@ interface UserData {
   email: string;
   phone?: string;
   licenseNumber?: string;
+  licenseReceiptUrl?: string;
+  licenseExpiryDate?: string;
   dateOfBirth?: string;
   address?: string;
   city?: string;
@@ -42,6 +47,12 @@ interface UserData {
   emergencyContact?: string;
   emergencyPhone?: string;
   role: string;
+  club?: {
+    id: string;
+    name: string;
+    city: string;
+    country: string;
+  };
   registrations?: Array<{
     id: string;
     startNumber: number;
@@ -70,6 +81,8 @@ export default function ProfilePage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [uploadingReceipt, setUploadingReceipt] = useState(false);
+  const [deletingReceipt, setDeletingReceipt] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -117,6 +130,7 @@ export default function ProfilePage() {
       name: formData.get("name") as string,
       phone: formData.get("phone") as string,
       licenseNumber: formData.get("licenseNumber") as string,
+      licenseExpiryDate: formData.get("licenseExpiryDate") as string,
       dateOfBirth: formData.get("dateOfBirth") as string,
       address: formData.get("address") as string,
       city: formData.get("city") as string,
@@ -154,6 +168,73 @@ export default function ProfilePage() {
       setError("Network error. Please try again.");
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleReceiptUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user) return;
+
+    setUploadingReceipt(true);
+    setError(null);
+    setSuccess(null);
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+      const response = await fetch(`/api/users/${user.id}/license-receipt`, {
+        method: 'POST',
+        body: formData,
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setError(data.error || "Failed to upload license receipt");
+        return;
+      }
+
+      setUser({ ...user, licenseReceiptUrl: data.fileUrl });
+      setSuccess("License receipt uploaded successfully!");
+    } catch (error) {
+      setError("Failed to upload license receipt");
+    } finally {
+      setUploadingReceipt(false);
+      // Reset file input
+      e.target.value = '';
+    }
+  };
+
+  const handleReceiptDelete = async () => {
+    if (!user || !user.licenseReceiptUrl) return;
+    
+    if (!confirm("Are you sure you want to delete your license receipt?")) {
+      return;
+    }
+
+    setDeletingReceipt(true);
+    setError(null);
+    setSuccess(null);
+
+    try {
+      const response = await fetch(`/api/users/${user.id}/license-receipt`, {
+        method: 'DELETE',
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setError(data.error || "Failed to delete license receipt");
+        return;
+      }
+
+      setUser({ ...user, licenseReceiptUrl: undefined });
+      setSuccess("License receipt deleted successfully!");
+    } catch (error) {
+      setError("Failed to delete license receipt");
+    } finally {
+      setDeletingReceipt(false);
     }
   };
 
@@ -295,17 +376,114 @@ export default function ProfilePage() {
                           <CreditCard className="h-4 w-4" />
                           License Information
                         </h3>
-                        <div>
-                          <Label htmlFor="licenseNumber">License Number</Label>
-                          <Input
-                            id="licenseNumber"
-                            name="licenseNumber"
-                            defaultValue={user.licenseNumber || ""}
-                            placeholder="Enter your racing license number"
-                          />
-                          <p className="text-xs text-muted-foreground mt-1">
-                            Required for competitive events
-                          </p>
+                        <div className="space-y-4">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                              <Label htmlFor="licenseNumber">License Number</Label>
+                              <Input
+                                id="licenseNumber"
+                                name="licenseNumber"
+                                defaultValue={user.licenseNumber || ""}
+                                placeholder="Enter your racing license number"
+                              />
+                              <p className="text-xs text-muted-foreground mt-1">
+                                Required for competitive events
+                              </p>
+                            </div>
+                            <div>
+                              <Label htmlFor="licenseExpiryDate">License Expiry Date</Label>
+                              <Input
+                                id="licenseExpiryDate"
+                                name="licenseExpiryDate"
+                                type="date"
+                                defaultValue={user.licenseExpiryDate ? new Date(user.licenseExpiryDate).toISOString().split('T')[0] : ""}
+                              />
+                              <p className="text-xs text-muted-foreground mt-1">
+                                When your license expires
+                              </p>
+                            </div>
+                          </div>
+                          
+                          {/* License Receipt Upload */}
+                          <div>
+                            <Label>License Payment Receipt</Label>
+                            <div className="space-y-3">
+                              {user.licenseReceiptUrl ? (
+                                <div className="flex items-center justify-between p-3 bg-green-50 border border-green-200 rounded-md">
+                                  <div className="flex items-center gap-2">
+                                    <FileText className="h-4 w-4 text-green-600" />
+                                    <span className="text-sm font-medium text-green-800">
+                                      License receipt uploaded
+                                    </span>
+                                  </div>
+                                  <div className="flex gap-2">
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      asChild
+                                    >
+                                      <a href={user.licenseReceiptUrl} target="_blank" rel="noopener noreferrer">
+                                        View
+                                      </a>
+                                    </Button>
+                                    <Button
+                                      variant="destructive"
+                                      size="sm"
+                                      onClick={handleReceiptDelete}
+                                      disabled={deletingReceipt}
+                                    >
+                                      <Trash2 className="h-4 w-4" />
+                                    </Button>
+                                  </div>
+                                </div>
+                              ) : (
+                                <div className="border-2 border-dashed border-gray-300 rounded-md p-6">
+                                  <div className="text-center">
+                                    <Upload className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+                                    <div className="flex flex-col items-center gap-2">
+                                      <Label htmlFor="licenseReceipt" className="cursor-pointer text-sm font-medium text-primary hover:underline">
+                                        Upload license payment receipt
+                                      </Label>
+                                      <Input
+                                        id="licenseReceipt"
+                                        type="file"
+                                        accept="image/*,application/pdf"
+                                        onChange={handleReceiptUpload}
+                                        disabled={uploadingReceipt}
+                                        className="hidden"
+                                      />
+                                      <p className="text-xs text-muted-foreground">
+                                        PDF, JPG, PNG (max 5MB)
+                                      </p>
+                                    </div>
+                                  </div>
+                                </div>
+                              )}
+                              {uploadingReceipt && (
+                                <div className="text-center">
+                                  <div className="inline-flex items-center gap-2 text-sm text-muted-foreground">
+                                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
+                                    Uploading receipt...
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                            <p className="text-xs text-muted-foreground mt-1">
+                              Upload proof of license payment. This will be verified during event check-in.
+                            </p>
+                          </div>
+
+                          {user.club && (
+                            <div>
+                              <Label>Member Club</Label>
+                              <div className="p-3 bg-muted rounded-md">
+                                <p className="font-medium">{user.club.name}</p>
+                                <p className="text-sm text-muted-foreground">
+                                  {user.club.city}, {user.club.country}
+                                </p>
+                              </div>
+                            </div>
+                          )}
                         </div>
                       </div>
                       <Separator />
