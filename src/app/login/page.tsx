@@ -19,85 +19,40 @@ export default function LoginPage() {
     const password = formData.get("password") as string;
 
     try {
-      console.log("=== LOGIN ATTEMPT ===");
-      console.log("Email:", email);
-      console.log("Password length:", password.length);
-      
-      const requestBody = JSON.stringify({ email, password });
-      console.log("Request body:", requestBody);
-      
       const response = await fetch("/api/auth/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: requestBody,
+        body: JSON.stringify({ email, password }),
       });
 
-      console.log("=== RESPONSE RECEIVED ===");
-      console.log("Status:", response.status);
-      console.log("Status text:", response.statusText);
-      console.log("Headers:", [...response.headers.entries()]);
-      console.log("URL:", response.url);
-      console.log("Redirected:", response.redirected);
-      
-      // Get the raw response text first
-      const responseText = await response.text();
-      console.log("Raw response text:", responseText);
-      console.log("Response length:", responseText.length);
-      console.log("First 100 chars:", responseText.substring(0, 100));
-      
-      // Try to parse as JSON
-      let data;
-      try {
-        data = JSON.parse(responseText);
-        console.log("Successfully parsed JSON:", data);
-      } catch (parseError) {
-        console.error("=== JSON PARSE ERROR ===");
-        console.error("Parse error:", parseError);
-        console.error("Response was not JSON:", responseText);
-        setError(`Server returned invalid data: ${responseText.substring(0, 100)}`);
-        return;
-      }
+      const data = await response.json();
 
       if (!response.ok) {
-        console.log("Response not OK, showing error");
         setError(data.error || "Login failed");
         return;
       }
 
-      console.log("=== LOGIN SUCCESS ===");
-      console.log("User data:", data);
-
       // Store user data in cookie
       Cookies.set("user", JSON.stringify(data), { expires: 7 });
-      console.log("Cookie set successfully");
       
       // Redirect based on user role
-      console.log("Redirecting based on role:", data.role);
       if (data.role === "ATHLETE") {
-        console.log("Redirecting ATHLETE to /athlete/dashboard");
         router.push("/athlete/dashboard");
       } else if (data.role === "SUPERADMIN") {
-        console.log("Redirecting SUPERADMIN to /dashboard/superadmin");
         router.push("/dashboard/superadmin");
       } else if (data.role === "FEDERATION_ADMIN") {
-        console.log("Redirecting FEDERATION_ADMIN to /dashboard/federation");
         router.push("/dashboard/federation");
       } else if (data.role === "CLUBADMIN") {
-        console.log("Redirecting CLUBADMIN to /dashboard");
         router.push("/dashboard");
       } else if (data.role === "TECHNICAL_INSPECTOR" || data.role === "WEIGHT_CONTROLLER" || data.role === "RACE_OFFICIAL") {
-        console.log("Redirecting OTHER ADMIN to /dashboard");
         router.push("/dashboard");
       } else {
-        console.log("Redirecting UNKNOWN role", data.role, "to /");
         router.push("/");
       }
       
     } catch (error) {
-      console.error("=== NETWORK ERROR ===");
-      console.error("Error details:", error);
       setError(`Network error: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setIsLoading(false);

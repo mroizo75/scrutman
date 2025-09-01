@@ -4,32 +4,31 @@ import { prisma } from "@/lib/prisma";
 
 export async function POST(request: Request) {
   try {
-    console.log("=== REGISTRATION START ===");
     const cookieStore = await cookies();
     const userData = cookieStore.get("user");
     
     if (!userData) {
-      console.log("ERROR: No user data in cookie");
+
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const user = JSON.parse(userData.value);
-    console.log("Registration attempt by user:", user.id, user.email, user.role);
+
     
     // Only athletes can register for events
     if (user.role !== "ATHLETE") {
-      console.log("ERROR: User is not athlete, role:", user.role);
+
       return NextResponse.json({ error: "Only athletes can register for events" }, { status: 403 });
     }
 
     const requestBody = await request.json();
-    console.log("Request body received:", requestBody);
+
     const { eventId, classId, selectedVehicleIds, depotSize, needsPower, depotNotes, vehicle } = requestBody;
 
     // Validate required fields
-    console.log("Validating required fields - eventId:", eventId, "classId:", classId);
+
     if (!eventId || !classId) {
-      console.log("ERROR: Missing required fields");
+
       return NextResponse.json(
         { error: "Event ID and class ID are required" },
         { status: 400 }
@@ -37,7 +36,7 @@ export async function POST(request: Request) {
     }
 
     // Check if event exists and is published
-    console.log("Fetching event from database:", eventId);
+
     const event = await prisma.event.findUnique({
       where: { id: eventId },
       include: {
@@ -49,13 +48,13 @@ export async function POST(request: Request) {
     });
 
     if (!event) {
-      console.log("ERROR: Event not found in database");
+
       return NextResponse.json({ error: "Event not found" }, { status: 404 });
     }
 
-    console.log("Event found:", event.id, "Status:", event.status, "Title:", event.title);
+
     if (event.status !== "PUBLISHED") {
-      console.log("ERROR: Event not published, current status:", event.status);
+
       return NextResponse.json({ error: "Event is not open for registration" }, { status: 400 });
     }
 
@@ -70,7 +69,7 @@ export async function POST(request: Request) {
     }
 
     // Check if user is already registered for this event
-    console.log("Checking existing registration for user:", user.id, "event:", eventId);
+
     const existingRegistration = await prisma.registration.findFirst({
       where: {
         userId: user.id,
@@ -79,9 +78,9 @@ export async function POST(request: Request) {
       }
     });
 
-    console.log("Existing registration found:", existingRegistration);
+
     if (existingRegistration) {
-      console.log("Registration exists with status:", existingRegistration.status);
+
       return NextResponse.json({ 
         error: "You are already registered for this event",
         debug: {
@@ -275,11 +274,11 @@ export async function POST(request: Request) {
       }
     });
 
-    console.log("Registration created successfully:", registration.id, "Start number:", startNumber);
+
 
     return NextResponse.json(finalRegistration, { status: 201 });
   } catch (error) {
-    console.error("Registration error:", error);
+
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }
@@ -335,7 +334,7 @@ export async function GET(request: Request) {
 
     return NextResponse.json(registrations);
   } catch (error) {
-    console.error("Error fetching registrations:", error);
+
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }

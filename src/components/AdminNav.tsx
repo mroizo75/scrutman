@@ -60,16 +60,16 @@ export default function AdminNav() {
       roles: ["CLUBADMIN", "SUPERADMIN"]
     },
     {
-      href: "/dashboard/technical",
-      label: "Technical",
-      icon: Wrench,
-      roles: ["TECHNICAL_INSPECTOR", "CLUBADMIN", "SUPERADMIN"]
-    },
-    {
       href: "/dashboard/checkin",
       label: "Check-In",
       icon: ClipboardCheck,
       roles: ["CLUBADMIN", "RACE_OFFICIAL", "SUPERADMIN"]
+    },
+    {
+      href: "/dashboard/technical",
+      label: "Technical",
+      icon: Wrench,
+      roles: ["TECHNICAL_INSPECTOR", "CLUBADMIN", "SUPERADMIN"]
     },
     {
       href: "/dashboard/weight-control",

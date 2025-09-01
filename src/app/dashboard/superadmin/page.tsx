@@ -97,7 +97,7 @@ export default function SuperAdminDashboard() {
       setClubs(data);
     } catch (err) {
       setError("Failed to load clubs");
-      console.error("Error fetching clubs:", err);
+
     } finally {
       setLoading(false);
     }
@@ -189,12 +189,13 @@ export default function SuperAdminDashboard() {
 
   const getTotalAdmins = () => {
     return clubs.reduce((total, club) => {
-      return total + club.users.filter(user => user.role === "CLUBADMIN").length;
+      const users = club.users || [];
+      return total + users.filter(user => user.role === "CLUBADMIN").length;
     }, 0);
   };
 
   const getTotalMembers = () => {
-    return clubs.reduce((total, club) => total + club.users.length, 0);
+    return clubs.reduce((total, club) => total + (club.users?.length || 0), 0);
   };
 
   if (loading) {
@@ -437,10 +438,10 @@ export default function SuperAdminDashboard() {
 
                   <div className="mt-4 flex items-center gap-4">
                     <Badge variant="secondary">
-                      {club.users.length} {club.users.length === 1 ? "member" : "members"}
+                      {club.users?.length || 0} {(club.users?.length || 0) === 1 ? "member" : "members"}
                     </Badge>
                     <Badge variant="outline">
-                      {club.users.filter(u => u.role === "CLUBADMIN").length} admin{club.users.filter(u => u.role === "CLUBADMIN").length !== 1 ? "s" : ""}
+                      {club.users?.filter(u => u.role === "CLUBADMIN").length || 0} admin{(club.users?.filter(u => u.role === "CLUBADMIN").length || 0) !== 1 ? "s" : ""}
                     </Badge>
                   </div>
                 </div>
