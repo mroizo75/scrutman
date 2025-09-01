@@ -37,6 +37,7 @@ interface Participant {
     licenseNumber: string;
     licenseReceiptUrl?: string;
     licenseExpiryDate?: string;
+    memberClub?: string;
     club?: {
       id: string;
       name: string;
@@ -649,11 +650,11 @@ export default function CheckInPage({ params }: { params: Promise<{ eventId: str
                       <div className="flex items-center justify-between">
                         <span className="text-muted-foreground">Club Member:</span>
                         <div className="flex items-center gap-2">
-                          {selectedParticipant.user.club ? (
+                          {selectedParticipant.user.memberClub || selectedParticipant.user.club ? (
                             <>
                               <Building2 className="h-4 w-4 text-green-600" />
                               <span className="text-green-600 font-medium">
-                                {selectedParticipant.user.club.name}
+                                {selectedParticipant.user.memberClub || selectedParticipant.user.club?.name}
                               </span>
                             </>
                           ) : (
@@ -672,7 +673,7 @@ export default function CheckInPage({ params }: { params: Promise<{ eventId: str
                           {(() => {
                             const hasLicense = selectedParticipant.user.licenseNumber;
                             const hasReceipt = selectedParticipant.user.licenseReceiptUrl;
-                            const hasClub = selectedParticipant.user.club;
+                            const hasClub = selectedParticipant.user.memberClub || selectedParticipant.user.club;
                             const isExpired = selectedParticipant.user.licenseExpiryDate && 
                               new Date(selectedParticipant.user.licenseExpiryDate) <= new Date();
                             

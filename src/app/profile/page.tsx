@@ -40,6 +40,7 @@ interface UserData {
   licenseNumber?: string;
   licenseReceiptUrl?: string;
   licenseExpiryDate?: string;
+  memberClub?: string;
   dateOfBirth?: string;
   address?: string;
   city?: string;
@@ -84,6 +85,7 @@ export default function ProfilePage() {
   const [success, setSuccess] = useState<string | null>(null);
   const [uploadingReceipt, setUploadingReceipt] = useState(false);
   const [deletingReceipt, setDeletingReceipt] = useState(false);
+
   const router = useRouter();
 
   useEffect(() => {
@@ -132,6 +134,7 @@ export default function ProfilePage() {
       phone: formData.get("phone") as string,
       licenseNumber: formData.get("licenseNumber") as string,
       licenseExpiryDate: formData.get("licenseExpiryDate") as string,
+      memberClub: formData.get("memberClub") as string,
       dateOfBirth: formData.get("dateOfBirth") as string,
       address: formData.get("address") as string,
       city: formData.get("city") as string,
@@ -154,19 +157,27 @@ export default function ProfilePage() {
 
       if (!response.ok) {
         setError(data.error || "Failed to update profile");
+        // Auto-hide error message after 5 seconds
+        setTimeout(() => setError(null), 5000);
         return;
       }
 
-      setUser(data);
+      // Merge new data with existing user data to preserve receipt and other fields
+      setUser(prevUser => prevUser ? { ...prevUser, ...data } : data);
       setSuccess("Profile updated successfully!");
       
       // Update cookie with new user data
       const updatedUserData = { ...JSON.parse(Cookies.get("user") || "{}"), ...data };
       Cookies.set("user", JSON.stringify(updatedUserData), { expires: 7 });
 
+      // Auto-hide success message after 3 seconds
+      setTimeout(() => setSuccess(null), 3000);
+
     } catch (error) {
       console.error("Profile update error:", error);
       setError("Network error. Please try again.");
+      // Auto-hide error message after 5 seconds
+      setTimeout(() => setError(null), 5000);
     } finally {
       setSaving(false);
     }
@@ -193,13 +204,19 @@ export default function ProfilePage() {
 
       if (!response.ok) {
         setError(data.error || "Failed to upload license receipt");
+        // Auto-hide error message after 5 seconds
+        setTimeout(() => setError(null), 5000);
         return;
       }
 
-      setUser({ ...user, licenseReceiptUrl: data.fileUrl });
+      setUser(prevUser => prevUser ? { ...prevUser, licenseReceiptUrl: data.fileUrl } : null);
       setSuccess("License receipt uploaded successfully!");
+      // Auto-hide success message after 3 seconds
+      setTimeout(() => setSuccess(null), 3000);
     } catch (error) {
       setError("Failed to upload license receipt");
+      // Auto-hide error message after 5 seconds
+      setTimeout(() => setError(null), 5000);
     } finally {
       setUploadingReceipt(false);
       // Reset file input
@@ -227,13 +244,19 @@ export default function ProfilePage() {
 
       if (!response.ok) {
         setError(data.error || "Failed to delete license receipt");
+        // Auto-hide error message after 5 seconds
+        setTimeout(() => setError(null), 5000);
         return;
       }
 
-      setUser({ ...user, licenseReceiptUrl: undefined });
+      setUser(prevUser => prevUser ? { ...prevUser, licenseReceiptUrl: undefined } : null);
       setSuccess("License receipt deleted successfully!");
+      // Auto-hide success message after 3 seconds
+      setTimeout(() => setSuccess(null), 3000);
     } catch (error) {
       setError("Failed to delete license receipt");
+      // Auto-hide error message after 5 seconds
+      setTimeout(() => setError(null), 5000);
     } finally {
       setDeletingReceipt(false);
     }
@@ -369,28 +392,6 @@ export default function ProfilePage() {
 
                   <Separator />
 
-                  {/* Club Information */}
-                  {user.club && (
-                    <>
-                      <div className="space-y-4">
-                        <h3 className="font-medium flex items-center gap-2">
-                          <Building2 className="h-4 w-4" />
-                          Club Information
-                        </h3>
-                        <div>
-                          <Label>Member Club</Label>
-                          <div className="p-3 bg-muted rounded-md">
-                            <p className="font-medium">{user.club.name}</p>
-                            <p className="text-sm text-muted-foreground">
-                              {user.club.city}, {user.club.country}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                      <Separator />
-                    </>
-                  )}
-
                   {/* License Information */}
                   {user.role === "ATHLETE" && (
                     <>
@@ -425,12 +426,25 @@ export default function ProfilePage() {
                                 When your license expires
                               </p>
                             </div>
+                            <div>
+                              <Label htmlFor="memberClub">Member Club</Label>
+                              <Input
+                                id="memberClub"
+                                name="memberClub"
+                                defaultValue={user.memberClub || ""}
+                                placeholder="Enter your club name"
+                              />
+                              <p className="text-xs text-muted-foreground mt-1">
+                                The racing club you are a member of
+                              </p>
+                            </div>
                           </div>
                           
                           {/* License Receipt Upload */}
                           <div>
                             <Label>License Payment Receipt</Label>
                             <div className="space-y-3">
+
                               {user.licenseReceiptUrl ? (
                                 <div className="flex items-center justify-between p-3 bg-green-50 border border-green-200 rounded-md">
                                   <div className="flex items-center gap-2">

@@ -63,6 +63,7 @@ export async function GET(
             licenseNumber: true,
             licenseReceiptUrl: true,
             licenseExpiryDate: true,
+            memberClub: true,
             club: {
               select: {
                 id: true,

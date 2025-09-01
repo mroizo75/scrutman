@@ -32,6 +32,7 @@ export async function GET(
         licenseNumber: true,
         licenseReceiptUrl: true,
         licenseExpiryDate: true,
+        memberClub: true,
         dateOfBirth: true,
         address: true,
         city: true,
@@ -126,8 +127,8 @@ export async function PUT(
       phone,
       role,
       licenseNumber,
-      licenseReceiptUrl,
       licenseExpiryDate,
+      memberClub,
       dateOfBirth,
       address,
       city,
@@ -155,8 +156,8 @@ export async function PUT(
         phone: phone || null,
         role: role || undefined,
         licenseNumber: licenseNumber || null,
-        licenseReceiptUrl: licenseReceiptUrl || null,
         licenseExpiryDate: licenseExpiryDate ? new Date(licenseExpiryDate) : null,
+        memberClub: memberClub || null,
         dateOfBirth: dateOfBirth ? new Date(dateOfBirth) : null,
         address: address || null,
         city: city || null,
@@ -173,6 +174,7 @@ export async function PUT(
         licenseNumber: true,
         licenseReceiptUrl: true,
         licenseExpiryDate: true,
+        memberClub: true,
         dateOfBirth: true,
         address: true,
         city: true,
@@ -181,12 +183,18 @@ export async function PUT(
         emergencyContact: true,
         emergencyPhone: true,
         role: true,
+        club: {
+          select: {
+            id: true,
+            name: true,
+            city: true,
+            country: true
+          }
+        },
         createdAt: true,
         updatedAt: true,
       }
     });
-
-    console.log("User profile updated successfully:", updatedUser.id);
 
     return NextResponse.json(updatedUser);
   } catch (error) {
