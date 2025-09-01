@@ -25,7 +25,8 @@ import {
   CreditCard,
   Upload,
   FileText,
-  Trash2
+  Trash2,
+  Building2
 } from "lucide-react";
 import Link from "next/link";
 import Cookies from "js-cookie";
@@ -368,6 +369,28 @@ export default function ProfilePage() {
 
                   <Separator />
 
+                  {/* Club Information */}
+                  {user.club && (
+                    <>
+                      <div className="space-y-4">
+                        <h3 className="font-medium flex items-center gap-2">
+                          <Building2 className="h-4 w-4" />
+                          Club Information
+                        </h3>
+                        <div>
+                          <Label>Member Club</Label>
+                          <div className="p-3 bg-muted rounded-md">
+                            <p className="font-medium">{user.club.name}</p>
+                            <p className="text-sm text-muted-foreground">
+                              {user.club.city}, {user.club.country}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                      <Separator />
+                    </>
+                  )}
+
                   {/* License Information */}
                   {user.role === "ATHLETE" && (
                     <>
@@ -472,18 +495,6 @@ export default function ProfilePage() {
                               Upload proof of license payment. This will be verified during event check-in.
                             </p>
                           </div>
-
-                          {user.club && (
-                            <div>
-                              <Label>Member Club</Label>
-                              <div className="p-3 bg-muted rounded-md">
-                                <p className="font-medium">{user.club.name}</p>
-                                <p className="text-sm text-muted-foreground">
-                                  {user.club.city}, {user.club.country}
-                                </p>
-                              </div>
-                            </div>
-                          )}
                         </div>
                       </div>
                       <Separator />
