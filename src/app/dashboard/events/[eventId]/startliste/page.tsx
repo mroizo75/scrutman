@@ -361,8 +361,8 @@ export default function StartListPage({ params }: { params: Promise<{ eventId: s
           <div>
             <div className="flex items-center gap-2 mb-2">
               <Button asChild variant="outline" size="sm">
-                <Link href={`/dashboard/events/${eventId}`}>
-                  ← Back to Event
+                <Link href="/dashboard/events">
+                  ← Back to Events
                 </Link>
               </Button>
             </div>

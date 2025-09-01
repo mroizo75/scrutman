@@ -56,7 +56,7 @@ export default function UserDetailPage({ params }: { params: Promise<{ userId: s
       const response = await fetch(`/api/users/${resolvedParams.userId}`);
       if (!response.ok) {
         if (response.status === 404) {
-          setError('Bruker ikke funnet');
+          setError('User not found');
           return;
         }
         throw new Error('Kunne ikke hente brukerdata');
@@ -160,7 +160,7 @@ export default function UserDetailPage({ params }: { params: Promise<{ userId: s
       case 'TECHNICAL_INSPECTOR':
         return 'Teknisk Kontrollør';
       case 'WEIGHT_CONTROLLER':
-        return 'Vektkontrollør';
+        return 'Weight Controller';
       case 'RACE_OFFICIAL':
         return 'Løpsleder';
       default:
@@ -188,7 +188,7 @@ export default function UserDetailPage({ params }: { params: Promise<{ userId: s
                 <ArrowLeft className="h-4 w-4" />
               </Link>
             </Button>
-            <h1 className="text-3xl font-bold">Brukerdetaljer</h1>
+            <h1 className="text-3xl font-bold">User Details</h1>
           </div>
           <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
             {error}
@@ -209,7 +209,7 @@ export default function UserDetailPage({ params }: { params: Promise<{ userId: s
               <ArrowLeft className="h-4 w-4" />
             </Link>
           </Button>
-          <h1 className="text-3xl font-bold">Brukerdetaljer</h1>
+          <h1 className="text-3xl font-bold">User Details</h1>
         </div>
 
         {error && (
@@ -237,7 +237,7 @@ export default function UserDetailPage({ params }: { params: Promise<{ userId: s
                       onClick={() => setEditing(true)}
                     >
                       <Edit2 className="h-4 w-4 mr-2" />
-                      Rediger
+                      Edit
                     </Button>
                     <Button
                       variant="destructive"
@@ -246,7 +246,7 @@ export default function UserDetailPage({ params }: { params: Promise<{ userId: s
                       disabled={saving}
                     >
                       <Trash2 className="h-4 w-4 mr-2" />
-                      Slett
+                      Delete
                     </Button>
                   </div>
                 )}
@@ -258,7 +258,7 @@ export default function UserDetailPage({ params }: { params: Promise<{ userId: s
                       onClick={handleCancel}
                     >
                       <X className="h-4 w-4 mr-2" />
-                      Avbryt
+                      Cancel
                     </Button>
                     <Button
                       size="sm"
@@ -266,7 +266,7 @@ export default function UserDetailPage({ params }: { params: Promise<{ userId: s
                       disabled={saving}
                     >
                       <Save className="h-4 w-4 mr-2" />
-                      {saving ? 'Lagrer...' : 'Lagre'}
+                      {saving ? 'Saving...' : 'Save'}
                     </Button>
                   </div>
                 )}
@@ -280,7 +280,7 @@ export default function UserDetailPage({ params }: { params: Promise<{ userId: s
                 <h3 className="text-lg font-semibold">Grunnleggende informasjon</h3>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="name">Navn</Label>
+                  <Label htmlFor="name">Name</Label>
                   {editing ? (
                     <Input
                       id="name"
@@ -293,7 +293,7 @@ export default function UserDetailPage({ params }: { params: Promise<{ userId: s
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="email">E-post</Label>
+                  <Label htmlFor="email">Email</Label>
                   {editing ? (
                     <Input
                       id="email"
@@ -307,7 +307,7 @@ export default function UserDetailPage({ params }: { params: Promise<{ userId: s
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="phone">Telefon</Label>
+                  <Label htmlFor="phone">Phone</Label>
                   {editing ? (
                     <Input
                       id="phone"
@@ -334,9 +334,9 @@ export default function UserDetailPage({ params }: { params: Promise<{ userId: s
                       <SelectContent>
                         <SelectItem value="ATHLETE">Utøver</SelectItem>
                         <SelectItem value="CLUBADMIN">Klubbadministrator</SelectItem>
-                        <SelectItem value="TECHNICAL_INSPECTOR">Teknisk Kontrollør</SelectItem>
-                        <SelectItem value="WEIGHT_CONTROLLER">Vektkontrollør</SelectItem>
-                        <SelectItem value="RACE_OFFICIAL">Løpsleder</SelectItem>
+                        <SelectItem value="TECHNICAL_INSPECTOR">Technical Inspector</SelectItem>
+                        <SelectItem value="WEIGHT_CONTROLLER">Weight Controller</SelectItem>
+                        <SelectItem value="RACE_OFFICIAL">Race Official</SelectItem>
                       </SelectContent>
                     </Select>
                   ) : (
@@ -360,10 +360,10 @@ export default function UserDetailPage({ params }: { params: Promise<{ userId: s
 
               {/* Adresse og kontaktinformasjon */}
               <div className="space-y-4">
-                <h3 className="text-lg font-semibold">Adresse og kontakt</h3>
+                <h3 className="text-lg font-semibold">Address and Contact</h3>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="address">Adresse</Label>
+                  <Label htmlFor="address">Address</Label>
                   {editing ? (
                     <Input
                       id="address"
@@ -443,7 +443,7 @@ export default function UserDetailPage({ params }: { params: Promise<{ userId: s
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Opprettet</Label>
+                  <Label>Created</Label>
                   <p className="py-2">
                     {new Date(user.createdAt).toLocaleDateString('no-NO', {
                       year: 'numeric',

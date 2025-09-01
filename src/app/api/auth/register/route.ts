@@ -15,7 +15,7 @@ export async function POST(req: Request) {
     if (!email || !password || !name) {
       console.log("Missing required fields");
       return new NextResponse(
-        JSON.stringify({ error: "Mangler påkrevde felt" }),
+        JSON.stringify({ error: "Missing required fields" }),
         {
           status: 400,
           headers: {
@@ -72,9 +72,9 @@ export async function POST(req: Request) {
       }
     );
   } catch (error) {
-    console.error("Registreringsfeil:", error);
+
     return new NextResponse(
-      JSON.stringify({ error: "Noe gikk galt ved registrering" }),
+      JSON.stringify({ error: "Something went wrong during registration" }),
       {
         status: 500,
         headers: {

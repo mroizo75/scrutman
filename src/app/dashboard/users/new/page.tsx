@@ -58,7 +58,7 @@ export default function NewUserPage() {
               <ArrowLeft className="h-4 w-4" />
             </Link>
           </Button>
-          <h1 className="text-3xl font-bold">Ny Bruker</h1>
+          <h1 className="text-3xl font-bold">New User</h1>
         </div>
 
         <Card className="max-w-2xl">
@@ -75,7 +75,7 @@ export default function NewUserPage() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
-                  <Label htmlFor="name">Navn *</Label>
+                  <Label htmlFor="name">Name *</Label>
                   <Input
                     id="name"
                     value={formData.name}
@@ -85,7 +85,7 @@ export default function NewUserPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="email">E-post *</Label>
+                  <Label htmlFor="email">Email *</Label>
                   <Input
                     id="email"
                     type="email"
@@ -96,7 +96,7 @@ export default function NewUserPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="phone">Telefon</Label>
+                  <Label htmlFor="phone">Phone</Label>
                   <Input
                     id="phone"
                     type="tel"
@@ -119,9 +119,9 @@ export default function NewUserPage() {
                     <SelectContent>
                       <SelectItem value="ATHLETE">Utøver</SelectItem>
                       <SelectItem value="CLUBADMIN">Klubbadministrator</SelectItem>
-                      <SelectItem value="TECHNICAL_INSPECTOR">Teknisk Kontrollør</SelectItem>
-                      <SelectItem value="WEIGHT_CONTROLLER">Vektkontrollør</SelectItem>
-                      <SelectItem value="RACE_OFFICIAL">Løpsleder</SelectItem>
+                      <SelectItem value="TECHNICAL_INSPECTOR">Technical Inspector</SelectItem>
+                      <SelectItem value="WEIGHT_CONTROLLER">Weight Controller</SelectItem>
+                      <SelectItem value="RACE_OFFICIAL">Race Official</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -129,19 +129,19 @@ export default function NewUserPage() {
 
               <div className="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded">
                 <p className="text-sm">
-                  <strong>Viktig:</strong> Et tilfeldig passord vil bli generert og sendt til brukerens e-post.
-                  Brukeren kan endre passordet ved første innlogging.
+                  <strong>Important:</strong> A random password will be generated and sent to the user's email.
+                  The user can change the password upon first login.
                 </p>
               </div>
 
               <div className="flex justify-end gap-4">
                 <Button type="button" variant="outline" asChild>
                   <Link href="/dashboard/users">
-                    Avbryt
+                    Cancel
                   </Link>
                 </Button>
                 <Button type="submit" disabled={loading}>
-                  {loading ? 'Oppretter...' : 'Opprett Bruker'}
+                  {loading ? 'Creating...' : 'Create User'}
                 </Button>
               </div>
             </form>

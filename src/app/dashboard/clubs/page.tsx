@@ -142,12 +142,12 @@ export default function ClubsPage() {
         ) : (
           <div className="space-y-8">
             <div className="flex justify-between items-center">
-              <h1 className="text-3xl font-bold text-foreground">Klubber</h1>
+              <h1 className="text-3xl font-bold text-foreground">Clubs</h1>
               <Button 
                 onClick={() => setShowForm(!showForm)}
                 variant={showForm ? "outline" : "default"}
               >
-                {showForm ? 'Avbryt' : 'Legg til ny klubb'}
+                {showForm ? 'Cancel' : 'Add New Club'}
               </Button>
             </div>
 
@@ -166,7 +166,7 @@ export default function ClubsPage() {
                   <form onSubmit={handleSubmit} className="space-y-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div className="space-y-2">
-                        <Label htmlFor="name">Navn</Label>
+                        <Label htmlFor="name">Name</Label>
                         <Input
                           id="name"
                           value={formData.name}
@@ -176,7 +176,7 @@ export default function ClubsPage() {
                       </div>
 
                       <div className="space-y-2">
-                        <Label htmlFor="description">Beskrivelse</Label>
+                        <Label htmlFor="description">Description</Label>
                         <Textarea
                           id="description"
                           value={formData.description}
@@ -186,7 +186,7 @@ export default function ClubsPage() {
                       </div>
 
                       <div className="space-y-2">
-                        <Label htmlFor="address">Adresse</Label>
+                        <Label htmlFor="address">Address</Label>
                         <Input
                           id="address"
                           value={formData.address}
@@ -235,7 +235,7 @@ export default function ClubsPage() {
                       </div>
 
                       <div className="space-y-2">
-                        <Label htmlFor="phone">Telefon</Label>
+                        <Label htmlFor="phone">Phone</Label>
                         <Input
                           id="phone"
                           type="tel"
@@ -246,7 +246,7 @@ export default function ClubsPage() {
                       </div>
 
                       <div className="space-y-2">
-                        <Label htmlFor="email">E-post</Label>
+                        <Label htmlFor="email">Email</Label>
                         <Input
                           id="email"
                           type="email"
@@ -274,10 +274,10 @@ export default function ClubsPage() {
                         variant="outline"
                         onClick={() => setShowForm(false)}
                       >
-                        Avbryt
+                        Cancel
                       </Button>
                       <Button type="submit">
-                        Opprett klubb
+                        Create Club
                       </Button>
                     </div>
                   </form>
@@ -305,7 +305,7 @@ export default function ClubsPage() {
                       <p className="text-muted-foreground">{club.description}</p>
                       <div className="space-y-2 text-sm">
                         <p className="flex items-center gap-2">
-                          <span className="font-medium">Adresse:</span>
+                          <span className="font-medium">Address:</span>
                           {club.address}
                         </p>
                         <p className="flex items-center gap-2">
@@ -321,11 +321,11 @@ export default function ClubsPage() {
                           {club.country}
                         </p>
                         <p className="flex items-center gap-2">
-                          <span className="font-medium">Telefon:</span>
+                          <span className="font-medium">Phone:</span>
                           {club.phone}
                         </p>
                         <p className="flex items-center gap-2">
-                          <span className="font-medium">E-post:</span>
+                          <span className="font-medium">Email:</span>
                           {club.email}
                         </p>
                         <p className="flex items-center gap-2">

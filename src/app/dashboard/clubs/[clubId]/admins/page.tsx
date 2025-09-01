@@ -185,10 +185,10 @@ export default function ClubAdminsPage({ params }: { params: Promise<{ clubId: s
               Manage Admins - {club?.name}
             </h1>
             <button
-              onClick={() => router.push(`/dashboard/clubs/${resolvedParams.clubId}`)}
+              onClick={() => router.push(`/dashboard/clubs`)}
               className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
             >
-              Back to Club
+              Back to Clubs
             </button>
           </div>
 

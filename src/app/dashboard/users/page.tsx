@@ -102,7 +102,7 @@ export default function UsersPage() {
       case 'TECHNICAL_INSPECTOR':
         return 'Teknisk Kontrollør';
       case 'WEIGHT_CONTROLLER':
-        return 'Vektkontrollør';
+        return 'Weight Controller';
       case 'RACE_OFFICIAL':
         return 'Løpsleder';
       default:
@@ -114,11 +114,11 @@ export default function UsersPage() {
     <main className="container mx-auto px-4 py-8">
       <div className="space-y-8">
         <div className="flex justify-between items-center">
-          <h1 className="text-3xl font-bold">Brukere</h1>
+          <h1 className="text-3xl font-bold">Users</h1>
           <Button asChild>
             <Link href="/dashboard/users/new">
               <Plus className="mr-2 h-4 w-4" />
-              Ny Bruker
+              New User
             </Link>
           </Button>
         </div>
@@ -161,7 +161,7 @@ export default function UsersPage() {
                       <Button asChild variant="outline" size="sm" className="flex-1">
                         <Link href={`/dashboard/users/${user.id}`}>
                           <Edit2 className="mr-1 h-3 w-3" />
-                          Rediger
+                          Edit
                         </Link>
                       </Button>
                       <Button 
