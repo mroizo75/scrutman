@@ -9,6 +9,8 @@ import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import HomeNav from "@/components/HomeNav";
+import LanguageSwitcher from "@/components/LanguageSwitcher";
+import { useTranslation } from '@/hooks/useTranslation';
 
 interface Event {
   id: string;
@@ -28,6 +30,7 @@ interface Event {
 }
 
 export default function Home() {
+  const { t } = useTranslation();
   const [events, setEvents] = useState<Event[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState("date");
@@ -92,13 +95,13 @@ export default function Home() {
   const getStatusText = (status: string) => {
     switch (status) {
       case "UPCOMING":
-        return "Upcoming";
+        return t('status.upcoming');
       case "ONGOING":
-        return "Ongoing";
+        return t('status.ongoing');
       case "COMPLETED":
-        return "Completed";
+        return t('status.completed');
       case "CANCELLED":
-        return "Cancelled";
+        return t('status.cancelled');
       default:
         return status;
     }
@@ -130,10 +133,10 @@ export default function Home() {
         <div className="container mx-auto px-4">
           <div className="max-w-3xl mx-auto text-center">
             <h1 className="text-4xl md:text-5xl font-bold mb-6">
-              Welcome to Scrutman
+              {t('navigation.welcome')} Scrutman
             </h1>
             <p className="text-lg md:text-xl mb-8">
-              Discover and join exciting events from clubs near you
+              {t('navigation.discoverEvents')}
             </p>
           </div>
         </div>
@@ -148,7 +151,7 @@ export default function Home() {
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
                 <Input
                   type="text"
-                  placeholder="Search events or locations..."
+                  placeholder={t('common.search') + ' events or locations...'}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-10"
@@ -160,10 +163,10 @@ export default function Home() {
                 <SelectValue placeholder="Filter by status" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Events</SelectItem>
-                <SelectItem value="upcoming">Upcoming</SelectItem>
-                <SelectItem value="ongoing">Ongoing</SelectItem>
-                <SelectItem value="completed">Completed</SelectItem>
+                <SelectItem value="all">{t('events.allEvents')}</SelectItem>
+                <SelectItem value="upcoming">{t('status.upcoming')}</SelectItem>
+                <SelectItem value="ongoing">{t('status.ongoing')}</SelectItem>
+                <SelectItem value="completed">{t('status.completed')}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -214,7 +217,7 @@ export default function Home() {
                         <Users className="h-4 w-4" />
                         <span>
                           {event.registrations.filter(r => r.status === 'CONFIRMED' || r.status === 'CHECKED_IN').length}/
-                          {event.maxParticipants} participants
+                          {event.maxParticipants} {t('events.participants')}
                         </span>
                       </div>
                     )}
@@ -223,11 +226,11 @@ export default function Home() {
                     </p>
                     <div className="flex gap-2">
                       <Button asChild variant="outline" className="flex-1">
-                        <Link href={`/events/${event.id}`}>View Details</Link>
+                        <Link href={`/events/${event.id}`}>{t('events.viewEvent')}</Link>
                       </Button>
                       {event.status === 'PUBLISHED' && (
                         <Button asChild className="flex-1">
-                          <Link href={`/events/${event.id}/register`}>Register</Link>
+                          <Link href={`/events/${event.id}/register`}>{t('events.register')}</Link>
                         </Button>
                       )}
                     </div>
@@ -239,7 +242,7 @@ export default function Home() {
 
           {getFilteredAndSortedEvents().length === 0 && (
             <div className="text-center py-12">
-              <p className="text-lg text-muted-foreground">No events found matching your criteria</p>
+              <p className="text-lg text-muted-foreground">{t('events.noEventsFound')}</p>
             </div>
           )}
         </div>

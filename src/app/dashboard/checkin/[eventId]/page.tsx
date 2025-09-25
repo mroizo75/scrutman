@@ -25,6 +25,7 @@ import {
   Shield
 } from "lucide-react";
 import Link from "next/link";
+import { useTranslation } from "@/hooks/useTranslation";
 
 interface Participant {
   id: string;
@@ -80,6 +81,7 @@ interface Event {
 }
 
 export default function CheckInPage({ params }: { params: Promise<{ eventId: string }> }) {
+  const { t, language } = useTranslation();
   const router = useRouter();
   const [event, setEvent] = useState<Event | null>(null);
   const [participants, setParticipants] = useState<Participant[]>([]);
@@ -445,7 +447,7 @@ export default function CheckInPage({ params }: { params: Promise<{ eventId: str
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Search className="h-5 w-5" />
-                Search Participants ({participants.length} total)
+                {t('checkin.searchParticipants')} ({participants.length} {t('checkin.total')})
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -506,7 +508,7 @@ export default function CheckInPage({ params }: { params: Promise<{ eventId: str
                   <div className="text-center py-8">
                     <Search className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                     <p className="text-muted-foreground">
-                      {searchTerm ? 'No participants found matching your search.' : 'No participants in this event.'}
+                      {searchTerm ? t('checkin.noParticipantsFound') : t('checkin.noParticipantsInEvent')}
                     </p>
                   </div>
                 )}

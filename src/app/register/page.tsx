@@ -10,8 +10,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { UserPlus, ArrowLeft } from "lucide-react";
 import Link from "next/link";
+import { useTranslation } from "@/hooks/useTranslation";
+import LanguageSwitcher from "@/components/LanguageSwitcher";
 
 export default function RegisterPage() {
+  const { t } = useTranslation();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -81,12 +84,15 @@ export default function RegisterPage() {
 
   return (
     <div className="min-h-screen bg-background">
+      <div className="absolute top-4 right-4">
+        <LanguageSwitcher />
+      </div>
       <div className="container mx-auto px-4 py-8 max-w-md">
         <div className="mb-6">
           <Button variant="ghost" asChild>
             <Link href="/">
               <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to Events
+              {t('common.back')} to {t('common.events')}
             </Link>
           </Button>
         </div>
@@ -96,9 +102,9 @@ export default function RegisterPage() {
             <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
               <UserPlus className="h-6 w-6 text-primary" />
             </div>
-            <CardTitle className="text-2xl">Create Account</CardTitle>
+            <CardTitle className="text-2xl">{t('register.createAccount')}</CardTitle>
             <p className="text-muted-foreground">
-              Register to participate in events
+              {t('register.title')} to participate in {t('common.events')}
             </p>
           </CardHeader>
           <CardContent>
@@ -116,24 +122,24 @@ export default function RegisterPage() {
               )}
 
               <div className="space-y-2">
-                <Label htmlFor="name">Full Name *</Label>
+                <Label htmlFor="name">{t('users.name')} *</Label>
                 <Input
                   id="name"
                   name="name"
                   type="text"
                   required
-                  placeholder="Enter your full name"
+                  placeholder={t('users.name')}
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="email">Email *</Label>
+                <Label htmlFor="email">{t('users.email')} *</Label>
                 <Input
                   id="email"
                   name="email"
                   type="email"
                   required
-                  placeholder="Enter your email"
+                  placeholder={t('users.email')}
                 />
               </div>
 
@@ -143,29 +149,29 @@ export default function RegisterPage() {
                   id="phone"
                   name="phone"
                   type="tel"
-                  placeholder="Enter your phone number"
+                  placeholder="Phone number"
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="password">Password *</Label>
+                <Label htmlFor="password">{t('users.password')} *</Label>
                 <Input
                   id="password"
                   name="password"
                   type="password"
                   required
-                  placeholder="Create a password (min 6 characters)"
+                  placeholder={t('users.password')}
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="confirmPassword">Confirm Password *</Label>
+                <Label htmlFor="confirmPassword">{t('register.confirmPassword')} *</Label>
                 <Input
                   id="confirmPassword"
                   name="confirmPassword"
                   type="password"
                   required
-                  placeholder="Confirm your password"
+                  placeholder={t('register.confirmPassword')}
                 />
               </div>
 
@@ -174,14 +180,14 @@ export default function RegisterPage() {
                 className="w-full" 
                 disabled={loading}
               >
-                {loading ? "Creating Account..." : "Create Account"}
+                {loading ? t('common.loading') : t('register.createAccount')}
               </Button>
             </form>
 
             <div className="mt-6 text-center text-sm">
-              <span className="text-muted-foreground">Already have an account? </span>
+              <span className="text-muted-foreground">{t('register.alreadyHaveAccount')} </span>
               <Link href="/login" className="text-primary hover:underline">
-                Sign in here
+                {t('register.signIn')}
               </Link>
             </div>
           </CardContent>

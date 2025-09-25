@@ -20,6 +20,7 @@ import {
 import Link from "next/link";
 import Cookies from "js-cookie";
 import AthleteNav from "@/components/AthleteNav";
+import { useTranslation } from "@/hooks/useTranslation";
 
 interface User {
   id: string;
@@ -66,6 +67,7 @@ interface Registration {
 }
 
 export default function AthleteDashboard() {
+  const { t } = useTranslation();
   const [user, setUser] = useState<User | null>(null);
   const [registrations, setRegistrations] = useState<Registration[]>([]);
   const [loading, setLoading] = useState(true);
@@ -94,7 +96,7 @@ export default function AthleteDashboard() {
         const data = await response.json();
         setRegistrations(data);
       } catch (err) {
-        setError("Failed to load registrations");
+        setError(t('athlete.failedToLoadRegistrations'));
         console.error("Error fetching registrations:", err);
       } finally {
         setLoading(false);
@@ -119,11 +121,11 @@ export default function AthleteDashboard() {
 
   const getStatusText = (status: string) => {
     switch (status) {
-      case "CONFIRMED": return "Confirmed";
-      case "PENDING": return "Pending";
-      case "WAITLISTED": return "Waitlisted";
-      case "CANCELLED": return "Cancelled";
-      case "CHECKED_IN": return "Checked In";
+      case "CONFIRMED": return t('athlete.confirmed');
+      case "PENDING": return t('athlete.pending');
+      case "WAITLISTED": return t('athlete.waitlisted');
+      case "CANCELLED": return t('athlete.cancelled');
+      case "CHECKED_IN": return t('athlete.checkedIn');
       default: return status;
     }
   };
@@ -144,7 +146,7 @@ export default function AthleteDashboard() {
           <div className="flex items-center justify-center min-h-[400px]">
             <div className="text-center">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-              <p className="text-muted-foreground">Loading dashboard...</p>
+              <p className="text-muted-foreground">{t('athlete.loadingDashboard')}</p>
             </div>
           </div>
         </div>
@@ -162,15 +164,15 @@ export default function AthleteDashboard() {
         <div className="container mx-auto px-4 py-4">
           <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
             <div>
-              <h1 className="text-2xl font-bold">My Dashboard</h1>
-              <p className="text-muted-foreground">Welcome back, {user?.name}!</p>
+              <h1 className="text-2xl font-bold">{t('athlete.title')}</h1>
+              <p className="text-muted-foreground">{t('athlete.welcomeBack')}, {user?.name}!</p>
             </div>
             <div className="flex gap-4">
               <Button asChild>
-                <Link href="/">Browse Events</Link>
+                <Link href="/">{t('athlete.browseEvents')}</Link>
               </Button>
               <Button variant="outline" asChild>
-                <Link href="/profile">Edit Profile</Link>
+                <Link href="/profile">{t('athlete.editProfile')}</Link>
               </Button>
             </div>
           </div>
@@ -189,47 +191,47 @@ export default function AthleteDashboard() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Events</CardTitle>
+              <CardTitle className="text-sm font-medium">{t('athlete.totalEvents')}</CardTitle>
               <Trophy className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{registrations.length}</div>
-              <p className="text-xs text-muted-foreground">All time</p>
+              <p className="text-xs text-muted-foreground">{t('athlete.allTime')}</p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Upcoming</CardTitle>
+              <CardTitle className="text-sm font-medium">{t('athlete.upcoming')}</CardTitle>
               <Calendar className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{upcomingEvents.length}</div>
-              <p className="text-xs text-muted-foreground">Events to attend</p>
+              <p className="text-xs text-muted-foreground">{t('athlete.eventsToAttend')}</p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Completed</CardTitle>
+              <CardTitle className="text-sm font-medium">{t('athlete.completed')}</CardTitle>
               <CheckCircle className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{pastEvents.length}</div>
-              <p className="text-xs text-muted-foreground">Past events</p>
+              <p className="text-xs text-muted-foreground">{t('athlete.pastEvents')}</p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Pending</CardTitle>
+              <CardTitle className="text-sm font-medium">{t('athlete.pending')}</CardTitle>
               <Clock className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
                 {registrations.filter(r => r.status === "PENDING").length}
               </div>
-              <p className="text-xs text-muted-foreground">Awaiting confirmation</p>
+              <p className="text-xs text-muted-foreground">{t('athlete.awaitingConfirmation')}</p>
             </CardContent>
           </Card>
         </div>
@@ -240,7 +242,7 @@ export default function AthleteDashboard() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Calendar className="h-5 w-5" />
-                Upcoming Events
+                {t('athlete.upcomingEvents')}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -258,7 +260,7 @@ export default function AthleteDashboard() {
                         <div className="flex items-center gap-2">
                           <Calendar className="h-3 w-3" />
                           <span>
-                            {new Date(registration.event.startDate).toLocaleDateString('en-US', {
+                            {new Date(registration.event.startDate).toLocaleDateString(t('athlete.dateFormat') === 'dd/MM/yyyy' ? 'fr-FR' : 'en-US', {
                               weekday: 'long',
                               year: 'numeric',
                               month: 'long',
@@ -272,14 +274,14 @@ export default function AthleteDashboard() {
                         </div>
                         <div className="flex items-center gap-2">
                           <Trophy className="h-3 w-3" />
-                          <span>Start #{registration.startNumber} - {registration.class.name}</span>
+                          <span>{t('athlete.startNumber')}{registration.startNumber} - {registration.class.name}</span>
                         </div>
                       </div>
                     </div>
                     <div className="flex gap-2">
                       <Button variant="outline" size="sm" asChild>
                         <Link href={`/events/${registration.event.id}`}>
-                          View Event
+                          {t('athlete.viewEvent')}
                         </Link>
                       </Button>
                     </div>
@@ -289,7 +291,7 @@ export default function AthleteDashboard() {
               {upcomingEvents.length > 3 && (
                 <div className="mt-4 text-center">
                   <p className="text-sm text-muted-foreground">
-                    +{upcomingEvents.length - 3} more upcoming events
+                    +{upcomingEvents.length - 3} {t('athlete.moreUpcomingEvents')}
                   </p>
                 </div>
               )}
@@ -302,19 +304,19 @@ export default function AthleteDashboard() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <FileText className="h-5 w-5" />
-              All Registrations
+              {t('athlete.allRegistrations')}
             </CardTitle>
           </CardHeader>
           <CardContent>
             {registrations.length === 0 ? (
               <div className="text-center py-8">
                 <Trophy className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-                <h3 className="text-lg font-medium mb-2">No registrations yet</h3>
+                <h3 className="text-lg font-medium mb-2">{t('athlete.noRegistrationsYet')}</h3>
                 <p className="text-muted-foreground mb-4">
-                  You haven't registered for any events yet. Start by browsing available events.
+                  {t('athlete.noRegistrationsDescription')}
                 </p>
                 <Button asChild>
-                  <Link href="/">Browse Events</Link>
+                  <Link href="/">{t('athlete.browseEvents')}</Link>
                 </Button>
               </div>
             ) : (
@@ -335,7 +337,7 @@ export default function AthleteDashboard() {
                             <div className="flex items-center gap-2">
                               <Calendar className="h-3 w-3" />
                               <span>
-                                {new Date(registration.event.startDate).toLocaleDateString()}
+                                {new Date(registration.event.startDate).toLocaleDateString(t('athlete.dateFormat') === 'dd/MM/yyyy' ? 'fr-FR' : 'en-US')}
                               </span>
                             </div>
                             <div className="flex items-center gap-2">
@@ -344,7 +346,7 @@ export default function AthleteDashboard() {
                             </div>
                             <div className="flex items-center gap-2">
                               <Trophy className="h-3 w-3" />
-                              <span>Start #{registration.startNumber} - {registration.class.name}</span>
+                              <span>{t('athlete.startNumber')}{registration.startNumber} - {registration.class.name}</span>
                             </div>
                           </div>
                           
@@ -359,7 +361,7 @@ export default function AthleteDashboard() {
                               </div>
                               {registration.vehicle.licensePlate && (
                                 <div className="text-xs">
-                                  License: {registration.vehicle.licensePlate}
+                                  {t('athlete.license')}: {registration.vehicle.licensePlate}
                                 </div>
                               )}
                             </div>
@@ -374,7 +376,7 @@ export default function AthleteDashboard() {
                                 registration.technicalCheck.status ? 'text-green-600' : 'text-red-600'
                               }`}>
                                 <CheckCircle className="h-3 w-3" />
-                                Technical: {registration.technicalCheck.status ? 'Passed' : 'Failed'}
+                                {t('athlete.technical')}: {registration.technicalCheck.status ? t('athlete.passed') : t('athlete.failed')}
                               </div>
                             )}
                             {registration.weightCheck && (
@@ -382,7 +384,7 @@ export default function AthleteDashboard() {
                                 registration.weightCheck.status ? 'text-green-600' : 'text-red-600'
                               }`}>
                                 <CheckCircle className="h-3 w-3" />
-                                Weight: {registration.weightCheck.weight}kg ({registration.weightCheck.status ? 'OK' : 'Failed'})
+                                {t('athlete.weight')}: {registration.weightCheck.weight}kg ({registration.weightCheck.status ? t('athlete.ok') : t('athlete.failed')})
                               </div>
                             )}
                           </div>

@@ -11,6 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { countries } from "@/lib/countries";
+import { useTranslation } from "@/hooks/useTranslation";
 
 interface Club {
   id: string;
@@ -37,6 +38,7 @@ type InputEvent = React.ChangeEvent<HTMLInputElement>;
 type TextAreaEvent = React.ChangeEvent<HTMLTextAreaElement>;
 
 export default function ClubsPage() {
+  const { t } = useTranslation();
   const router = useRouter();
   const [clubs, setClubs] = useState<Club[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -80,7 +82,7 @@ export default function ClubsPage() {
       setClubs(data);
     } catch (error) {
       console.error("Error fetching clubs:", error);
-      setError("Failed to load clubs");
+      setError(t('clubs.failedToLoadClubs'));
     } finally {
       setIsLoading(false);
     }
@@ -116,7 +118,7 @@ export default function ClubsPage() {
       });
     } catch (error) {
       console.error("Error creating club:", error);
-      setError("Failed to create club");
+      setError(t('clubs.failedToCreateClub'));
     }
   };
 
@@ -127,7 +129,7 @@ export default function ClubsPage() {
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="text-xl">Loading...</div>
+        <div className="text-xl">{t('common.loading')}</div>
       </div>
     );
   }
@@ -142,12 +144,12 @@ export default function ClubsPage() {
         ) : (
           <div className="space-y-8">
             <div className="flex justify-between items-center">
-              <h1 className="text-3xl font-bold text-foreground">Clubs</h1>
+              <h1 className="text-3xl font-bold text-foreground">{t('clubs.title')}</h1>
               <Button 
                 onClick={() => setShowForm(!showForm)}
                 variant={showForm ? "outline" : "default"}
               >
-                {showForm ? 'Cancel' : 'Add New Club'}
+                {showForm ? t('clubs.cancel') : t('clubs.addNewClub')}
               </Button>
             </div>
 
@@ -160,13 +162,13 @@ export default function ClubsPage() {
             {showForm && (
               <Card>
                 <CardHeader>
-                  <CardTitle>Legg til ny klubb</CardTitle>
+                  <CardTitle>{t('clubs.addNewClubTitle')}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <form onSubmit={handleSubmit} className="space-y-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div className="space-y-2">
-                        <Label htmlFor="name">Name</Label>
+                        <Label htmlFor="name">{t('clubs.name')}</Label>
                         <Input
                           id="name"
                           value={formData.name}
@@ -176,7 +178,7 @@ export default function ClubsPage() {
                       </div>
 
                       <div className="space-y-2">
-                        <Label htmlFor="description">Description</Label>
+                        <Label htmlFor="description">{t('clubs.description')}</Label>
                         <Textarea
                           id="description"
                           value={formData.description}
@@ -186,7 +188,7 @@ export default function ClubsPage() {
                       </div>
 
                       <div className="space-y-2">
-                        <Label htmlFor="address">Address</Label>
+                        <Label htmlFor="address">{t('clubs.address')}</Label>
                         <Input
                           id="address"
                           value={formData.address}
@@ -196,7 +198,7 @@ export default function ClubsPage() {
                       </div>
 
                       <div className="space-y-2">
-                        <Label htmlFor="city">By</Label>
+                        <Label htmlFor="city">{t('clubs.city')}</Label>
                         <Input
                           id="city"
                           value={formData.city}
@@ -206,7 +208,7 @@ export default function ClubsPage() {
                       </div>
 
                       <div className="space-y-2">
-                        <Label htmlFor="postalCode">Postnummer</Label>
+                        <Label htmlFor="postalCode">{t('clubs.postalCode')}</Label>
                         <Input
                           id="postalCode"
                           value={formData.postalCode}
@@ -216,13 +218,13 @@ export default function ClubsPage() {
                       </div>
 
                       <div className="space-y-2">
-                        <Label htmlFor="country">Land</Label>
+                        <Label htmlFor="country">{t('clubs.country')}</Label>
                         <Select
                           value={formData.country}
                           onValueChange={(value) => setFormData({ ...formData, country: value })}
                         >
                           <SelectTrigger>
-                            <SelectValue placeholder="Velg land" />
+                            <SelectValue placeholder={t('clubs.selectCountry')} />
                           </SelectTrigger>
                           <SelectContent>
                             {countries.map((country) => (
@@ -235,7 +237,7 @@ export default function ClubsPage() {
                       </div>
 
                       <div className="space-y-2">
-                        <Label htmlFor="phone">Phone</Label>
+                        <Label htmlFor="phone">{t('clubs.phone')}</Label>
                         <Input
                           id="phone"
                           type="tel"
@@ -246,7 +248,7 @@ export default function ClubsPage() {
                       </div>
 
                       <div className="space-y-2">
-                        <Label htmlFor="email">Email</Label>
+                        <Label htmlFor="email">{t('clubs.email')}</Label>
                         <Input
                           id="email"
                           type="email"
@@ -257,7 +259,7 @@ export default function ClubsPage() {
                       </div>
 
                       <div className="space-y-2">
-                        <Label htmlFor="website">Nettside</Label>
+                        <Label htmlFor="website">{t('clubs.website')}</Label>
                         <Input
                           id="website"
                           type="url"
@@ -274,10 +276,10 @@ export default function ClubsPage() {
                         variant="outline"
                         onClick={() => setShowForm(false)}
                       >
-                        Cancel
+                        {t('clubs.cancel')}
                       </Button>
                       <Button type="submit">
-                        Create Club
+                        {t('clubs.createClub')}
                       </Button>
                     </div>
                   </form>
@@ -296,7 +298,7 @@ export default function ClubsPage() {
                         size="sm"
                         onClick={() => router.push(`/dashboard/clubs/${club.id}/admins`)}
                       >
-                        Administrer
+                        {t('clubs.manage')}
                       </Button>
                     </CardTitle>
                   </CardHeader>
@@ -305,31 +307,31 @@ export default function ClubsPage() {
                       <p className="text-muted-foreground">{club.description}</p>
                       <div className="space-y-2 text-sm">
                         <p className="flex items-center gap-2">
-                          <span className="font-medium">Address:</span>
+                          <span className="font-medium">{t('clubs.address')}:</span>
                           {club.address}
                         </p>
                         <p className="flex items-center gap-2">
-                          <span className="font-medium">By:</span>
+                          <span className="font-medium">{t('clubs.city')}:</span>
                           {club.city}
                         </p>
                         <p className="flex items-center gap-2">
-                          <span className="font-medium">Postnummer:</span>
+                          <span className="font-medium">{t('clubs.postalCode')}:</span>
                           {club.postalCode}
                         </p>
                         <p className="flex items-center gap-2">
-                          <span className="font-medium">Land:</span>
-                          {club.country}
+                          <span className="font-medium">{t('clubs.country')}:</span>
+                          {getCountryName(club.country)}
                         </p>
                         <p className="flex items-center gap-2">
-                          <span className="font-medium">Phone:</span>
+                          <span className="font-medium">{t('clubs.phone')}:</span>
                           {club.phone}
                         </p>
                         <p className="flex items-center gap-2">
-                          <span className="font-medium">Email:</span>
+                          <span className="font-medium">{t('clubs.email')}:</span>
                           {club.email}
                         </p>
                         <p className="flex items-center gap-2">
-                          <span className="font-medium">Nettside:</span>
+                          <span className="font-medium">{t('clubs.website')}:</span>
                           {club.website}
                         </p>
                       </div>

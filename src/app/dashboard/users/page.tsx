@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Users, Mail, Shield, Edit2, Trash2, Plus } from "lucide-react";
 import Link from "next/link";
+import { useTranslation } from "@/hooks/useTranslation";
 
 interface User {
   id: string;
@@ -21,6 +22,7 @@ interface User {
 }
 
 export default function UsersPage() {
+  const { t } = useTranslation();
   const router = useRouter();
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
@@ -56,7 +58,7 @@ export default function UsersPage() {
   };
 
   const handleDelete = async (userId: string, userName: string) => {
-    if (!confirm(`Are you sure you want to delete user "${userName}"? This action cannot be undone.`)) {
+    if (!confirm(`${t('users.confirmDeleteUser')} "${userName}"? ${t('users.thisActionCannotBeUndone')}`)) {
       return;
     }
 
@@ -96,15 +98,15 @@ export default function UsersPage() {
   const getRoleText = (role: User['role']) => {
     switch (role) {
       case 'CLUBADMIN':
-        return 'Club Administrator';
+        return t('users.clubAdministrator');
       case 'ATHLETE':
-        return 'Athlete';
+        return t('users.athlete');
       case 'TECHNICAL_INSPECTOR':
-        return 'Technical Inspector';
+        return t('users.technicalInspector');
       case 'WEIGHT_CONTROLLER':
-        return 'Weight Controller';
+        return t('users.weightController');
       case 'RACE_OFFICIAL':
-        return 'Race Official';
+        return t('users.raceOfficial');
       default:
         return role;
     }
@@ -114,11 +116,11 @@ export default function UsersPage() {
     <main className="container mx-auto px-4 py-8">
       <div className="space-y-8">
         <div className="flex justify-between items-center">
-          <h1 className="text-3xl font-bold">Users</h1>
+          <h1 className="text-3xl font-bold">{t('users.title')}</h1>
           <Button asChild>
             <Link href="/dashboard/users/new">
               <Plus className="mr-2 h-4 w-4" />
-              New User
+              {t('users.newUser')}
             </Link>
           </Button>
         </div>
@@ -161,7 +163,7 @@ export default function UsersPage() {
                       <Button asChild variant="outline" size="sm" className="flex-1">
                         <Link href={`/dashboard/users/${user.id}`}>
                           <Edit2 className="mr-1 h-3 w-3" />
-                          Edit
+                          {t('common.edit')}
                         </Link>
                       </Button>
                       <Button 
@@ -182,14 +184,14 @@ export default function UsersPage() {
         {!loading && users.length === 0 && (
           <div className="text-center py-12">
             <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-            <h3 className="text-lg font-semibold mb-2">Ingen brukere funnet</h3>
+            <h3 className="text-lg font-semibold mb-2">{t('users.noUsersFound')}</h3>
             <p className="text-muted-foreground mb-4">
-              Det er ingen brukere registrert i din klubb ennå.
+              {t('users.noUsersInClub')}
             </p>
             <Button asChild>
               <Link href="/dashboard/users/new">
                 <Plus className="mr-2 h-4 w-4" />
-                Legg til første bruker
+                {t('users.addFirstUser')}
               </Link>
             </Button>
           </div>

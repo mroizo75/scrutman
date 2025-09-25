@@ -18,6 +18,7 @@ import {
   RefreshCw
 } from "lucide-react";
 import Link from "next/link";
+import { useTranslation } from "@/hooks/useTranslation";
 
 interface WeightControlEntry {
   id: string;
@@ -56,6 +57,7 @@ interface Event {
 }
 
 export default function WeightControlListPage({ params }: { params: Promise<{ eventId: string }> }) {
+  const { t, language } = useTranslation();
   const router = useRouter();
   const [event, setEvent] = useState<Event | null>(null);
   const [weightControls, setWeightControls] = useState<WeightControlEntry[]>([]);
@@ -175,7 +177,7 @@ export default function WeightControlListPage({ params }: { params: Promise<{ ev
   const fetchData = async () => {
     try {
       const response = await fetch(`/api/events/${eventId}/weight-control/list`);
-      if (!response.ok) throw new Error('Could not fetch weight control list');
+      if (!response.ok) throw new Error(t('weightControlList.couldNotFetchList'));
       
       const data = await response.json();
       setEvent(data.event);
@@ -198,9 +200,9 @@ export default function WeightControlListPage({ params }: { params: Promise<{ ev
 
   const getResultText = (result: string) => {
     switch (result) {
-      case 'PASS': return 'Passed';
-      case 'UNDERWEIGHT': return 'Underweight';
-      case 'OVERWEIGHT': return 'Overweight';
+      case 'PASS': return t('weightControlList.passed');
+      case 'UNDERWEIGHT': return t('weightControlList.underweight');
+      case 'OVERWEIGHT': return t('weightControlList.overweight');
       default: return result;
     }
   };
@@ -226,7 +228,7 @@ export default function WeightControlListPage({ params }: { params: Promise<{ ev
         }),
       });
 
-      if (!response.ok) throw new Error('Export failed');
+      if (!response.ok) throw new Error(t('weightControlList.exportFailed'));
 
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
@@ -238,7 +240,7 @@ export default function WeightControlListPage({ params }: { params: Promise<{ ev
       a.click();
       window.URL.revokeObjectURL(url);
     } catch (err) {
-      setError('Failed to export data');
+      setError(t('weightControlList.failedToExportData'));
     }
   };
 
@@ -256,8 +258,8 @@ export default function WeightControlListPage({ params }: { params: Promise<{ ev
     return (
       <main className="container mx-auto px-4 py-8">
         <div className="text-center">
-          <h1 className="text-2xl font-bold mb-4">Weight Control List</h1>
-          <p className="text-muted-foreground">Event not found</p>
+          <h1 className="text-2xl font-bold mb-4">{t('weightControlList.title')}</h1>
+          <p className="text-muted-foreground">{t('weightControlList.eventNotFound')}</p>
         </div>
       </main>
     );
@@ -278,28 +280,28 @@ export default function WeightControlListPage({ params }: { params: Promise<{ ev
               <Button asChild variant="outline" size="sm">
                 <Link href={`/dashboard/weight-control/${eventId}`}>
                   <ArrowLeft className="h-4 w-4 mr-2" />
-                  Back to Weight Control
+                  {t('weightControlList.backToWeightControl')}
                 </Link>
               </Button>
             </div>
-            <h1 className="text-3xl font-bold mb-2">Weight Control List</h1>
+            <h1 className="text-3xl font-bold mb-2">{t('weightControlList.title')}</h1>
             <p className="text-muted-foreground">
-              {event.title} • Live overview of all weight controls
+              {event.title} • {t('weightControlList.liveOverview')}
             </p>
           </div>
           
           <div className="flex items-center gap-2">
             <div className="flex items-center gap-2 px-3 py-2 bg-green-50 rounded-lg">
               <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-              <span className="text-sm text-green-700 font-medium">Live Data</span>
+              <span className="text-sm text-green-700 font-medium">{t('weightControlList.liveData')}</span>
             </div>
             <Button onClick={fetchData} variant="outline">
               <RefreshCw className="h-4 w-4 mr-2" />
-              Refresh
+              {t('weightControlList.refresh')}
             </Button>
             <Button onClick={exportData} disabled={filteredControls.length === 0}>
               <Download className="h-4 w-4 mr-2" />
-              Export CSV
+              {t('weightControlList.exportCsv')}
             </Button>
           </div>
         </div>
@@ -315,21 +317,21 @@ export default function WeightControlListPage({ params }: { params: Promise<{ ev
           <Card>
             <CardContent className="p-4 text-center">
               <p className="text-2xl font-bold text-green-600">{passedCount}</p>
-              <p className="text-xs text-muted-foreground">Passed Weight Control</p>
+              <p className="text-xs text-muted-foreground">{t('weightControlList.passedWeightControl')}</p>
             </CardContent>
           </Card>
 
           <Card>
             <CardContent className="p-4 text-center">
               <p className="text-2xl font-bold text-red-600">{violationCount}</p>
-              <p className="text-xs text-muted-foreground">Weight Violations</p>
+              <p className="text-xs text-muted-foreground">{t('weightControlList.weightViolations')}</p>
             </CardContent>
           </Card>
 
           <Card>
             <CardContent className="p-4 text-center">
               <p className="text-2xl font-bold text-blue-600">{filteredControls.length}</p>
-              <p className="text-xs text-muted-foreground">Total Controls</p>
+              <p className="text-xs text-muted-foreground">{t('weightControlList.totalControls')}</p>
             </CardContent>
           </Card>
         </div>
@@ -339,7 +341,7 @@ export default function WeightControlListPage({ params }: { params: Promise<{ ev
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Filter className="h-5 w-5" />
-              Filters
+              {t('weightControlList.filters')}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -347,7 +349,7 @@ export default function WeightControlListPage({ params }: { params: Promise<{ ev
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="Search by start number, name, vehicle..."
+                  placeholder={t('weightControlList.searchByStartNumber')}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-10"
@@ -356,10 +358,10 @@ export default function WeightControlListPage({ params }: { params: Promise<{ ev
 
               <Select value={heatFilter} onValueChange={setHeatFilter}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Filter by heat" />
+                  <SelectValue placeholder={t('weightControlList.filterByHeat')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Heats</SelectItem>
+                  <SelectItem value="all">{t('weightControlList.allHeats')}</SelectItem>
                   {heatOptions.map((heat) => (
                     <SelectItem key={heat.value} value={heat.value}>
                       {heat.label}
@@ -370,14 +372,14 @@ export default function WeightControlListPage({ params }: { params: Promise<{ ev
 
               <Select value={resultFilter} onValueChange={setResultFilter}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Filter by result" />
+                  <SelectValue placeholder={t('weightControlList.filterByResult')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Results</SelectItem>
-                  <SelectItem value="violations">Violations Only</SelectItem>
-                  <SelectItem value="PASS">Passed Only</SelectItem>
-                  <SelectItem value="UNDERWEIGHT">Underweight Only</SelectItem>
-                  <SelectItem value="OVERWEIGHT">Overweight Only</SelectItem>
+                  <SelectItem value="all">{t('weightControlList.allResults')}</SelectItem>
+                  <SelectItem value="violations">{t('weightControlList.violationsOnly')}</SelectItem>
+                  <SelectItem value="PASS">{t('weightControlList.passedOnly')}</SelectItem>
+                  <SelectItem value="UNDERWEIGHT">{t('weightControlList.underweightOnly')}</SelectItem>
+                  <SelectItem value="OVERWEIGHT">{t('weightControlList.overweightOnly')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -388,18 +390,18 @@ export default function WeightControlListPage({ params }: { params: Promise<{ ev
         <Card>
           <CardHeader>
             <CardTitle>
-              Weight Control Entries ({filteredControls.length} {filteredControls.length === 1 ? 'entry' : 'entries'})
+              {t('weightControlList.weightControlEntries')} ({filteredControls.length} {filteredControls.length === 1 ? t('weightControlList.entry') : t('weightControlList.entries')})
             </CardTitle>
           </CardHeader>
           <CardContent className="p-0">
             {filteredControls.length === 0 ? (
               <div className="text-center py-12">
                 <Scale className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-semibold mb-2">No Weight Controls Found</h3>
+                <h3 className="text-lg font-semibold mb-2">{t('weightControlList.noWeightControlsFound')}</h3>
                 <p className="text-muted-foreground">
                   {weightControls.length === 0 
-                    ? 'No weight controls have been performed yet.'
-                    : 'No weight controls match your current filter criteria.'
+                    ? t('weightControlList.noWeightControlsPerformed')
+                    : t('weightControlList.noWeightControlsMatch')
                   }
                 </p>
               </div>
@@ -428,21 +430,21 @@ export default function WeightControlListPage({ params }: { params: Promise<{ ev
                       
                       <div className="grid grid-cols-2 gap-2 text-sm">
                         <div>
-                          <span className="text-muted-foreground">Class:</span> {control.participant.class.name}
+                          <span className="text-muted-foreground">{t('weightControlList.class')}:</span> {control.participant.class.name}
                         </div>
                         <div>
-                          <span className="text-muted-foreground">Heat:</span> {getHeatLabel(control.heat)}
+                          <span className="text-muted-foreground">{t('weightControlList.heat')}:</span> {getHeatLabel(control.heat)}
                         </div>
                         <div>
-                          <span className="text-muted-foreground">Declared:</span> {control.participant.userVehicle?.weight || 'N/A'} kg
+                          <span className="text-muted-foreground">{t('weightControlList.declared')}:</span> {control.participant.userVehicle?.weight || 'N/A'} kg
                         </div>
                         <div>
-                          <span className="text-muted-foreground">Measured:</span> {control.measuredWeight} kg
+                          <span className="text-muted-foreground">{t('weightControlList.measured')}:</span> {control.measuredWeight} kg
                         </div>
                       </div>
                       
                       <div className="text-xs text-muted-foreground border-t pt-2">
-                        <p>Controlled by: {control.controller.name}</p>
+                        <p>{t('weightControlList.controlledBy')}: {control.controller.name}</p>
                         <p>{new Date(control.controlledAt).toLocaleString()}</p>
                       </div>
                     </div>
@@ -454,16 +456,16 @@ export default function WeightControlListPage({ params }: { params: Promise<{ ev
                   <table className="w-full">
                     <thead className="border-b bg-gray-50">
                       <tr>
-                        <th className="text-left p-4 font-medium">Start #</th>
-                        <th className="text-left p-4 font-medium">Driver</th>
-                        <th className="text-left p-4 font-medium">Vehicle</th>
-                        <th className="text-left p-4 font-medium">Class</th>
-                        <th className="text-left p-4 font-medium">Heat</th>
-                        <th className="text-left p-4 font-medium">Declared</th>
-                        <th className="text-left p-4 font-medium">Measured</th>
-                        <th className="text-left p-4 font-medium">Limit</th>
-                        <th className="text-left p-4 font-medium">Result</th>
-                        <th className="text-left p-4 font-medium">Controller</th>
+                        <th className="text-left p-4 font-medium">{t('weightControlList.startNumber')}</th>
+                        <th className="text-left p-4 font-medium">{t('weightControlList.driver')}</th>
+                        <th className="text-left p-4 font-medium">{t('weightControlList.vehicle')}</th>
+                        <th className="text-left p-4 font-medium">{t('weightControlList.class')}</th>
+                        <th className="text-left p-4 font-medium">{t('weightControlList.heat')}</th>
+                        <th className="text-left p-4 font-medium">{t('weightControlList.declared')}</th>
+                        <th className="text-left p-4 font-medium">{t('weightControlList.measured')}</th>
+                        <th className="text-left p-4 font-medium">{t('weightControlList.limit')}</th>
+                        <th className="text-left p-4 font-medium">{t('weightControlList.result')}</th>
+                        <th className="text-left p-4 font-medium">{t('weightControlList.controller')}</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -497,7 +499,7 @@ export default function WeightControlListPage({ params }: { params: Promise<{ ev
                           <span className="font-medium">{control.measuredWeight} kg</span>
                           {control.participant.userVehicle?.weight && control.participant.userVehicle.weight !== control.measuredWeight && (
                             <div className="text-xs text-muted-foreground">
-                              Diff: {(control.measuredWeight - control.participant.userVehicle.weight).toFixed(1)} kg
+                              {t('weightControlList.diff')}: {(control.measuredWeight - control.participant.userVehicle.weight).toFixed(1)} kg
                             </div>
                           )}
                         </td>
@@ -507,7 +509,7 @@ export default function WeightControlListPage({ params }: { params: Promise<{ ev
                               {control.weightLimit.minWeight} - {control.weightLimit.maxWeight} kg
                             </span>
                           ) : (
-                            <span className="text-sm text-muted-foreground">No limit</span>
+                            <span className="text-sm text-muted-foreground">{t('weightControlList.noLimit')}</span>
                           )}
                         </td>
                         <td className="p-4">

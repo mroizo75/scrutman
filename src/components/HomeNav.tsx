@@ -13,6 +13,9 @@ import {
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { User, Settings, LogOut, LayoutDashboard, UserCircle } from "lucide-react";
+import LanguageSwitcher from "@/components/LanguageSwitcher";
+import Image from "next/image";
+import { useTranslation } from "@/hooks/useTranslation";
 
 interface UserData {
   id: string;
@@ -22,6 +25,7 @@ interface UserData {
 }
 
 export default function HomeNav() {
+  const { t } = useTranslation();
   const [user, setUser] = useState<UserData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
@@ -72,19 +76,19 @@ export default function HomeNav() {
     
     switch (user.role) {
       case "ATHLETE":
-        return "Athlete";
+        return t('common.athlete');
       case "CLUBADMIN":
-        return "Club Admin";
+        return t('common.administrator');
       case "SUPERADMIN":
-        return "Super Admin";
+        return t('common.superAdmin');
       case "FEDERATION_ADMIN":
-        return "Federation Admin";
+        return t('common.federation');
       case "TECHNICAL_INSPECTOR":
-        return "Technical Inspector";
+        return t('common.technicalInspector');
       case "WEIGHT_CONTROLLER":
-        return "Weight Controller";
+        return t('common.weightController');
       case "RACE_OFFICIAL":
-        return "Race Official";
+        return t('common.raceOfficial');
       default:
         return user.role;
     }
@@ -95,7 +99,7 @@ export default function HomeNav() {
       <nav className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
           <Link href="/" className="text-2xl font-bold text-primary">
-            ScrutMan
+            <Image src="/logo.png" alt="ScrutMan" width={200} height={200} />
           </Link>
           <div className="h-10 w-24 bg-muted animate-pulse rounded"></div>
         </div>
@@ -107,17 +111,18 @@ export default function HomeNav() {
     <nav className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
         <Link href="/" className="text-2xl font-bold text-primary">
-          ScrutMan
+          <Image src="/logo.png" alt="ScrutMan" width={200} height={200} />
         </Link>
 
         <div className="flex items-center gap-4">
+          <LanguageSwitcher />
           {user ? (
             <>
               {/* Dashboard Link */}
               <Button asChild variant="outline">
                 <Link href={getDashboardLink()}>
                   <LayoutDashboard className="h-4 w-4 mr-2" />
-                  Dashboard
+                  {t('common.dashboard')}
                 </Link>
               </Button>
 
@@ -136,7 +141,7 @@ export default function HomeNav() {
                   <DropdownMenuItem asChild>
                     <Link href="/profile" className="flex items-center">
                       <User className="h-4 w-4 mr-2" />
-                      Profile
+                      {t('common.profile')}
                     </Link>
                   </DropdownMenuItem>
                   
@@ -144,7 +149,7 @@ export default function HomeNav() {
                     <DropdownMenuItem asChild>
                       <Link href="/profile/vehicles" className="flex items-center">
                         <Settings className="h-4 w-4 mr-2" />
-                        My Vehicles
+                        {t('common.myVehicles')}
                       </Link>
                     </DropdownMenuItem>
                   )}
@@ -156,7 +161,7 @@ export default function HomeNav() {
                     className="text-red-600 focus:text-red-600"
                   >
                     <LogOut className="h-4 w-4 mr-2" />
-                    Sign Out
+                    {t('common.signOut')}
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -164,10 +169,10 @@ export default function HomeNav() {
           ) : (
             <>
               <Button asChild variant="outline">
-                <Link href="/login">Sign In</Link>
+                <Link href="/login">{t('common.signIn')}</Link>
               </Button>
               <Button asChild>
-                <Link href="/register">Join Now</Link>
+                <Link href="/register">{t('common.signUp')}</Link>
               </Button>
             </>
           )}

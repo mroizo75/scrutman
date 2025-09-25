@@ -19,6 +19,7 @@ import {
   X,
   Save
 } from "lucide-react";
+import { useTranslation } from "@/hooks/useTranslation";
 
 interface ClubClass {
   id: string;
@@ -46,6 +47,7 @@ interface ClassFormData {
 }
 
 export default function ClubClassesPage() {
+  const { t } = useTranslation();
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
   const [classes, setClasses] = useState<ClubClass[]>([]);
@@ -83,7 +85,7 @@ export default function ClubClassesPage() {
   const fetchClasses = async (userData: User) => {
     try {
       const response = await fetch(`/api/clubs/${userData.clubId}/classes`);
-      if (!response.ok) throw new Error('Could not fetch club classes');
+      if (!response.ok) throw new Error(t('classes.couldNotFetchClasses'));
       
       const data = await response.json();
       setClasses(data);
@@ -151,11 +153,11 @@ export default function ClubClassesPage() {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to save class');
+        throw new Error(errorData.error || t('classes.failedToSaveClass'));
       }
 
       await fetchClasses(user);
-      setSuccess(editingClass ? 'Class updated successfully!' : 'Class created successfully!');
+      setSuccess(editingClass ? t('classes.classUpdatedSuccessfully') : t('classes.classCreatedSuccessfully'));
       resetForm();
 
       // Clear success message after 3 seconds
@@ -169,7 +171,7 @@ export default function ClubClassesPage() {
   };
 
   const handleDelete = async (classItem: ClubClass) => {
-    if (!user || !confirm(`Are you sure you want to delete the class "${classItem.name}"?`)) {
+    if (!user || !confirm(`${t('classes.confirmDeleteClass')} "${classItem.name}"?`)) {
       return;
     }
 
@@ -180,11 +182,11 @@ export default function ClubClassesPage() {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to delete class');
+        throw new Error(errorData.error || t('classes.failedToDeleteClass'));
       }
 
       await fetchClasses(user);
-      setSuccess('Class deleted successfully!');
+      setSuccess(t('classes.classDeletedSuccessfully'));
       setTimeout(() => setSuccess(null), 3000);
 
     } catch (err) {
@@ -209,7 +211,7 @@ export default function ClubClassesPage() {
     } else if (maxWeight) {
       return `≤${maxWeight} kg`;
     }
-    return 'No weight limit';
+    return t('classes.noWeightLimit');
   };
 
   if (loading) {
@@ -228,9 +230,9 @@ export default function ClubClassesPage() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
           <div>
-            <h1 className="text-3xl font-bold">Manage Club Classes</h1>
+            <h1 className="text-3xl font-bold">{t('classes.title')}</h1>
             <p className="text-muted-foreground">
-              Create and manage classes for your club's events
+              {t('classes.description')}
             </p>
           </div>
           <Button 
@@ -238,7 +240,7 @@ export default function ClubClassesPage() {
             disabled={showForm}
           >
             <Plus className="mr-2 h-4 w-4" />
-            Add New Class
+            {t('classes.addNewClass')}
           </Button>
         </div>
 
@@ -263,7 +265,7 @@ export default function ClubClassesPage() {
                 <Target className="h-6 w-6 text-blue-600" />
               </div>
               <p className="text-2xl font-bold">{classes.length}</p>
-              <p className="text-xs text-muted-foreground">Total Classes</p>
+              <p className="text-xs text-muted-foreground">{t('classes.totalClasses')}</p>
             </CardContent>
           </Card>
 
@@ -275,7 +277,7 @@ export default function ClubClassesPage() {
               <p className="text-2xl font-bold text-green-600">
                 {classes.filter(c => c.minWeight || c.maxWeight).length}
               </p>
-              <p className="text-xs text-muted-foreground">With Weight Limits</p>
+              <p className="text-xs text-muted-foreground">{t('classes.withWeightLimits')}</p>
             </CardContent>
           </Card>
         </div>
@@ -286,7 +288,7 @@ export default function ClubClassesPage() {
             <CardHeader>
               <div className="flex justify-between items-center">
                 <CardTitle>
-                  {editingClass ? 'Edit Class' : 'Add New Class'}
+                  {editingClass ? t('classes.editClass') : t('classes.addNewClassTitle')}
                 </CardTitle>
                 <Button variant="ghost" size="sm" onClick={resetForm}>
                   <X className="h-4 w-4" />
@@ -297,49 +299,49 @@ export default function ClubClassesPage() {
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="name">Class Name *</Label>
+                    <Label htmlFor="name">{t('classes.className')} *</Label>
                     <Input
                       id="name"
                       value={formData.name}
                       onChange={(e) => setFormData({...formData, name: e.target.value})}
-                      placeholder="e.g., Autocross"
+                      placeholder={t('classes.classNamePlaceholder')}
                       required
                     />
                   </div>
                   
                   <div className="space-y-2">
-                    <Label htmlFor="description">Description</Label>
+                    <Label htmlFor="description">{t('classes.classDescription')}</Label>
                     <Input
                       id="description"
                       value={formData.description}
                       onChange={(e) => setFormData({...formData, description: e.target.value})}
-                      placeholder="Optional description"
+                      placeholder={t('classes.descriptionPlaceholder')}
                     />
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="minWeight">Minimum Weight (kg)</Label>
+                    <Label htmlFor="minWeight">{t('classes.minimumWeight')}</Label>
                     <Input
                       id="minWeight"
                       type="number"
                       step="0.1"
                       value={formData.minWeight}
                       onChange={(e) => setFormData({...formData, minWeight: e.target.value})}
-                      placeholder="Optional minimum weight"
+                      placeholder={t('classes.minWeightPlaceholder')}
                     />
                   </div>
                   
                   <div className="space-y-2">
-                    <Label htmlFor="maxWeight">Maximum Weight (kg)</Label>
+                    <Label htmlFor="maxWeight">{t('classes.maximumWeight')}</Label>
                     <Input
                       id="maxWeight"
                       type="number"
                       step="0.1"
                       value={formData.maxWeight}
                       onChange={(e) => setFormData({...formData, maxWeight: e.target.value})}
-                      placeholder="Optional maximum weight"
+                      placeholder={t('classes.maxWeightPlaceholder')}
                     />
                   </div>
                 </div>
@@ -349,17 +351,17 @@ export default function ClubClassesPage() {
                     {saving ? (
                       <>
                         <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                        Saving...
+                        {t('classes.saving')}
                       </>
                     ) : (
                       <>
                         <Save className="mr-2 h-4 w-4" />
-                        {editingClass ? 'Update Class' : 'Create Class'}
+                        {editingClass ? t('classes.updateClass') : t('classes.createClass')}
                       </>
                     )}
                   </Button>
                   <Button type="button" variant="outline" onClick={resetForm}>
-                    Cancel
+                    {t('classes.cancel')}
                   </Button>
                 </div>
               </form>
@@ -371,7 +373,7 @@ export default function ClubClassesPage() {
         <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search classes by name or description..."
+            placeholder={t('classes.searchClasses')}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-9"
@@ -380,7 +382,7 @@ export default function ClubClassesPage() {
 
         {/* Classes List */}
         <div className="space-y-4">
-          <h2 className="text-xl font-semibold">Club Classes</h2>
+          <h2 className="text-xl font-semibold">{t('classes.clubClasses')}</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {filteredClasses.map((classItem) => (
               <Card key={classItem.id} className="hover:shadow-md transition-shadow">
@@ -422,7 +424,7 @@ export default function ClubClassesPage() {
                     </div>
 
                     <Badge className="bg-blue-100 text-blue-800">
-                      Active
+                      {t('classes.active')}
                     </Badge>
                   </div>
                 </CardContent>
@@ -435,14 +437,14 @@ export default function ClubClassesPage() {
           <Card>
             <CardContent className="p-8 text-center">
               <Target className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-semibold mb-2">No Classes Found</h3>
+              <h3 className="text-lg font-semibold mb-2">{t('classes.noClassesFound')}</h3>
               <p className="text-muted-foreground mb-4">
-                {searchTerm ? 'Try adjusting your search criteria.' : 'No classes have been created for your club yet.'}
+                {searchTerm ? t('classes.tryAdjustingSearch') : t('classes.noClassesCreated')}
               </p>
               {!searchTerm && (
                 <Button onClick={() => setShowForm(true)}>
                   <Plus className="mr-2 h-4 w-4" />
-                  Create Your First Class
+                  {t('classes.createFirstClass')}
                 </Button>
               )}
             </CardContent>

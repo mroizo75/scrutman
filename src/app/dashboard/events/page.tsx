@@ -13,6 +13,7 @@ import { Upload, File, Image as ImageIcon, X, Users, Calendar, Search, Building2
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import Link from "next/link";
+import { useTranslation } from "@/hooks/useTranslation";
 
 interface Event {
   id: string;
@@ -54,6 +55,7 @@ interface Event {
 }
 
 export default function EventsPage() {
+  const { t } = useTranslation();
   const router = useRouter();
   const [events, setEvents] = useState<Event[]>([]);
   const [filteredEvents, setFilteredEvents] = useState<Event[]>([]);
@@ -387,12 +389,12 @@ export default function EventsPage() {
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
           <div>
             <h1 className="text-3xl font-bold">
-              {currentUser?.role === 'SUPERADMIN' ? 'All Events' : 'Events'}
+              {currentUser?.role === 'SUPERADMIN' ? t('events.title') : t('events.title')}
             </h1>
             <p className="text-muted-foreground">
               {currentUser?.role === 'SUPERADMIN' 
-                ? `Showing ${filteredEvents.length} of ${events.length} events` 
-                : 'Manage your club events'
+                ? `Showing ${filteredEvents.length} of ${events.length} ${t('events.title')}` 
+                : `Manage your club ${t('events.title')}`
               }
             </p>
           </div>
@@ -402,7 +404,7 @@ export default function EventsPage() {
               <div className="relative flex-1 sm:w-80">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
                 <Input
-                  placeholder="Search events or clubs..."
+                  placeholder={t('common.search') + ' events or clubs...'}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-10"
@@ -415,7 +417,7 @@ export default function EventsPage() {
               setError(null);
               setSuccess(null);
             }}>
-              {showForm ? 'Cancel' : 'New Event'}
+              {showForm ? t('common.cancel') : t('events.createEvent')}
             </Button>
           )}
         </div>
@@ -435,13 +437,13 @@ export default function EventsPage() {
         {showForm && currentUser?.role === 'CLUBADMIN' && (
           <Card>
             <CardHeader>
-              <CardTitle>{editingEvent ? 'Edit Event' : 'New Event'}</CardTitle>
+              <CardTitle>{editingEvent ? t('events.editEvent') : t('events.createEvent')}</CardTitle>
             </CardHeader>
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
-                    <Label htmlFor="title">Title</Label>
+                    <Label htmlFor="title">{t('events.eventTitle')}</Label>
                     <Input
                       id="title"
                       value={formData.title}
@@ -451,7 +453,7 @@ export default function EventsPage() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="description">Description</Label>
+                    <Label htmlFor="description">{t('events.description')}</Label>
                     <Input
                       id="description"
                       value={formData.description}
@@ -460,7 +462,7 @@ export default function EventsPage() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="startDate">Start Date & Time</Label>
+                    <Label htmlFor="startDate">{t('events.startDate')}</Label>
                     <div className="relative">
                       <DatePicker
                         selected={formData.startDate}
@@ -476,7 +478,7 @@ export default function EventsPage() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="endDate">End Date & Time</Label>
+                    <Label htmlFor="endDate">{t('events.endDate')}</Label>
                     <div className="relative">
                       <DatePicker
                         selected={formData.endDate}
@@ -492,7 +494,7 @@ export default function EventsPage() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="location">Location</Label>
+                    <Label htmlFor="location">{t('events.location')}</Label>
                     <Input
                       id="location"
                       value={formData.location}
@@ -503,7 +505,7 @@ export default function EventsPage() {
 
 
                   <div className="space-y-2">
-                    <Label htmlFor="maxParticipants">Maximum Participants</Label>
+                    <Label htmlFor="maxParticipants">{t('events.maximumParticipants')}</Label>
                     <Input
                       id="maxParticipants"
                       type="number"
@@ -513,7 +515,7 @@ export default function EventsPage() {
                       placeholder="0 for unlimited"
                     />
                     <p className="text-xs text-muted-foreground">
-                      Set to 0 for unlimited participants
+                      {t('events.setToZero')}
                     </p>
                   </div>
                 </div>
@@ -521,9 +523,9 @@ export default function EventsPage() {
                 {/* Available Classes */}
                 <div className="space-y-4">
                   <div>
-                    <Label>Available Classes</Label>
+                    <Label>{t('events.availableClasses')}</Label>
                     <p className="text-xs text-muted-foreground mb-3">
-                      Select which classes will be available for this event
+                      {t('events.selectClasses')}
                     </p>
                   </div>
                   
@@ -578,19 +580,19 @@ export default function EventsPage() {
                   
                   {selectedClasses.length === 0 && (
                     <p className="text-xs text-amber-600">
-                      Note: If no classes are selected, participants won't be able to register for this event.
+                      {t('events.noClassesSelected')}
                     </p>
                   )}
                 </div>
 
                 <div className="space-y-4">
                   <div>
-                    <Label>Files (Optional)</Label>
+                    <Label>{t('events.filesOptional')}</Label>
                     
                     {/* Show existing files when editing */}
                     {editingEvent && editingEvent.files && editingEvent.files.length > 0 && (
                       <div className="mt-2 mb-4">
-                        <p className="text-sm text-muted-foreground mb-2">Current files:</p>
+                        <p className="text-sm text-muted-foreground mb-2">{t('events.currentFiles')}</p>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                           {editingEvent.files.map((file) => (
                             <div key={file.id} className="flex items-center gap-2 p-2 border rounded-md">
@@ -602,7 +604,7 @@ export default function EventsPage() {
                                 rel="noopener noreferrer"
                                 className="text-xs text-blue-600 hover:underline"
                               >
-                                View
+                                {t('events.view')}
                               </a>
                             </div>
                           ))}
@@ -623,23 +625,23 @@ export default function EventsPage() {
                         className="cursor-pointer flex items-center gap-2 px-4 py-2 border rounded-md hover:bg-accent"
                       >
                         <Upload className="h-4 w-4" />
-                        {editingEvent ? 'Add More Files' : 'Upload Files'}
+                        {editingEvent ? t('events.addMoreFiles') : t('events.uploadFiles')}
                       </Label>
                       {selectedFiles.length > 0 && (
                         <span className="text-sm text-muted-foreground">
-                          {selectedFiles.length} new file(s) selected
+                          {selectedFiles.length} {t('events.newFilesSelected')}
                         </span>
                       )}
                     </div>
                   </div>
 
                   <div>
-                    <Label>Images (Optional)</Label>
+                    <Label>{t('events.imagesOptional')}</Label>
                     
                     {/* Show existing images when editing */}
                     {editingEvent && editingEvent.images && editingEvent.images.length > 0 && (
                       <div className="mt-2 mb-4">
-                        <p className="text-sm text-muted-foreground mb-2">Current images:</p>
+                        <p className="text-sm text-muted-foreground mb-2">{t('events.currentImages')}</p>
                         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
                           {editingEvent.images.map((image) => (
                             <div key={image.id} className="relative group">
@@ -655,7 +657,7 @@ export default function EventsPage() {
                                   rel="noopener noreferrer"
                                   className="text-xs text-white bg-black bg-opacity-70 px-2 py-1 rounded"
                                 >
-                                  View
+                                  {t('events.view')}
                                 </a>
                               </div>
                             </div>
@@ -678,11 +680,11 @@ export default function EventsPage() {
                         className="cursor-pointer flex items-center gap-2 px-4 py-2 border rounded-md hover:bg-accent"
                       >
                         <ImageIcon className="h-4 w-4" />
-                        {editingEvent ? 'Add More Images' : 'Upload Images'}
+                        {editingEvent ? t('events.addMoreImages') : t('events.uploadImages')}
                       </Label>
                       {selectedImages.length > 0 && (
                         <span className="text-sm text-muted-foreground">
-                          {selectedImages.length} new image(s) selected
+                          {selectedImages.length} {t('events.newImagesSelected')}
                         </span>
                       )}
                     </div>
@@ -691,10 +693,10 @@ export default function EventsPage() {
 
                 <div className="flex justify-end gap-4">
                   <Button type="button" variant="outline" onClick={resetForm}>
-                    Cancel
+                    {t('common.cancel')}
                   </Button>
                   <Button type="submit">
-                    {editingEvent ? 'Save Changes' : 'Create Event'}
+                    {editingEvent ? t('common.save') : t('events.createEvent')}
                   </Button>
                 </div>
               </form>
@@ -725,7 +727,7 @@ export default function EventsPage() {
                       <div className="flex items-center gap-2 text-sm text-muted-foreground">
                         <Clock className="h-4 w-4" />
                         <span>
-                          {new Date(event.startDate).toLocaleString('en-US', {
+                          {new Date(event.startDate).toLocaleString(t('events.dateFormat') === 'EEEE d MMMM yyyy \'à\' HH:mm' ? 'fr-FR' : 'en-US', {
                             weekday: 'long',
                             year: 'numeric',
                             month: 'long',
@@ -748,15 +750,15 @@ export default function EventsPage() {
                         <p className="text-sm text-muted-foreground">{event.description}</p>
                         
                         <div className="text-sm space-y-2">
-                          <p><strong>Location:</strong> {event.location}</p>
+                          <p><strong>{t('events.location')}:</strong> {event.location}</p>
                           {event.maxParticipants > 0 && (
                             <p>
-                              <strong>Capacity:</strong> {stats.confirmed}/{event.maxParticipants} participants
+                              <strong>{t('events.capacity')}:</strong> {stats.confirmed}/{event.maxParticipants} {t('events.participants')}
                               {spotsLeft !== null && spotsLeft > 0 && (
-                                <span className="text-green-600"> ({spotsLeft} spots left)</span>
+                                <span className="text-green-600"> ({spotsLeft} {t('events.spotsLeft')})</span>
                               )}
                               {isFull && (
-                                <span className="text-red-600"> (Full)</span>
+                                <span className="text-red-600"> ({t('events.full')})</span>
                               )}
                             </p>
                           )}
@@ -766,23 +768,23 @@ export default function EventsPage() {
                       <div className="bg-muted p-4 rounded-lg">
                         <div className="flex items-center gap-2 mb-2">
                           <Users className="h-4 w-4" />
-                          <h4 className="font-medium">Registrations</h4>
+                          <h4 className="font-medium">{t('events.registrations')}</h4>
                         </div>
                         <div className="grid grid-cols-2 gap-4 text-sm">
                           <div>
-                            <p className="text-muted-foreground">Total</p>
+                            <p className="text-muted-foreground">{t('events.total')}</p>
                             <p className="font-medium">{stats.total}</p>
                           </div>
                           <div>
-                            <p className="text-muted-foreground">Confirmed</p>
+                            <p className="text-muted-foreground">{t('events.confirmed')}</p>
                             <p className="font-medium text-green-600">{stats.confirmed}</p>
                           </div>
                           <div>
-                            <p className="text-muted-foreground">Waitlisted</p>
+                            <p className="text-muted-foreground">{t('events.waitlisted')}</p>
                             <p className="font-medium text-yellow-600">{stats.waitlisted}</p>
                           </div>
                           <div>
-                            <p className="text-muted-foreground">Cancelled</p>
+                            <p className="text-muted-foreground">{t('events.cancelled')}</p>
                             <p className="font-medium text-red-600">{stats.cancelled}</p>
                           </div>
                         </div>
@@ -791,7 +793,7 @@ export default function EventsPage() {
 
                     {event.registrations.length > 0 && (
                       <div className="space-y-2">
-                        <p className="text-sm font-medium">Registered Users:</p>
+                        <p className="text-sm font-medium">{t('events.registeredUsers')}:</p>
                         <div className="max-h-40 overflow-y-auto space-y-1">
                           {event.registrations.map((registration) => (
                             <div
@@ -822,7 +824,7 @@ export default function EventsPage() {
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         {event.files.length > 0 && (
                           <div className="space-y-2">
-                            <p className="text-sm font-medium">Files:</p>
+                            <p className="text-sm font-medium">{t('events.files')}</p>
                             <div className="flex flex-wrap gap-2">
                               {event.files.map((file) => (
                                 <a
@@ -842,7 +844,7 @@ export default function EventsPage() {
 
                         {event.images.length > 0 && (
                           <div className="space-y-2">
-                            <p className="text-sm font-medium">Images:</p>
+                            <p className="text-sm font-medium">{t('events.images')}</p>
                             <div className="grid grid-cols-2 gap-2">
                               {event.images.map((image) => (
                                 <a
@@ -876,7 +878,7 @@ export default function EventsPage() {
                               onClick={() => handleSubmitForApproval(event.id)}
                               className="bg-blue-600 hover:bg-blue-700"
                             >
-                              Send for Approval
+                              {t('events.sendForApproval')}
                             </Button>
                           )}
                           
@@ -888,7 +890,7 @@ export default function EventsPage() {
                               onClick={() => handlePublishEvent(event.id)}
                               className="bg-green-600 hover:bg-green-700"
                             >
-                              Publish Event
+                              {t('events.publishEvent')}
                             </Button>
                           )}
                           
@@ -900,7 +902,7 @@ export default function EventsPage() {
                               asChild
                             >
                               <Link href={`/dashboard/events/${event.id}/classes`}>
-                                Classes
+                                {t('events.classes')}
                               </Link>
                             </Button>
                           )}
@@ -912,7 +914,7 @@ export default function EventsPage() {
                             asChild
                           >
                             <Link href={`/dashboard/events/${event.id}/startliste`}>
-                              Start List
+                              {t('events.startList')}
                             </Link>
                           </Button>
                           
@@ -924,7 +926,7 @@ export default function EventsPage() {
                               asChild
                             >
                               <Link href={`/dashboard/checkin/${event.id}`}>
-                                Check-In
+                                {t('events.checkIn')}
                               </Link>
                             </Button>
                           )}
@@ -936,7 +938,7 @@ export default function EventsPage() {
                             asChild
                           >
                             <Link href={`/dashboard/events/${event.id}/weight-limits`}>
-                              Weight Limits
+                              {t('events.weightLimits')}
                             </Link>
                           </Button>
                           
@@ -947,7 +949,7 @@ export default function EventsPage() {
                               size="sm"
                               onClick={() => handleEdit(event)}
                             >
-                              Edit
+                              {t('events.edit')}
                             </Button>
                           )}
                           
@@ -958,7 +960,7 @@ export default function EventsPage() {
                               size="sm"
                               onClick={() => handleDelete(event.id)}
                             >
-                              Delete
+                              {t('events.delete')}
                             </Button>
                           )}
                         </>
@@ -974,7 +976,7 @@ export default function EventsPage() {
                         asChild
                       >
                         <Link href={`/events/${event.id}`}>
-                          View Details
+                          {t('events.viewDetails')}
                         </Link>
                       </Button>
                     </div>
@@ -989,14 +991,14 @@ export default function EventsPage() {
             <div className="text-center py-12">
               <Calendar className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
               <h3 className="text-lg font-medium text-muted-foreground mb-2">
-                {searchTerm ? 'No events found' : 'No events yet'}
+                {searchTerm ? t('events.noEventsFound') : t('events.noEventsYet')}
               </h3>
               <p className="text-sm text-muted-foreground">
                 {searchTerm 
-                  ? `No events match "${searchTerm}". Try a different search term.`
+                  ? `${t('events.noEventsMatch')} "${searchTerm}". ${t('events.tryDifferentSearch')}`
                   : currentUser?.role === 'SUPERADMIN' 
-                    ? 'No events have been created yet.'
-                    : 'Create your first event to get started.'
+                    ? t('events.noEventsCreated')
+                    : t('events.createFirstEvent')
                 }
               </p>
             </div>
@@ -1006,7 +1008,7 @@ export default function EventsPage() {
           {totalPages > 1 && (
             <div className="flex items-center justify-between border-t pt-6">
               <div className="text-sm text-muted-foreground">
-                Showing {startIndex + 1} to {Math.min(endIndex, filteredEvents.length)} of {filteredEvents.length} events
+                {t('events.showing')} {startIndex + 1} {t('events.to')} {Math.min(endIndex, filteredEvents.length)} {t('events.of')} {filteredEvents.length} {t('events.events')}
               </div>
               <div className="flex items-center gap-2">
                 <Button
@@ -1015,7 +1017,7 @@ export default function EventsPage() {
                   onClick={() => setCurrentPage(currentPage - 1)}
                   disabled={currentPage === 1}
                 >
-                  Previous
+                  {t('events.previous')}
                 </Button>
                 <div className="flex items-center gap-1">
                   {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => (
@@ -1036,7 +1038,7 @@ export default function EventsPage() {
                   onClick={() => setCurrentPage(currentPage + 1)}
                   disabled={currentPage === totalPages}
                 >
-                  Next
+                  {t('events.next')}
                 </Button>
               </div>
             </div>

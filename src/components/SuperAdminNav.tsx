@@ -7,8 +7,12 @@ import { Building2, Users, Calendar, Menu, X, LogOut, BarChart3 } from "lucide-r
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import Cookies from "js-cookie";
+import { useTranslation } from "@/hooks/useTranslation";
+import LanguageSwitcher from "@/components/LanguageSwitcher";
+import Image from "next/image";
 
 export default function SuperAdminNav() {
+  const { t } = useTranslation();
   const pathname = usePathname();
   const router = useRouter();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -21,22 +25,22 @@ export default function SuperAdminNav() {
   const links = [
     {
       href: "/dashboard/superadmin",
-      label: "Dashboard",
+      label: t('common.dashboard'),
       icon: BarChart3
     },
     {
       href: "/dashboard/clubs",
-      label: "Club Management",
+      label: t('common.clubs'),
       icon: Building2
     },
     {
       href: "/dashboard/events",
-      label: "All Events",
+      label: t('common.events'),
       icon: Calendar
     },
     {
       href: "/dashboard/users",
-      label: "All Users",
+      label: t('common.users'),
       icon: Users
     }
   ];
@@ -47,7 +51,7 @@ export default function SuperAdminNav() {
         <div className="flex h-16 items-center justify-between">
           <div className="flex items-center">
             <Link href="/dashboard/superadmin" className="text-xl font-bold">
-              ScrutMan <span className="text-sm font-normal text-muted-foreground">Super Admin</span>
+              <Image src="/logo.png" alt="ScrutMan" width={200} height={200} /> <span className="text-sm font-normal text-muted-foreground">Super Admin</span>
             </Link>
           </div>
 
@@ -71,6 +75,7 @@ export default function SuperAdminNav() {
                 </Link>
               );
             })}
+            <LanguageSwitcher />
             <Button
               variant="ghost"
               size="sm"
@@ -78,7 +83,7 @@ export default function SuperAdminNav() {
               onClick={handleSignOut}
             >
               <LogOut className="h-4 w-4" />
-              Sign Out
+              {t('common.signOut')}
             </Button>
           </div>
 
@@ -119,6 +124,9 @@ export default function SuperAdminNav() {
                 </Link>
               );
             })}
+            <div className="flex items-center gap-2">
+              <LanguageSwitcher />
+            </div>
             <Button
               variant="ghost"
               size="sm"
@@ -126,7 +134,7 @@ export default function SuperAdminNav() {
               onClick={handleSignOut}
             >
               <LogOut className="h-4 w-4" />
-              Sign Out
+              {t('common.signOut')}
             </Button>
           </div>
         )}

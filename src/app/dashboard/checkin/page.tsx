@@ -18,6 +18,7 @@ import {
   AlertTriangle
 } from "lucide-react";
 import Link from "next/link";
+import { useTranslation } from "@/hooks/useTranslation";
 
 interface Event {
   id: string;
@@ -42,6 +43,7 @@ interface Event {
 }
 
 export default function CheckInOverviewPage() {
+  const { t, language } = useTranslation();
   const router = useRouter();
   const [events, setEvents] = useState<Event[]>([]);
   const [filteredEvents, setFilteredEvents] = useState<Event[]>([]);
@@ -151,9 +153,9 @@ export default function CheckInOverviewPage() {
       <div className="space-y-6">
         {/* Header */}
         <div>
-          <h1 className="text-3xl font-bold mb-2">Event Check-In</h1>
+          <h1 className="text-3xl font-bold mb-2">{t('checkin.eventCheckIn')}</h1>
           <p className="text-muted-foreground">
-            Manage participant check-ins for events
+            {t('checkin.manageParticipantCheckIns')}
           </p>
         </div>
 
@@ -169,7 +171,7 @@ export default function CheckInOverviewPage() {
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Search events by title, location, or club..."
+                placeholder={t('checkin.searchEvents')}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10"
@@ -183,7 +185,7 @@ export default function CheckInOverviewPage() {
           <div>
             <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
               <ClipboardCheck className="h-5 w-5 text-green-600" />
-              Active Events ({activeEvents.length})
+              {t('checkin.activeEvents')} ({activeEvents.length})
             </h2>
             <div className="grid gap-4">
               {activeEvents.map((event) => (
@@ -198,7 +200,7 @@ export default function CheckInOverviewPage() {
                             <div className="flex items-center gap-1">
                               <Calendar className="h-4 w-4 flex-shrink-0" />
                               <span>
-                                {new Date(event.startDate).toLocaleDateString('en-US', {
+                                {new Date(event.startDate).toLocaleDateString(language === 'fr' ? 'fr-FR' : 'en-US', {
                                   month: 'short',
                                   day: 'numeric',
                                   year: 'numeric'
@@ -213,7 +215,7 @@ export default function CheckInOverviewPage() {
                             )}
                             <div className="flex items-center gap-1">
                               <Users className="h-4 w-4 flex-shrink-0" />
-                              <span>{event._count.registrations} participants</span>
+                              <span>{event._count.registrations} {t('checkin.participants')}</span>
                             </div>
                           </div>
                           <p className="text-sm font-medium text-muted-foreground mt-2">{event.club.name}</p>
@@ -231,28 +233,28 @@ export default function CheckInOverviewPage() {
                               <CheckCircle2 className="h-4 w-4 text-green-600" />
                             </div>
                             <p className="text-lg font-bold text-green-600">{event.checkInStats.checkedIn}</p>
-                            <p className="text-xs text-muted-foreground">Checked In</p>
+                            <p className="text-xs text-muted-foreground">{t('checkin.checkedIn')}</p>
                           </div>
                           <div className="text-center bg-red-50 p-3 rounded">
                             <div className="flex items-center justify-center mb-1">
                               <AlertTriangle className="h-4 w-4 text-red-600" />
                             </div>
                             <p className="text-lg font-bold text-red-600">{event.checkInStats.issues}</p>
-                            <p className="text-xs text-muted-foreground">Issues</p>
+                            <p className="text-xs text-muted-foreground">{t('checkin.issues')}</p>
                           </div>
                           <div className="text-center bg-yellow-50 p-3 rounded">
                             <div className="flex items-center justify-center mb-1">
                               <Clock className="h-4 w-4 text-yellow-600" />
                             </div>
                             <p className="text-lg font-bold text-yellow-600">{event.checkInStats.pending}</p>
-                            <p className="text-xs text-muted-foreground">Pending</p>
+                            <p className="text-xs text-muted-foreground">{t('checkin.pending')}</p>
                           </div>
                           <div className="text-center bg-blue-50 p-3 rounded">
                             <div className="flex items-center justify-center mb-1">
                               <Users className="h-4 w-4 text-blue-600" />
                             </div>
                             <p className="text-lg font-bold text-blue-600">{event.checkInStats.total}</p>
-                            <p className="text-xs text-muted-foreground">Total</p>
+                            <p className="text-xs text-muted-foreground">{t('checkin.total')}</p>
                           </div>
                         </div>
                       )}
@@ -262,7 +264,7 @@ export default function CheckInOverviewPage() {
                         <Button asChild size="sm">
                           <Link href={`/dashboard/checkin/${event.id}`}>
                             <ClipboardCheck className="h-4 w-4 mr-2" />
-                            Start Check-In
+                            {t('checkin.startCheckIn')}
                           </Link>
                         </Button>
                       </div>
@@ -279,7 +281,7 @@ export default function CheckInOverviewPage() {
           <div>
             <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
               <Calendar className="h-5 w-5 text-blue-600" />
-              Upcoming Events ({upcomingEvents.length})
+              {t('checkin.upcomingEvents')} ({upcomingEvents.length})
             </h2>
             <div className="grid gap-4">
               {upcomingEvents.map((event) => (
@@ -294,7 +296,7 @@ export default function CheckInOverviewPage() {
                             <div className="flex items-center gap-1">
                               <Calendar className="h-4 w-4 flex-shrink-0" />
                               <span>
-                                {new Date(event.startDate).toLocaleDateString('en-US', {
+                                {new Date(event.startDate).toLocaleDateString(language === 'fr' ? 'fr-FR' : 'en-US', {
                                   month: 'short',
                                   day: 'numeric',
                                   year: 'numeric'
@@ -309,7 +311,7 @@ export default function CheckInOverviewPage() {
                             )}
                             <div className="flex items-center gap-1">
                               <Users className="h-4 w-4 flex-shrink-0" />
-                              <span>{event._count.registrations} participants</span>
+                              <span>{event._count.registrations} {t('checkin.participants')}</span>
                             </div>
                           </div>
                           <p className="text-sm font-medium text-muted-foreground mt-2">{event.club.name}</p>
@@ -322,7 +324,7 @@ export default function CheckInOverviewPage() {
                       {/* Info */}
                       <div className="text-center p-3 bg-blue-50 rounded">
                         <p className="text-sm text-blue-700 font-medium">
-                          Check-in available when event is published
+                          {t('checkin.checkInAvailable')}
                         </p>
                       </div>
                     </div>
@@ -338,11 +340,11 @@ export default function CheckInOverviewPage() {
           <Card>
             <CardContent className="p-12 text-center">
               <ClipboardCheck className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-semibold mb-2">No Events Available</h3>
+              <h3 className="text-lg font-semibold mb-2">{t('checkin.noEventsAvailable')}</h3>
               <p className="text-muted-foreground">
                 {searchTerm 
-                  ? 'No events found matching your search criteria.'
-                  : 'There are no events available for check-in at the moment.'
+                  ? t('checkin.noEventsFoundMatching')
+                  : t('checkin.noEventsAvailableForCheckIn')
                 }
               </p>
             </CardContent>

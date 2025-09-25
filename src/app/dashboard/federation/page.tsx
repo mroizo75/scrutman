@@ -29,6 +29,7 @@ import {
   List
 } from "lucide-react";
 import Link from "next/link";
+import { useTranslation } from "@/hooks/useTranslation";
 
 interface Event {
   id: string;
@@ -78,6 +79,7 @@ interface FederationData {
 }
 
 export default function FederationDashboard() {
+  const { t } = useTranslation();
   const router = useRouter();
   const [data, setData] = useState<FederationData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -219,13 +221,13 @@ export default function FederationDashboard() {
   const getStatusText = (status: string) => {
     switch (status) {
       case 'SUBMITTED':
-        return 'Awaiting Review';
+        return t('federation.awaitingReview');
       case 'APPROVED':
-        return 'Approved';
+        return t('federation.approved');
       case 'REJECTED':
-        return 'Rejected';
+        return t('federation.rejected');
       case 'PUBLISHED':
-        return 'Published';
+        return t('federation.published');
       default:
         return status;
     }
@@ -245,8 +247,8 @@ export default function FederationDashboard() {
     return (
       <main className="container mx-auto px-4 py-8">
         <div className="text-center">
-          <h1 className="text-2xl font-bold mb-4">Federation Dashboard</h1>
-          <p className="text-muted-foreground">No data available</p>
+          <h1 className="text-2xl font-bold mb-4">{t('federation.title')}</h1>
+          <p className="text-muted-foreground">{t('federation.noDataAvailable')}</p>
         </div>
       </main>
     );
@@ -257,8 +259,8 @@ export default function FederationDashboard() {
       <div className="space-y-6">
         {/* Header */}
         <div>
-          <h1 className="text-3xl font-bold mb-2">Federation Dashboard</h1>
-          <p className="text-muted-foreground">Review and approve club events</p>
+          <h1 className="text-3xl font-bold mb-2">{t('federation.title')}</h1>
+          <p className="text-muted-foreground">{t('federation.reviewAndApprove')}</p>
         </div>
 
         {error && (
@@ -272,18 +274,18 @@ export default function FederationDashboard() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Filter className="h-5 w-5" />
-              Filters & Search
+              {t('federation.filtersAndSearch')}
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               {/* Search */}
               <div className="space-y-2">
-                <label className="text-sm font-medium">Search Events</label>
+                <label className="text-sm font-medium">{t('federation.searchEvents')}</label>
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
-                    placeholder="Event title, club name..."
+                    placeholder={t('federation.eventTitleClubName')}
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="pl-10"
@@ -293,13 +295,13 @@ export default function FederationDashboard() {
 
               {/* Club Filter */}
               <div className="space-y-2">
-                <label className="text-sm font-medium">Club</label>
+                <label className="text-sm font-medium">{t('federation.club')}</label>
                 <Select value={selectedClub} onValueChange={setSelectedClub}>
                   <SelectTrigger>
-                    <SelectValue placeholder="All clubs" />
+                    <SelectValue placeholder={t('federation.allClubs')} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">All clubs</SelectItem>
+                    <SelectItem value="all">{t('federation.allClubs')}</SelectItem>
                     {clubs.map((club) => (
                       <SelectItem key={club.id} value={club.id}>
                         {club.name} ({club.city}, {club.country})
@@ -311,36 +313,36 @@ export default function FederationDashboard() {
 
               {/* Date Filter */}
               <div className="space-y-2">
-                <label className="text-sm font-medium">Date Range</label>
+                <label className="text-sm font-medium">{t('federation.dateRange')}</label>
                 <Select value={dateFilter} onValueChange={setDateFilter}>
                   <SelectTrigger>
-                    <SelectValue placeholder="All dates" />
+                    <SelectValue placeholder={t('federation.allDates')} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">All dates</SelectItem>
-                    <SelectItem value="today">Today</SelectItem>
-                    <SelectItem value="week">This week</SelectItem>
-                    <SelectItem value="month">This month</SelectItem>
-                    <SelectItem value="quarter">This quarter</SelectItem>
-                    <SelectItem value="overdue">Overdue</SelectItem>
+                    <SelectItem value="all">{t('federation.allDates')}</SelectItem>
+                    <SelectItem value="today">{t('federation.today')}</SelectItem>
+                    <SelectItem value="week">{t('federation.thisWeek')}</SelectItem>
+                    <SelectItem value="month">{t('federation.thisMonth')}</SelectItem>
+                    <SelectItem value="quarter">{t('federation.thisQuarter')}</SelectItem>
+                    <SelectItem value="overdue">{t('federation.overdue')}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
               {/* Sort */}
               <div className="space-y-2">
-                <label className="text-sm font-medium">Sort By</label>
+                <label className="text-sm font-medium">{t('federation.sortBy')}</label>
                 <div className="flex gap-2">
                   <Select value={sortBy} onValueChange={setSortBy}>
                     <SelectTrigger className="flex-1">
-                      <SelectValue placeholder="Sort by" />
+                      <SelectValue placeholder={t('federation.sortByPlaceholder')} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="submittedAt">Submitted Date</SelectItem>
-                      <SelectItem value="startDate">Event Date</SelectItem>
-                      <SelectItem value="title">Event Title</SelectItem>
-                      <SelectItem value="club.name">Club Name</SelectItem>
-                      <SelectItem value="maxParticipants">Capacity</SelectItem>
+                      <SelectItem value="submittedAt">{t('federation.submittedDate')}</SelectItem>
+                      <SelectItem value="startDate">{t('federation.eventDate')}</SelectItem>
+                      <SelectItem value="title">{t('federation.eventTitle')}</SelectItem>
+                      <SelectItem value="club.name">{t('federation.clubName')}</SelectItem>
+                      <SelectItem value="maxParticipants">{t('federation.capacity')}</SelectItem>
                     </SelectContent>
                   </Select>
                   <Button
@@ -368,7 +370,7 @@ export default function FederationDashboard() {
                   setCurrentPage(1);
                 }}
               >
-                Clear Filters
+                {t('federation.clearFilters')}
               </Button>
               
               <div className="flex gap-1 ml-4">
@@ -391,7 +393,7 @@ export default function FederationDashboard() {
               <div className="text-sm text-muted-foreground flex items-center ml-auto">
                 {data && (
                   <span>
-                    Showing {((currentPage - 1) * 20) + 1}-{Math.min(currentPage * 20, data.pagination.total)} of {data.pagination.total} events
+                    {t('federation.showing')} {((currentPage - 1) * 20) + 1}-{Math.min(currentPage * 20, data.pagination.total)} {t('federation.of')} {data.pagination.total} {t('federation.events')}
                   </span>
                 )}
               </div>
@@ -407,7 +409,7 @@ export default function FederationDashboard() {
                 <AlertCircle className="h-6 w-6 text-yellow-600" />
               </div>
               <p className="text-2xl font-bold text-yellow-600">{data.summary.submitted}</p>
-              <p className="text-xs text-muted-foreground">Awaiting Review</p>
+              <p className="text-xs text-muted-foreground">{t('federation.awaitingReview')}</p>
             </CardContent>
           </Card>
 
@@ -417,7 +419,7 @@ export default function FederationDashboard() {
                 <CheckCircle className="h-6 w-6 text-green-600" />
               </div>
               <p className="text-2xl font-bold text-green-600">{data.summary.approved}</p>
-              <p className="text-xs text-muted-foreground">Approved</p>
+              <p className="text-xs text-muted-foreground">{t('federation.approved')}</p>
             </CardContent>
           </Card>
 
@@ -427,7 +429,7 @@ export default function FederationDashboard() {
                 <XCircle className="h-6 w-6 text-red-600" />
               </div>
               <p className="text-2xl font-bold text-red-600">{data.summary.rejected}</p>
-              <p className="text-xs text-muted-foreground">Rejected</p>
+              <p className="text-xs text-muted-foreground">{t('federation.rejected')}</p>
             </CardContent>
           </Card>
         </div>
@@ -439,15 +441,15 @@ export default function FederationDashboard() {
         }}>
           <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="submitted">
-              Awaiting Review ({data.summary.submitted})
+              {t('federation.awaitingReview')} ({data.summary.submitted})
             </TabsTrigger>
             <TabsTrigger value="approved">
-              Approved ({data.summary.approved})
+              {t('federation.approved')} ({data.summary.approved})
             </TabsTrigger>
             <TabsTrigger value="rejected">
-              Rejected ({data.summary.rejected})
+              {t('federation.rejected')} ({data.summary.rejected})
             </TabsTrigger>
-            <TabsTrigger value="all">All Events</TabsTrigger>
+            <TabsTrigger value="all">{t('federation.allEvents')}</TabsTrigger>
           </TabsList>
 
           <TabsContent value={activeTab} className="space-y-4">
@@ -455,9 +457,9 @@ export default function FederationDashboard() {
               <Card>
                 <CardContent className="p-8 text-center">
                   <Calendar className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold mb-2">No Events Found</h3>
+                  <h3 className="text-lg font-semibold mb-2">{t('federation.noEventsFound')}</h3>
                   <p className="text-muted-foreground">
-                    No events match the current filter criteria.
+                    {t('federation.noEventsMatchFilter')}
                   </p>
                 </CardContent>
               </Card>
@@ -468,12 +470,12 @@ export default function FederationDashboard() {
                     <table className="w-full">
                       <thead className="border-b bg-gray-50">
                         <tr>
-                          <th className="text-left p-4 font-medium">Event</th>
-                          <th className="text-left p-4 font-medium">Club</th>
-                          <th className="text-left p-4 font-medium">Date</th>
-                          <th className="text-left p-4 font-medium">Status</th>
-                          <th className="text-left p-4 font-medium">Submitted</th>
-                          <th className="text-left p-4 font-medium">Actions</th>
+                          <th className="text-left p-4 font-medium">{t('federation.event')}</th>
+                          <th className="text-left p-4 font-medium">{t('federation.club')}</th>
+                          <th className="text-left p-4 font-medium">{t('federation.date')}</th>
+                          <th className="text-left p-4 font-medium">{t('federation.status')}</th>
+                          <th className="text-left p-4 font-medium">{t('federation.submitted')}</th>
+                          <th className="text-left p-4 font-medium">{t('federation.actions')}</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -593,14 +595,14 @@ export default function FederationDashboard() {
                             <div className="flex items-center gap-2">
                               <Users className="h-4 w-4 text-muted-foreground" />
                               <span>
-                                {event.maxParticipants > 0 ? `Max ${event.maxParticipants}` : 'Unlimited'} participants
+                                {event.maxParticipants > 0 ? `${t('federation.maxParticipants')} ${event.maxParticipants}` : t('federation.unlimited')} {t('federation.participants')}
                               </span>
                             </div>
                             {event.submittedAt && (
                               <div className="flex items-center gap-2">
                                 <Clock className="h-4 w-4 text-muted-foreground" />
                                 <span>
-                                  Submitted {new Date(event.submittedAt).toLocaleDateString('en-US')}
+                                  {t('federation.submitted')} {new Date(event.submittedAt).toLocaleDateString(t('federation.dateFormat') === 'dd/MM/yyyy' ? 'fr-FR' : 'en-US')}
                                 </span>
                               </div>
                             )}
@@ -609,7 +611,7 @@ export default function FederationDashboard() {
                           {/* Classes */}
                           {event.classes.length > 0 && (
                             <div>
-                              <p className="text-sm font-medium mb-2">Classes:</p>
+                              <p className="text-sm font-medium mb-2">{t('federation.classes')}:</p>
                               <div className="flex flex-wrap gap-1">
                                 {event.classes.map((cls) => (
                                   <Badge key={cls.id} variant="outline" className="text-xs">
@@ -623,7 +625,7 @@ export default function FederationDashboard() {
                           {/* Description */}
                           {event.description && (
                             <div>
-                              <p className="text-sm font-medium mb-1">Description:</p>
+                              <p className="text-sm font-medium mb-1">{t('federation.description')}:</p>
                               <p className="text-sm text-muted-foreground line-clamp-2">
                                 {event.description}
                               </p>
@@ -633,11 +635,11 @@ export default function FederationDashboard() {
                           {/* Rejection Reason */}
                           {event.status === 'REJECTED' && event.rejectionReason && (
                             <div className="bg-red-50 p-3 rounded border-l-4 border-red-300">
-                              <p className="text-sm font-medium text-red-800 mb-1">Rejection Reason:</p>
+                              <p className="text-sm font-medium text-red-800 mb-1">{t('federation.rejectionReason')}:</p>
                               <p className="text-sm text-red-700">{event.rejectionReason}</p>
                               {event.reviewer && (
                                 <p className="text-xs text-red-600 mt-2">
-                                  Reviewed by {event.reviewer.name} on {new Date(event.reviewedAt!).toLocaleDateString('en-US')}
+                                  {t('federation.reviewedBy')} {event.reviewer.name} {t('federation.on')} {new Date(event.reviewedAt!).toLocaleDateString(t('federation.dateFormat') === 'dd/MM/yyyy' ? 'fr-FR' : 'en-US')}
                                 </p>
                               )}
                             </div>
@@ -647,7 +649,7 @@ export default function FederationDashboard() {
                           {event.status === 'APPROVED' && event.reviewer && (
                             <div className="bg-green-50 p-3 rounded border-l-4 border-green-300">
                               <p className="text-sm text-green-800">
-                                Approved by {event.reviewer.name} on {new Date(event.reviewedAt!).toLocaleDateString('en-US')}
+                                {t('federation.approvedBy')} {event.reviewer.name} {t('federation.on')} {new Date(event.reviewedAt!).toLocaleDateString(t('federation.dateFormat') === 'dd/MM/yyyy' ? 'fr-FR' : 'en-US')}
                               </p>
                             </div>
                           )}
@@ -655,11 +657,11 @@ export default function FederationDashboard() {
                           {/* Rejection Form */}
                           {showRejectionForm === event.id && (
                             <div className="bg-gray-50 p-4 rounded space-y-3">
-                              <label className="text-sm font-medium">Reason for rejection:</label>
+                              <label className="text-sm font-medium">{t('federation.reasonForRejection')}:</label>
                               <Textarea
                                 value={rejectionReason}
                                 onChange={(e) => setRejectionReason(e.target.value)}
-                                placeholder="Please provide a detailed reason for rejecting this event..."
+                                placeholder={t('federation.pleaseProvideReason')}
                                 rows={3}
                               />
                               <div className="flex gap-2">
@@ -669,7 +671,7 @@ export default function FederationDashboard() {
                                   onClick={() => handleReject(event.id)}
                                   disabled={processingEvent === event.id}
                                 >
-                                  Confirm Rejection
+                                  {t('federation.confirmRejection')}
                                 </Button>
                                 <Button
                                   size="sm"
@@ -679,7 +681,7 @@ export default function FederationDashboard() {
                                     setRejectionReason("");
                                   }}
                                 >
-                                  Cancel
+                                  {t('federation.cancel')}
                                 </Button>
                               </div>
                             </div>
@@ -695,7 +697,7 @@ export default function FederationDashboard() {
                                 className="bg-green-600 hover:bg-green-700"
                               >
                                 <CheckCircle className="h-4 w-4 mr-2" />
-                                Approve
+                                {t('federation.approve')}
                               </Button>
                               <Button
                                 size="sm"
@@ -707,12 +709,12 @@ export default function FederationDashboard() {
                                 disabled={processingEvent === event.id}
                               >
                                 <XCircle className="h-4 w-4 mr-2" />
-                                Reject
+                                {t('federation.reject')}
                               </Button>
                               <Button size="sm" variant="outline" asChild>
                                 <Link href={`/events/${event.id}`}>
                                   <Eye className="h-4 w-4 mr-2" />
-                                  View Details
+                                  {t('federation.viewDetails')}
                                 </Link>
                               </Button>
                             </div>
@@ -723,7 +725,7 @@ export default function FederationDashboard() {
                               <Button size="sm" variant="outline" asChild>
                                 <Link href={`/events/${event.id}`}>
                                   <Eye className="h-4 w-4 mr-2" />
-                                  View Details
+                                  {t('federation.viewDetails')}
                                 </Link>
                               </Button>
                             </div>
@@ -738,7 +740,7 @@ export default function FederationDashboard() {
                 {data.pagination.totalPages > 1 && (
                   <div className="flex items-center justify-between">
                     <p className="text-sm text-muted-foreground">
-                      Showing page {data.pagination.page} of {data.pagination.totalPages} ({data.pagination.total} total events)
+                      {t('federation.showingPage')} {data.pagination.page} {t('federation.of')} {data.pagination.totalPages} ({data.pagination.total} {t('federation.totalEvents')})
                     </p>
                     <div className="flex items-center gap-2">
                       <Button
@@ -748,10 +750,10 @@ export default function FederationDashboard() {
                         disabled={currentPage === 1}
                       >
                         <ChevronLeft className="h-4 w-4" />
-                        Previous
+                        {t('federation.previous')}
                       </Button>
                       <span className="text-sm">
-                        Page {currentPage} of {data.pagination.totalPages}
+                        {t('federation.page')} {currentPage} {t('federation.of')} {data.pagination.totalPages}
                       </span>
                       <Button
                         variant="outline"
@@ -759,7 +761,7 @@ export default function FederationDashboard() {
                         onClick={() => setCurrentPage(Math.min(data.pagination.totalPages, currentPage + 1))}
                         disabled={currentPage === data.pagination.totalPages}
                       >
-                        Next
+                        {t('federation.next')}
                         <ChevronRight className="h-4 w-4" />
                       </Button>
                     </div>

@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Search, CheckCircle, AlertTriangle, XCircle, Clock, Car, Users, Flag } from "lucide-react";
+import { useTranslation } from "@/hooks/useTranslation";
 
 interface Event {
   id: string;
@@ -73,6 +74,7 @@ interface CheckedInData {
 }
 
 export default function TechnicalDashboard() {
+  const { t } = useTranslation();
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [events, setEvents] = useState<Event[]>([]);
@@ -213,13 +215,13 @@ export default function TechnicalDashboard() {
   const getStatusText = (status: string) => {
     switch (status) {
       case 'APPROVED':
-        return 'Approved';
+        return t('technical.approved');
       case 'CONDITIONAL':
-        return 'Conditional';
+        return t('technical.conditional');
       case 'REJECTED':
-        return 'Rejected';
+        return t('technical.rejected');
       default:
-        return 'Pending';
+        return t('technical.pending');
     }
   };
 
@@ -259,10 +261,10 @@ export default function TechnicalDashboard() {
       <div className="space-y-6">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
-          <h1 className="text-2xl font-bold">Technical Inspection</h1>
+          <h1 className="text-2xl font-bold">{t('technical.technicalInspection')}</h1>
           <Select value={selectedEvent} onValueChange={setSelectedEvent}>
             <SelectTrigger className="w-full sm:w-64">
-              <SelectValue placeholder="Select event" />
+              <SelectValue placeholder={t('technical.selectEvent')} />
             </SelectTrigger>
             <SelectContent>
               {events.map((event) => (
@@ -300,7 +302,7 @@ export default function TechnicalDashboard() {
                 <Car className="h-6 w-6 text-blue-600" />
               </div>
               <p className="text-2xl font-bold">{stats.totalVehicles}</p>
-              <p className="text-xs text-muted-foreground">Vehicles</p>
+              <p className="text-xs text-muted-foreground">{t('technical.vehicles')}</p>
             </CardContent>
           </Card>
 
@@ -310,7 +312,7 @@ export default function TechnicalDashboard() {
                 <CheckCircle className="h-6 w-6 text-green-600" />
               </div>
               <p className="text-2xl font-bold text-green-600">{stats.approved}</p>
-              <p className="text-xs text-muted-foreground">Approved</p>
+              <p className="text-xs text-muted-foreground">{t('technical.approved')}</p>
             </CardContent>
           </Card>
 
@@ -320,7 +322,7 @@ export default function TechnicalDashboard() {
                 <AlertTriangle className="h-6 w-6 text-yellow-600" />
               </div>
               <p className="text-2xl font-bold text-yellow-600">{stats.conditional}</p>
-              <p className="text-xs text-muted-foreground">Conditional</p>
+              <p className="text-xs text-muted-foreground">{t('technical.conditional')}</p>
             </CardContent>
           </Card>
 
@@ -330,7 +332,7 @@ export default function TechnicalDashboard() {
                 <XCircle className="h-6 w-6 text-red-600" />
               </div>
               <p className="text-2xl font-bold text-red-600">{stats.rejected}</p>
-              <p className="text-xs text-muted-foreground">Rejected</p>
+              <p className="text-xs text-muted-foreground">{t('technical.rejected')}</p>
             </CardContent>
           </Card>
         </div>
@@ -339,7 +341,7 @@ export default function TechnicalDashboard() {
         <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search by start number, name, vehicle..."
+            placeholder={t('technical.searchByStartNumber')}
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-9"
@@ -374,7 +376,7 @@ export default function TechnicalDashboard() {
                         </p>
                       )}
                       <p className="text-xs text-muted-foreground">
-                        Class: {vehicle.class.name}
+                        {t('technical.class')}: {vehicle.class.name}
                       </p>
                     </div>
                   </div>
@@ -383,7 +385,7 @@ export default function TechnicalDashboard() {
                   {vehicle.inspection && (
                     <div className="bg-gray-50 p-3 rounded border-l-4 border-gray-300">
                       <p className="text-xs text-muted-foreground mb-1">
-                        Inspected by {vehicle.inspection.inspector.name} • {new Date(vehicle.inspection.inspectionDate).toLocaleDateString('en-US')}
+                        {t('technical.inspectedBy')} {vehicle.inspection.inspector.name} • {new Date(vehicle.inspection.inspectionDate).toLocaleDateString(t('technical.dateFormat') === 'dd/MM/yyyy' ? 'fr-FR' : 'en-US')}
                       </p>
                       {vehicle.inspection.notes && (
                         <p className="text-sm">{vehicle.inspection.notes}</p>
@@ -397,7 +399,7 @@ export default function TechnicalDashboard() {
                       <textarea
                         className="w-full px-3 py-2 border rounded-md resize-none"
                         rows={3}
-                        placeholder="Enter inspection notes..."
+                        placeholder={t('technical.enterInspectionNotes')}
                         value={notes}
                         onChange={(e) => setNotes(e.target.value)}
                       />
@@ -407,21 +409,21 @@ export default function TechnicalDashboard() {
                           onClick={() => handleNotesSubmit(vehicle, 'APPROVED')}
                           className="bg-green-600 hover:bg-green-700"
                         >
-                          🟢 Approve
+                          🟢 {t('technical.approve')}
                         </Button>
                         <Button
                           size="sm"
                           onClick={() => handleNotesSubmit(vehicle, 'CONDITIONAL')}
                           className="bg-yellow-600 hover:bg-yellow-700"
                         >
-                          🟡 Conditional Pass
+                          🟡 {t('technical.conditionalPass')}
                         </Button>
                         <Button
                           size="sm"
                           onClick={() => handleNotesSubmit(vehicle, 'REJECTED')}
                           variant="destructive"
                         >
-                          🔴 Reject
+                          🔴 {t('technical.reject')}
                         </Button>
                         <Button
                           size="sm"
@@ -431,7 +433,7 @@ export default function TechnicalDashboard() {
                             setNotes('');
                           }}
                         >
-                          Cancel
+                          {t('technical.cancel')}
                         </Button>
                       </div>
                     </div>
@@ -446,7 +448,7 @@ export default function TechnicalDashboard() {
                         className="bg-green-600 hover:bg-green-700 flex-1 sm:flex-none"
                         disabled={processingVehicle === vehicle.startNumber.toString()}
                       >
-                        🟢 Approve
+                        🟢 {t('technical.approve')}
                       </Button>
                       <Button
                         size="sm"
@@ -454,7 +456,7 @@ export default function TechnicalDashboard() {
                         className="bg-yellow-600 hover:bg-yellow-700 flex-1 sm:flex-none"
                         disabled={processingVehicle === vehicle.startNumber.toString()}
                       >
-                        🟡 Conditional
+                        🟡 {t('technical.conditional')}
                       </Button>
                       <Button
                         size="sm"
@@ -463,7 +465,7 @@ export default function TechnicalDashboard() {
                         className="flex-1 sm:flex-none"
                         disabled={processingVehicle === vehicle.startNumber.toString()}
                       >
-                        🔴 Reject
+                        🔴 {t('technical.reject')}
                       </Button>
                     </div>
                   )}
@@ -479,7 +481,7 @@ export default function TechnicalDashboard() {
                       }}
                       className="w-full"
                     >
-                      Update Inspection
+                      {t('technical.updateInspection')}
                     </Button>
                   )}
                 </div>
@@ -492,9 +494,9 @@ export default function TechnicalDashboard() {
           <Card>
             <CardContent className="p-8 text-center">
               <Car className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-semibold mb-2">No Vehicles Found</h3>
+              <h3 className="text-lg font-semibold mb-2">{t('technical.noVehiclesFound')}</h3>
               <p className="text-muted-foreground">
-                {searchTerm ? 'Try adjusting your search criteria.' : 'No vehicles are registered for this event yet.'}
+                {searchTerm ? t('technical.tryAdjustingSearch') : t('technical.noVehiclesRegistered')}
               </p>
             </CardContent>
           </Card>

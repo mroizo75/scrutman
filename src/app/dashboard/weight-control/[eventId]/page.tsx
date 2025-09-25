@@ -23,6 +23,7 @@ import {
   Scale
 } from "lucide-react";
 import Link from "next/link";
+import { useTranslation } from "@/hooks/useTranslation";
 
 interface WeightLimit {
   classId: string;
@@ -69,6 +70,7 @@ interface Event {
 }
 
 export default function WeightControlPage({ params }: { params: Promise<{ eventId: string }> }) {
+  const { t, language } = useTranslation();
   const router = useRouter();
   const [event, setEvent] = useState<Event | null>(null);
   const [weightLimits, setWeightLimits] = useState<WeightLimit[]>([]);
@@ -221,7 +223,7 @@ export default function WeightControlPage({ params }: { params: Promise<{ eventI
   const fetchData = async () => {
     try {
       const response = await fetch(`/api/events/${eventId}/weight-control`);
-      if (!response.ok) throw new Error('Could not fetch weight control data');
+      if (!response.ok) throw new Error(t('weightControlDetails.couldNotFetchData'));
       
       const data = await response.json();
       setEvent(data.event);
@@ -259,7 +261,7 @@ export default function WeightControlPage({ params }: { params: Promise<{ eventI
 
     const weight = parseFloat(measuredWeight);
     if (isNaN(weight) || weight <= 0) {
-      setError("Please enter a valid weight");
+      setError(t('weightControlDetails.pleaseEnterValidWeight'));
       return;
     }
 
@@ -285,7 +287,7 @@ export default function WeightControlPage({ params }: { params: Promise<{ eventI
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to process weight control');
+        throw new Error(errorData.error || t('weightControlDetails.failedToProcess'));
       }
 
       const updatedParticipant = await response.json();
@@ -295,7 +297,7 @@ export default function WeightControlPage({ params }: { params: Promise<{ eventI
         prev.map(p => p.id === selectedParticipant.id ? updatedParticipant : p)
       );
 
-      setSuccess(`Weight control completed for #${selectedParticipant.startNumber} - ${selectedParticipant.user.name}`);
+      setSuccess(`${t('weightControlDetails.weightControlCompleted')} #${selectedParticipant.startNumber} - ${selectedParticipant.user.name}`);
       
       // Reset form and focus search
       setSelectedParticipant(null);
@@ -327,11 +329,11 @@ export default function WeightControlPage({ params }: { params: Promise<{ eventI
 
   const getResultText = (result: string) => {
     switch (result) {
-      case 'PASS': return 'Passed';
-      case 'UNDERWEIGHT': return 'Underweight';
-      case 'OVERWEIGHT': return 'Overweight';
-      case 'NO_LIMIT': return 'No Limit Set';
-      default: return 'Pending';
+      case 'PASS': return t('weightControlDetails.passed');
+      case 'UNDERWEIGHT': return t('weightControlDetails.underweight');
+      case 'OVERWEIGHT': return t('weightControlDetails.overweight');
+      case 'NO_LIMIT': return t('weightControlDetails.noLimitSet');
+      default: return t('weightControlDetails.pending');
     }
   };
 
@@ -349,8 +351,8 @@ export default function WeightControlPage({ params }: { params: Promise<{ eventI
     return (
       <main className="container mx-auto px-4 py-8">
         <div className="text-center">
-          <h1 className="text-2xl font-bold mb-4">Weight Control</h1>
-          <p className="text-muted-foreground">Event not found</p>
+          <h1 className="text-2xl font-bold mb-4">{t('weightControlDetails.title')}</h1>
+          <p className="text-muted-foreground">{t('weightControlDetails.eventNotFound')}</p>
         </div>
       </main>
     );
@@ -390,13 +392,13 @@ export default function WeightControlPage({ params }: { params: Promise<{ eventI
               <Button asChild variant="outline" size="sm">
                 <Link href="/dashboard">
                   <ArrowLeft className="h-4 w-4 mr-2" />
-                  Back to Dashboard
+                  {t('weightControlDetails.backToDashboard')}
                 </Link>
               </Button>
             </div>
-            <h1 className="text-3xl font-bold mb-2">Weight Control</h1>
+            <h1 className="text-3xl font-bold mb-2">{t('weightControlDetails.title')}</h1>
             <p className="text-muted-foreground">
-              {event.title} • {new Date(event.startDate).toLocaleDateString('en-US', {
+              {event.title} • {new Date(event.startDate).toLocaleDateString(language === 'fr' ? 'fr-FR' : 'en-US', {
                 year: 'numeric',
                 month: 'long',
                 day: 'numeric'
@@ -408,13 +410,13 @@ export default function WeightControlPage({ params }: { params: Promise<{ eventI
             <Button asChild variant="outline">
               <Link href={`/dashboard/weight-control/${eventId}/list`}>
                 <Scale className="h-4 w-4 mr-2" />
-                Weight List
+                {t('weightControlDetails.weightList')}
               </Link>
             </Button>
             <Button asChild variant="outline">
               <Link href={`/dashboard/weight-control/${eventId}/reports`}>
                 <AlertTriangle className="h-4 w-4 mr-2" />
-                View Reports
+                {t('weightControlDetails.viewReports')}
               </Link>
             </Button>
           </div>
@@ -440,7 +442,7 @@ export default function WeightControlPage({ params }: { params: Promise<{ eventI
                 <CheckCircle2 className="h-6 w-6 text-green-600" />
               </div>
               <p className="text-2xl font-bold text-green-600">{passedCount}</p>
-              <p className="text-xs text-muted-foreground">Passed</p>
+              <p className="text-xs text-muted-foreground">{t('weightControlDetails.passed')}</p>
             </CardContent>
           </Card>
 
@@ -450,7 +452,7 @@ export default function WeightControlPage({ params }: { params: Promise<{ eventI
                 <AlertTriangle className="h-6 w-6 text-red-600" />
               </div>
               <p className="text-2xl font-bold text-red-600">{failedCount}</p>
-              <p className="text-xs text-muted-foreground">Failed</p>
+              <p className="text-xs text-muted-foreground">{t('weightControlDetails.failed')}</p>
             </CardContent>
           </Card>
 
@@ -460,7 +462,7 @@ export default function WeightControlPage({ params }: { params: Promise<{ eventI
                 <Scale className="h-6 w-6 text-blue-600" />
               </div>
               <p className="text-2xl font-bold text-blue-600">{controlledCount}</p>
-              <p className="text-xs text-muted-foreground">Controlled</p>
+              <p className="text-xs text-muted-foreground">{t('weightControlDetails.controlled')}</p>
             </CardContent>
           </Card>
 
@@ -470,7 +472,7 @@ export default function WeightControlPage({ params }: { params: Promise<{ eventI
                 <Weight className="h-6 w-6 text-yellow-600" />
               </div>
               <p className="text-2xl font-bold text-yellow-600">{pendingCount}</p>
-              <p className="text-xs text-muted-foreground">Pending</p>
+              <p className="text-xs text-muted-foreground">{t('weightControlDetails.pending')}</p>
             </CardContent>
           </Card>
         </div>
@@ -481,7 +483,7 @@ export default function WeightControlPage({ params }: { params: Promise<{ eventI
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Search className="h-5 w-5" />
-                Search Participants ({participants.length} total)
+                {t('weightControlDetails.searchParticipants')} ({participants.length} {t('weightControlDetails.total')})
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -490,7 +492,7 @@ export default function WeightControlPage({ params }: { params: Promise<{ eventI
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
                     ref={searchInputRef}
-                    placeholder="Start number, name, vehicle..."
+                    placeholder={t('weightControlDetails.startNumber')}
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="pl-10"
@@ -500,10 +502,10 @@ export default function WeightControlPage({ params }: { params: Promise<{ eventI
 
                 <Select value={selectedClass} onValueChange={setSelectedClass}>
                   <SelectTrigger>
-                    <SelectValue placeholder="All classes" />
+                    <SelectValue placeholder={t('weightControlDetails.allClasses')} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">All classes</SelectItem>
+                    <SelectItem value="all">{t('weightControlDetails.allClasses')}</SelectItem>
                     {availableClasses.map((cls) => (
                       <SelectItem key={cls.id} value={cls.id}>
                         {cls.name}
@@ -547,7 +549,7 @@ export default function WeightControlPage({ params }: { params: Promise<{ eventI
                             ))
                           ) : (
                             <Badge className={getResultColor('PENDING')}>
-                              No Weight Control
+                              {t('weightControlDetails.noWeightControl')}
                             </Badge>
                           )}
                         </div>
@@ -561,8 +563,8 @@ export default function WeightControlPage({ params }: { params: Promise<{ eventI
                     <Search className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                     <p className="text-muted-foreground">
                       {searchTerm || selectedClass !== "all" 
-                        ? 'No participants found matching your search.' 
-                        : 'No participants in this event.'}
+                        ? t('weightControlDetails.noParticipantsFound') 
+                        : t('weightControlDetails.noParticipantsInEvent')}
                     </p>
                   </div>
                 )}

@@ -19,6 +19,7 @@ import {
   Filter
 } from "lucide-react";
 import Link from "next/link";
+import { useTranslation } from "@/hooks/useTranslation";
 
 interface WeightReport {
   id: string;
@@ -62,6 +63,7 @@ interface Event {
 }
 
 export default function WeightReportsPage({ params }: { params: Promise<{ eventId: string }> }) {
+  const { t, language } = useTranslation();
   const router = useRouter();
   const [event, setEvent] = useState<Event | null>(null);
   const [reports, setReports] = useState<WeightReport[]>([]);
@@ -133,7 +135,7 @@ export default function WeightReportsPage({ params }: { params: Promise<{ eventI
   const fetchReports = async () => {
     try {
       const response = await fetch(`/api/events/${eventId}/weight-control/reports`);
-      if (!response.ok) throw new Error('Could not fetch weight control reports');
+      if (!response.ok) throw new Error(t('weightControlReports.couldNotFetchReports'));
       
       const data = await response.json();
       setEvent(data.event);
@@ -156,16 +158,16 @@ export default function WeightReportsPage({ params }: { params: Promise<{ eventI
       const newWindow = window.open(url, '_blank');
       
       if (!newWindow) {
-        throw new Error('Popup blocked. Please allow popups and try again.');
+        throw new Error(t('weightControlReports.popupBlocked'));
       }
       
       // Give user instructions
       setTimeout(() => {
-        alert('Report opened in new tab. Use your browser\'s print function (Ctrl+P) and select "Save as PDF" to download.');
+        alert(t('weightControlReports.reportOpenedInNewTab'));
       }, 1000);
       
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to open PDF');
+      setError(err instanceof Error ? err.message : t('weightControlReports.failedToOpenPdf'));
     } finally {
       setExporting(false);
     }
@@ -182,9 +184,9 @@ export default function WeightReportsPage({ params }: { params: Promise<{ eventI
 
   const getResultText = (result: string) => {
     switch (result) {
-      case 'PASS': return 'Passed';
-      case 'UNDERWEIGHT': return 'Underweight';
-      case 'OVERWEIGHT': return 'Overweight';
+      case 'PASS': return t('weightControlReports.passed');
+      case 'UNDERWEIGHT': return t('weightControlReports.underweight');
+      case 'OVERWEIGHT': return t('weightControlReports.overweight');
       default: return result;
     }
   };
@@ -203,8 +205,8 @@ export default function WeightReportsPage({ params }: { params: Promise<{ eventI
     return (
       <main className="container mx-auto px-4 py-8">
         <div className="text-center">
-          <h1 className="text-2xl font-bold mb-4">Weight Control Reports</h1>
-          <p className="text-muted-foreground">Event not found</p>
+          <h1 className="text-2xl font-bold mb-4">{t('weightControlReports.title')}</h1>
+          <p className="text-muted-foreground">{t('weightControlReports.eventNotFound')}</p>
         </div>
       </main>
     );
@@ -225,13 +227,13 @@ export default function WeightReportsPage({ params }: { params: Promise<{ eventI
               <Button asChild variant="outline" size="sm">
                 <Link href={`/dashboard/weight-control/${eventId}`}>
                   <ArrowLeft className="h-4 w-4 mr-2" />
-                  Back to Weight Control
+                  {t('weightControlReports.backToWeightControl')}
                 </Link>
               </Button>
             </div>
-            <h1 className="text-3xl font-bold mb-2">Weight Control Reports</h1>
+            <h1 className="text-3xl font-bold mb-2">{t('weightControlReports.title')}</h1>
             <p className="text-muted-foreground">
-              {event.title} • {new Date(event.startDate).toLocaleDateString('en-US', {
+              {event.title} • {new Date(event.startDate).toLocaleDateString(language === 'fr' ? 'fr-FR' : 'en-US', {
                 year: 'numeric',
                 month: 'long',
                 day: 'numeric'
@@ -247,12 +249,12 @@ export default function WeightReportsPage({ params }: { params: Promise<{ eventI
               {exporting ? (
                 <>
                   <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                  Generating...
+                  {t('weightControlReports.generating')}
                 </>
               ) : (
                 <>
                   <Download className="h-4 w-4 mr-2" />
-                  Print All Reports
+                  {t('weightControlReports.printAllReports')}
                 </>
               )}
             </Button>
@@ -268,8 +270,7 @@ export default function WeightReportsPage({ params }: { params: Promise<{ eventI
         {/* Instructions */}
         <div className="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded">
           <p className="text-sm">
-            <strong>PDF Instructions:</strong> Click "Print All Reports" or individual download buttons to open reports in a new tab. 
-            Use your browser's print function (Ctrl+P / Cmd+P) and select "Save as PDF" as destination to download PDF files.
+            <strong>{t('weightControlReports.pdfInstructions')}</strong> {t('weightControlReports.pdfInstructionsText')}
           </p>
         </div>
 
@@ -281,7 +282,7 @@ export default function WeightReportsPage({ params }: { params: Promise<{ eventI
                 <CheckCircle2 className="h-6 w-6 text-green-600" />
               </div>
               <p className="text-2xl font-bold text-green-600">{passedCount}</p>
-              <p className="text-xs text-muted-foreground">Passed Weight Control</p>
+              <p className="text-xs text-muted-foreground">{t('weightControlReports.passedWeightControl')}</p>
             </CardContent>
           </Card>
 
@@ -291,7 +292,7 @@ export default function WeightReportsPage({ params }: { params: Promise<{ eventI
                 <AlertTriangle className="h-6 w-6 text-red-600" />
               </div>
               <p className="text-2xl font-bold text-red-600">{violationCount}</p>
-              <p className="text-xs text-muted-foreground">Weight Violations</p>
+              <p className="text-xs text-muted-foreground">{t('weightControlReports.weightViolations')}</p>
             </CardContent>
           </Card>
 
@@ -301,7 +302,7 @@ export default function WeightReportsPage({ params }: { params: Promise<{ eventI
                 <FileText className="h-6 w-6 text-blue-600" />
               </div>
               <p className="text-2xl font-bold text-blue-600">{reports.length}</p>
-              <p className="text-xs text-muted-foreground">Total Reports</p>
+              <p className="text-xs text-muted-foreground">{t('weightControlReports.totalReports')}</p>
             </CardContent>
           </Card>
         </div>
@@ -311,7 +312,7 @@ export default function WeightReportsPage({ params }: { params: Promise<{ eventI
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Filter className="h-5 w-5" />
-              Filters
+              {t('weightControlReports.filters')}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -319,7 +320,7 @@ export default function WeightReportsPage({ params }: { params: Promise<{ eventI
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="Search by start number, name, vehicle..."
+                  placeholder={t('weightControlReports.searchByStartNumber')}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-10"
@@ -328,14 +329,14 @@ export default function WeightReportsPage({ params }: { params: Promise<{ eventI
 
               <Select value={resultFilter} onValueChange={setResultFilter}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Filter by result" />
+                  <SelectValue placeholder={t('weightControlReports.filterByResult')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Results</SelectItem>
-                  <SelectItem value="violations">Weight Violations Only</SelectItem>
-                  <SelectItem value="PASS">Passed Only</SelectItem>
-                  <SelectItem value="UNDERWEIGHT">Underweight Only</SelectItem>
-                  <SelectItem value="OVERWEIGHT">Overweight Only</SelectItem>
+                  <SelectItem value="all">{t('weightControlReports.allResults')}</SelectItem>
+                  <SelectItem value="violations">{t('weightControlReports.weightViolationsOnly')}</SelectItem>
+                  <SelectItem value="PASS">{t('weightControlReports.passedOnly')}</SelectItem>
+                  <SelectItem value="UNDERWEIGHT">{t('weightControlReports.underweightOnly')}</SelectItem>
+                  <SelectItem value="OVERWEIGHT">{t('weightControlReports.overweightOnly')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -346,18 +347,18 @@ export default function WeightReportsPage({ params }: { params: Promise<{ eventI
         <Card>
           <CardHeader>
             <CardTitle>
-              Weight Control Reports ({filteredReports.length} {filteredReports.length === 1 ? 'report' : 'reports'})
+              {t('weightControlReports.weightControlReports')} ({filteredReports.length} {filteredReports.length === 1 ? t('weightControlReports.report') : t('weightControlReports.reports')})
             </CardTitle>
           </CardHeader>
           <CardContent className="p-0">
             {filteredReports.length === 0 ? (
               <div className="text-center py-12">
                 <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-semibold mb-2">No Reports Found</h3>
+                <h3 className="text-lg font-semibold mb-2">{t('weightControlReports.noReportsFound')}</h3>
                 <p className="text-muted-foreground">
                   {reports.length === 0 
-                    ? 'No weight control reports have been generated yet.'
-                    : 'No reports match your current filter criteria.'
+                    ? t('weightControlReports.noReportsGenerated')
+                    : t('weightControlReports.noReportsMatch')
                   }
                 </p>
               </div>
@@ -366,15 +367,15 @@ export default function WeightReportsPage({ params }: { params: Promise<{ eventI
                 <table className="w-full">
                   <thead className="border-b bg-gray-50">
                     <tr>
-                      <th className="text-left p-4 font-medium">Start #</th>
-                      <th className="text-left p-4 font-medium">Driver</th>
-                      <th className="text-left p-4 font-medium">Vehicle</th>
-                      <th className="text-left p-4 font-medium">Class</th>
-                      <th className="text-left p-4 font-medium">Declared Weight</th>
-                      <th className="text-left p-4 font-medium">Measured Weight</th>
-                      <th className="text-left p-4 font-medium">Weight Limit</th>
-                      <th className="text-left p-4 font-medium">Result</th>
-                      <th className="text-left p-4 font-medium">Actions</th>
+                      <th className="text-left p-4 font-medium">{t('weightControlReports.startNumber')}</th>
+                      <th className="text-left p-4 font-medium">{t('weightControlReports.driver')}</th>
+                      <th className="text-left p-4 font-medium">{t('weightControlReports.vehicle')}</th>
+                      <th className="text-left p-4 font-medium">{t('weightControlReports.class')}</th>
+                      <th className="text-left p-4 font-medium">{t('weightControlReports.declaredWeight')}</th>
+                      <th className="text-left p-4 font-medium">{t('weightControlReports.measuredWeight')}</th>
+                      <th className="text-left p-4 font-medium">{t('weightControlReports.weightLimit')}</th>
+                      <th className="text-left p-4 font-medium">{t('weightControlReports.result')}</th>
+                      <th className="text-left p-4 font-medium">{t('weightControlReports.actions')}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -411,7 +412,7 @@ export default function WeightReportsPage({ params }: { params: Promise<{ eventI
                           <span className="font-medium">{report.weightControl.measuredWeight} kg</span>
                           {report.userVehicle.weight !== report.weightControl.measuredWeight && (
                             <div className="text-xs text-muted-foreground">
-                              Diff: {(report.weightControl.measuredWeight - report.userVehicle.weight).toFixed(1)} kg
+                              {t('weightControlReports.diff')}: {(report.weightControl.measuredWeight - report.userVehicle.weight).toFixed(1)} kg
                             </div>
                           )}
                         </td>
@@ -421,7 +422,7 @@ export default function WeightReportsPage({ params }: { params: Promise<{ eventI
                               {report.weightLimit.minWeight} - {report.weightLimit.maxWeight} kg
                             </span>
                           ) : (
-                            <span className="text-sm text-muted-foreground">No limit</span>
+                            <span className="text-sm text-muted-foreground">{t('weightControlReports.noLimit')}</span>
                           )}
                         </td>
                         <td className="p-4">

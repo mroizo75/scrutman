@@ -7,8 +7,12 @@ import { Home, Menu, X, LogOut, CheckCircle, Eye, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import React, { useState } from "react";
 import Cookies from "js-cookie";
+import { useTranslation } from "@/hooks/useTranslation";
+import LanguageSwitcher from "@/components/LanguageSwitcher";
+import Image from "next/image";
 
 export default function FederationNav() {
+  const { t } = useTranslation();
   const pathname = usePathname();
   const router = useRouter();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -25,17 +29,17 @@ export default function FederationNav() {
   const links = [
     {
       href: "/dashboard/federation",
-      label: "Dashboard",
+      label: t('common.dashboard'),
       icon: Home
     },
     {
       href: "/dashboard/federation/admins",
-      label: "Admins",
+      label: t('common.users'),
       icon: Users
     },
     {
       href: "/",
-      label: "View Events",
+      label: t('common.events'),
       icon: Eye
     }
   ];
@@ -46,7 +50,7 @@ export default function FederationNav() {
         <div className="flex h-16 items-center justify-between">
           <div className="flex items-center">
             <Link href="/dashboard/federation" className="text-xl font-bold">
-              Scrutman - Federation
+              <Image src="/logo.png" alt="ScrutMan" width={200} height={200} />
             </Link>
           </div>
 
@@ -73,6 +77,7 @@ export default function FederationNav() {
 
             {/* User Menu */}
             <div className="flex items-center space-x-4 ml-4 pl-4 border-l">
+              <LanguageSwitcher />
               {user && (
                 <div className="text-sm">
                   <p className="font-medium">{user.name}</p>
@@ -81,7 +86,7 @@ export default function FederationNav() {
               )}
               <Button variant="outline" size="sm" onClick={handleLogout}>
                 <LogOut className="mr-2 h-4 w-4" />
-                Sign Out
+                {t('common.signOut')}
               </Button>
             </div>
           </div>
@@ -124,6 +129,9 @@ export default function FederationNav() {
               
               {/* Mobile User Menu */}
               <div className="border-t pt-4 mt-4">
+                <div className="px-3 py-2">
+                  <LanguageSwitcher />
+                </div>
                 {user && (
                   <div className="px-3 py-2">
                     <p className="font-medium">{user.name}</p>
@@ -137,7 +145,7 @@ export default function FederationNav() {
                   className="mx-3 mt-2"
                 >
                   <LogOut className="mr-2 h-4 w-4" />
-                  Sign Out
+                  {t('common.signOut')}
                 </Button>
               </div>
             </div>

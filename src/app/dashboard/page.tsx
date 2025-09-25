@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Calendar, Users, Clock, FileText, Image, AlertCircle, CheckCircle2, XCircle, ChevronLeft, ChevronRight } from "lucide-react";
 import Link from "next/link";
+import { useTranslation } from "@/hooks/useTranslation";
 
 interface Event {
   id: string;
@@ -42,6 +43,7 @@ interface User {
 }
 
 export default function DashboardPage() {
+  const { t } = useTranslation();
   const router = useRouter();
   const [events, setEvents] = useState<Event[]>([]);
   const [users, setUsers] = useState<User[]>([]);
@@ -118,11 +120,11 @@ export default function DashboardPage() {
   const getStatusText = (status: Event['status']) => {
     switch (status) {
       case 'PUBLISHED':
-        return 'Published';
+        return t('status.published');
       case 'DRAFT':
-        return 'Draft';
+        return t('status.draft');
       case 'CANCELLED':
-        return 'Cancelled';
+        return t('status.cancelled');
       default:
         return status;
     }
@@ -201,18 +203,18 @@ export default function DashboardPage() {
     <main className="container mx-auto px-4 py-8">
       <div className="space-y-8">
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
-          <h1 className="text-3xl font-bold">Dashboard</h1>
+          <h1 className="text-3xl font-bold">{t('dashboard.title')}</h1>
           <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
             <Button asChild className="w-full sm:w-auto">
               <Link href="/dashboard/events">
                 <Calendar className="mr-2 h-4 w-4" />
-                Events
+                {t('common.events')}
               </Link>
             </Button>
             <Button asChild variant="outline" className="w-full sm:w-auto">
               <Link href="/dashboard/users">
                 <Users className="mr-2 h-4 w-4" />
-                Users
+                {t('common.users')}
               </Link>
             </Button>
           </div>
@@ -229,7 +231,7 @@ export default function DashboardPage() {
             <div className="flex items-center gap-2">
               <AlertCircle className="h-5 w-5" />
               <span>
-                {eventsNeedingAttention.length} event(s) need attention
+                {eventsNeedingAttention.length} {t('dashboard.eventsNeedAttention')}
               </span>
             </div>
           </div>
@@ -238,46 +240,46 @@ export default function DashboardPage() {
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Events</CardTitle>
+              <CardTitle className="text-sm font-medium">{t('dashboard.totalEvents')}</CardTitle>
               <Calendar className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{events.length}</div>
               <p className="text-xs text-muted-foreground">
-                {upcomingEvents.length} upcoming, {pastEvents.length} past
+                {upcomingEvents.length} {t('dashboard.upcoming')}, {pastEvents.length} {t('dashboard.past')}
               </p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Registrations</CardTitle>
+              <CardTitle className="text-sm font-medium">{t('dashboard.totalRegistrations')}</CardTitle>
               <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{totalRegistrations}</div>
               <p className="text-xs text-muted-foreground">
-                {totalWaitlist} on waitlist
+                {totalWaitlist} {t('dashboard.onWaitlist')}
               </p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Members</CardTitle>
+              <CardTitle className="text-sm font-medium">{t('dashboard.totalMembers')}</CardTitle>
               <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{users.length}</div>
               <p className="text-xs text-muted-foreground">
-                {users.filter(u => u.role === 'CLUBADMIN').length} administrators
+                {users.filter(u => u.role === 'CLUBADMIN').length} {t('dashboard.administrators')}
               </p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Files</CardTitle>
+              <CardTitle className="text-sm font-medium">{t('dashboard.totalFiles')}</CardTitle>
               <FileText className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
@@ -285,7 +287,7 @@ export default function DashboardPage() {
                 {events.reduce((sum, event) => sum + event.files.length, 0)}
               </div>
               <p className="text-xs text-muted-foreground">
-                {events.reduce((sum, event) => sum + event.images.length, 0)} images
+                {events.reduce((sum, event) => sum + event.images.length, 0)} {t('dashboard.images')}
               </p>
             </CardContent>
           </Card>
@@ -294,7 +296,7 @@ export default function DashboardPage() {
         <div className="grid gap-6 md:grid-cols-2">
           <div className="space-y-4">
             <div className="flex justify-between items-center">
-              <h2 className="text-xl font-semibold">Upcoming Events</h2>
+              <h2 className="text-xl font-semibold">{t('dashboard.upcomingEvents')}</h2>
               <div className="flex items-center gap-2">
                 <Button
                   variant="ghost"
@@ -305,7 +307,7 @@ export default function DashboardPage() {
                   <ChevronLeft className="h-4 w-4" />
                 </Button>
                 <span className="text-sm text-muted-foreground">
-                  Page {currentEventPage} of {totalEventPages}
+                  {t('dashboard.page')} {currentEventPage} {t('dashboard.of')} {totalEventPages}
                 </span>
                 <Button
                   variant="ghost"
@@ -316,7 +318,7 @@ export default function DashboardPage() {
                   <ChevronRight className="h-4 w-4" />
                 </Button>
                 <Button asChild variant="ghost" size="sm">
-                  <Link href="/dashboard/events">View all</Link>
+                  <Link href="/dashboard/events">{t('dashboard.viewAll')}</Link>
                 </Button>
               </div>
             </div>
@@ -341,9 +343,9 @@ export default function DashboardPage() {
                         <p className="text-sm text-muted-foreground">{event.description}</p>
                         
                         <div className="text-sm">
-                          <p><strong>Location:</strong> {event.location}</p>
+                          <p><strong>{t('dashboard.location')}:</strong> {event.location}</p>
                           <p>
-                            <strong>Start:</strong>{' '}
+                            <strong>{t('dashboard.start')}:</strong>{' '}
                             {new Date(event.startDate).toLocaleString('en-US', {
                               year: 'numeric',
                               month: 'long',
@@ -354,12 +356,12 @@ export default function DashboardPage() {
                           </p>
                           {event.maxParticipants > 0 && (
                             <p>
-                              <strong>Capacity:</strong> {stats.confirmed}/{event.maxParticipants} participants
+                              <strong>{t('dashboard.capacity')}:</strong> {stats.confirmed}/{event.maxParticipants} {t('dashboard.participants')}
                               {spotsLeft !== null && spotsLeft > 0 && (
-                                <span className="text-green-600"> ({spotsLeft} spots left)</span>
+                                <span className="text-green-600"> ({spotsLeft} {t('dashboard.spotsLeft')})</span>
                               )}
                               {isFull && (
-                                <span className="text-red-600"> (Full)</span>
+                                <span className="text-red-600"> ({t('dashboard.full')})</span>
                               )}
                             </p>
                           )}
@@ -369,13 +371,13 @@ export default function DashboardPage() {
                           {event.files.length > 0 && (
                             <Badge variant="outline" className="flex items-center gap-1">
                               <FileText className="h-3 w-3" />
-                              {event.files.length} files
+                              {event.files.length} {t('dashboard.files')}
                             </Badge>
                           )}
                           {event.images.length > 0 && (
                             <Badge variant="outline" className="flex items-center gap-1">
                               <Image className="h-3 w-3" />
-                              {event.images.length} images
+                              {event.images.length} {t('dashboard.images')}
                             </Badge>
                           )}
                         </div>
@@ -389,7 +391,7 @@ export default function DashboardPage() {
 
           <div className="space-y-4">
             <div className="flex justify-between items-center">
-              <h2 className="text-xl font-semibold">Latest Members</h2>
+              <h2 className="text-xl font-semibold">{t('dashboard.latestMembers')}</h2>
               <div className="flex items-center gap-2">
                 <Button
                   variant="ghost"
@@ -400,7 +402,7 @@ export default function DashboardPage() {
                   <ChevronLeft className="h-4 w-4" />
                 </Button>
                 <span className="text-sm text-muted-foreground">
-                  Page {currentUserPage} of {totalUserPages}
+                  {t('dashboard.page')} {currentUserPage} {t('dashboard.of')} {totalUserPages}
                 </span>
                 <Button
                   variant="ghost"
@@ -411,7 +413,7 @@ export default function DashboardPage() {
                   <ChevronRight className="h-4 w-4" />
                 </Button>
                 <Button asChild variant="ghost" size="sm">
-                  <Link href="/dashboard/users">View all</Link>
+                  <Link href="/dashboard/users">{t('dashboard.viewAll')}</Link>
                 </Button>
               </div>
             </div>
@@ -422,7 +424,7 @@ export default function DashboardPage() {
                     <div className="flex justify-between items-start">
                       <CardTitle className="text-xl">{user.name}</CardTitle>
                       <Badge className={user.role === 'CLUBADMIN' ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800'}>
-                        {user.role === 'CLUBADMIN' ? 'Administrator' : 'Member'}
+                        {user.role === 'CLUBADMIN' ? t('dashboard.administrator') : t('dashboard.member')}
                       </Badge>
                     </div>
                   </CardHeader>
@@ -432,7 +434,7 @@ export default function DashboardPage() {
                         <strong>Email:</strong> {user.email}
                       </p>
                       <p className="text-sm text-muted-foreground">
-                        Member since {new Date(user.createdAt).toLocaleDateString('en-US')}
+                        {t('dashboard.memberSince')} {new Date(user.createdAt).toLocaleDateString('en-US')}
                       </p>
                     </div>
                   </CardContent>

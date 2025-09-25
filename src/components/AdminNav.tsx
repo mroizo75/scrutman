@@ -7,8 +7,12 @@ import { Calendar, Users, Home, Menu, X, LogOut, Wrench, Target, CheckCircle, Cl
 import { Button } from "@/components/ui/button";
 import React, { useState } from "react";
 import Cookies from "js-cookie";
+import { useTranslation } from "@/hooks/useTranslation";
+import LanguageSwitcher from "@/components/LanguageSwitcher";
+import Image from "next/image";
 
 export default function AdminNav() {
+  const { t } = useTranslation();
   const pathname = usePathname();
   const router = useRouter();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -37,49 +41,49 @@ export default function AdminNav() {
   const links = [
     {
       href: "/dashboard",
-      label: "Dashboard",
+      label: t('common.dashboard'),
       icon: Home,
       roles: ["CLUBADMIN", "TECHNICAL_INSPECTOR", "WEIGHT_CONTROLLER", "RACE_OFFICIAL", "SUPERADMIN", "FEDERATION_ADMIN"]
     },
     {
       href: "/dashboard/events",
-      label: "Events",
+      label: t('common.events'),
       icon: Calendar,
       roles: ["CLUBADMIN", "SUPERADMIN"]
     },
     {
       href: "/dashboard/users",
-      label: "Users",
+      label: t('common.users'),
       icon: Users,
       roles: ["CLUBADMIN", "SUPERADMIN"]
     },
     {
       href: "/dashboard/clubs/classes",
-      label: "Classes",
+      label: t('common.classes'),
       icon: Target,
       roles: ["CLUBADMIN", "SUPERADMIN"]
     },
     {
       href: "/dashboard/checkin",
-      label: "Check-In",
+      label: t('common.checkIn'),
       icon: ClipboardCheck,
       roles: ["CLUBADMIN", "RACE_OFFICIAL", "SUPERADMIN"]
     },
     {
       href: "/dashboard/technical",
-      label: "Technical",
+      label: t('common.technical'),
       icon: Wrench,
       roles: ["TECHNICAL_INSPECTOR", "CLUBADMIN", "SUPERADMIN"]
     },
     {
       href: "/dashboard/weight-control",
-      label: "Weight Control",
+      label: t('common.weightControl'),
       icon: Scale,
       roles: ["WEIGHT_CONTROLLER", "CLUBADMIN", "SUPERADMIN"]
     },
     {
       href: "/dashboard/federation",
-      label: "Federation",
+      label: t('common.federation'),
       icon: CheckCircle,
       roles: ["FEDERATION_ADMIN"]
     }
@@ -96,7 +100,7 @@ export default function AdminNav() {
         <div className="flex h-16 items-center justify-between">
           <div className="flex items-center">
             <Link href="/dashboard" className="text-xl font-bold">
-              Scrutman
+              <Image src="/logo.png" alt="ScrutMan" width={200} height={200} />
             </Link>
           </div>
 
@@ -120,6 +124,7 @@ export default function AdminNav() {
                 </Link>
               );
             })}
+            <LanguageSwitcher />
             <Button
               variant="ghost"
               size="sm"
@@ -127,7 +132,7 @@ export default function AdminNav() {
               onClick={handleSignOut}
             >
               <LogOut className="h-4 w-4" />
-              Sign Out
+              {t('common.signOut')}
             </Button>
           </div>
 
@@ -168,6 +173,9 @@ export default function AdminNav() {
                 </Link>
               );
             })}
+            <div className="flex items-center gap-2">
+              <LanguageSwitcher />
+            </div>
             <Button
               variant="ghost"
               size="sm"
@@ -175,7 +183,7 @@ export default function AdminNav() {
               onClick={handleSignOut}
             >
               <LogOut className="h-4 w-4" />
-              Sign Out
+              {t('common.signOut')}
             </Button>
           </div>
         )}

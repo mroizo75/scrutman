@@ -2,7 +2,6 @@
 
 import { useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
-import Script from "next/script";
 import Cookies from "js-cookie";
 import AdminNav from "@/components/AdminNav";
 import FederationNav from "@/components/FederationNav";
@@ -61,41 +60,8 @@ export default function DashboardLayout({
   const showSuperAdminNav = isSuperAdmin && !showFederationNav;
   const showAdminNav = !showSuperAdminNav && !showFederationNav;
 
-  const weglotApiKey = process.env.NEXT_PUBLIC_WEGLOT_API_KEY;
-
   return (
     <div className="min-h-screen bg-background">
-      {/* Weglot Translation Script for Dashboard */}
-      {weglotApiKey && (
-        <>
-          <Script
-            src="https://cdn.weglot.com/weglot.min.js"
-            strategy="beforeInteractive"
-          />
-          <Script
-            id="weglot-dashboard-init"
-            strategy="afterInteractive"
-            dangerouslySetInnerHTML={{
-              __html: `
-                Weglot.initialize({
-                  api_key: '${weglotApiKey}',
-                  original_language: 'en',
-                  destination_languages: 'fr',
-                  style: 'button',
-                  switcher: {
-                    style: 'dropdown',
-                    fullname: true,
-                    withname: true,
-                    is_dropdown: true,
-                    with_flags: true
-                  }
-                });
-              `,
-            }}
-          />
-        </>
-      )}
-      
       {showFederationNav && <FederationNav />}
       {showSuperAdminNav && <SuperAdminNav />}
       {showAdminNav && <AdminNav />}

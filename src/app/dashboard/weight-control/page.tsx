@@ -17,6 +17,7 @@ import {
   FileText
 } from "lucide-react";
 import Link from "next/link";
+import { useTranslation } from "@/hooks/useTranslation";
 
 interface Event {
   id: string;
@@ -41,6 +42,7 @@ interface Event {
 }
 
 export default function WeightControlOverviewPage() {
+  const { t, language } = useTranslation();
   const router = useRouter();
   const [events, setEvents] = useState<Event[]>([]);
   const [filteredEvents, setFilteredEvents] = useState<Event[]>([]);
@@ -150,9 +152,9 @@ export default function WeightControlOverviewPage() {
       <div className="space-y-6">
         {/* Header */}
         <div>
-          <h1 className="text-3xl font-bold mb-2">Weight Control</h1>
+          <h1 className="text-3xl font-bold mb-2">{t('weightControl.title')}</h1>
           <p className="text-muted-foreground">
-            Manage weight control for events
+            {t('weightControl.manageWeightControl')}
           </p>
         </div>
 
@@ -168,7 +170,7 @@ export default function WeightControlOverviewPage() {
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Search events by title, location, or club..."
+                placeholder={t('weightControl.searchEvents')}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10"
@@ -182,7 +184,7 @@ export default function WeightControlOverviewPage() {
           <div>
             <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
               <Scale className="h-5 w-5 text-green-600" />
-              Active Events ({activeEvents.length})
+              {t('weightControl.activeEvents')} ({activeEvents.length})
             </h2>
             <div className="grid gap-4">
               {activeEvents.map((event) => (
@@ -197,7 +199,7 @@ export default function WeightControlOverviewPage() {
                             <div className="flex items-center gap-1">
                               <Calendar className="h-4 w-4 flex-shrink-0" />
                               <span>
-                                {new Date(event.startDate).toLocaleDateString('en-US', {
+                                {new Date(event.startDate).toLocaleDateString(language === 'fr' ? 'fr-FR' : 'en-US', {
                                   month: 'short',
                                   day: 'numeric',
                                   year: 'numeric'
@@ -212,7 +214,7 @@ export default function WeightControlOverviewPage() {
                             )}
                             <div className="flex items-center gap-1">
                               <Users className="h-4 w-4 flex-shrink-0" />
-                              <span>{event._count.registrations} participants</span>
+                              <span>{event._count.registrations} {t('weightControl.participants')}</span>
                             </div>
                           </div>
                           <p className="text-sm font-medium text-muted-foreground mt-2">{event.club.name}</p>
@@ -227,19 +229,19 @@ export default function WeightControlOverviewPage() {
                         <div className="grid grid-cols-2 gap-2">
                           <div className="text-center bg-green-50 p-3 rounded">
                             <p className="text-lg font-bold text-green-600">{event.weightStats.passed}</p>
-                            <p className="text-xs text-muted-foreground">Passed</p>
+                            <p className="text-xs text-muted-foreground">{t('weightControl.passed')}</p>
                           </div>
                           <div className="text-center bg-red-50 p-3 rounded">
                             <p className="text-lg font-bold text-red-600">{event.weightStats.failed}</p>
-                            <p className="text-xs text-muted-foreground">Failed</p>
+                            <p className="text-xs text-muted-foreground">{t('weightControl.failed')}</p>
                           </div>
                           <div className="text-center bg-blue-50 p-3 rounded">
                             <p className="text-lg font-bold text-blue-600">{event.weightStats.controlled}</p>
-                            <p className="text-xs text-muted-foreground">Controlled</p>
+                            <p className="text-xs text-muted-foreground">{t('weightControl.controlled')}</p>
                           </div>
                           <div className="text-center bg-yellow-50 p-3 rounded">
                             <p className="text-lg font-bold text-yellow-600">{event.weightStats.pending}</p>
-                            <p className="text-xs text-muted-foreground">Pending</p>
+                            <p className="text-xs text-muted-foreground">{t('weightControl.pending')}</p>
                           </div>
                         </div>
                       )}
@@ -249,19 +251,19 @@ export default function WeightControlOverviewPage() {
                         <Button asChild variant="outline" size="sm" className="flex-1">
                           <Link href={`/dashboard/events/${event.id}/weight-limits`}>
                             <Settings className="h-4 w-4 mr-2" />
-                            Configure
+                            {t('weightControl.configure')}
                           </Link>
                         </Button>
                         <Button asChild size="sm" className="flex-1">
                           <Link href={`/dashboard/weight-control/${event.id}`}>
                             <Scale className="h-4 w-4 mr-2" />
-                            Weight Control
+                            {t('weightControl.weightControl')}
                           </Link>
                         </Button>
                         <Button asChild variant="outline" size="sm" className="flex-1">
                           <Link href={`/dashboard/weight-control/${event.id}/list`}>
                             <FileText className="h-4 w-4 mr-2" />
-                            List
+                            {t('weightControl.list')}
                           </Link>
                         </Button>
                       </div>
@@ -278,7 +280,7 @@ export default function WeightControlOverviewPage() {
           <div>
             <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
               <Calendar className="h-5 w-5 text-blue-600" />
-              Upcoming Events ({upcomingEvents.length})
+              {t('weightControl.upcomingEvents')} ({upcomingEvents.length})
             </h2>
             <div className="grid gap-4">
               {upcomingEvents.map((event) => (
@@ -293,7 +295,7 @@ export default function WeightControlOverviewPage() {
                             <div className="flex items-center gap-1">
                               <Calendar className="h-4 w-4 flex-shrink-0" />
                               <span>
-                                {new Date(event.startDate).toLocaleDateString('en-US', {
+                                {new Date(event.startDate).toLocaleDateString(language === 'fr' ? 'fr-FR' : 'en-US', {
                                   month: 'short',
                                   day: 'numeric',
                                   year: 'numeric'
@@ -308,7 +310,7 @@ export default function WeightControlOverviewPage() {
                             )}
                             <div className="flex items-center gap-1">
                               <Users className="h-4 w-4 flex-shrink-0" />
-                              <span>{event._count.registrations} participants</span>
+                              <span>{event._count.registrations} {t('weightControl.participants')}</span>
                             </div>
                           </div>
                           <p className="text-sm font-medium text-muted-foreground mt-2">{event.club.name}</p>
@@ -323,7 +325,7 @@ export default function WeightControlOverviewPage() {
                         <Button asChild variant="outline" size="sm">
                           <Link href={`/dashboard/events/${event.id}/weight-limits`}>
                             <Settings className="h-4 w-4 mr-2" />
-                            Configure Weight Limits
+                            {t('weightControl.configureWeightLimits')}
                           </Link>
                         </Button>
                       </div>
@@ -340,11 +342,11 @@ export default function WeightControlOverviewPage() {
           <Card>
             <CardContent className="p-12 text-center">
               <Scale className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-semibold mb-2">No Events Available</h3>
+              <h3 className="text-lg font-semibold mb-2">{t('weightControl.noEventsAvailable')}</h3>
               <p className="text-muted-foreground">
                 {searchTerm 
-                  ? 'No events found matching your search criteria.'
-                  : 'There are no events available for weight control at the moment.'
+                  ? t('weightControl.noEventsFoundMatching')
+                  : t('weightControl.noEventsAvailableForWeightControl')
                 }
               </p>
             </CardContent>

@@ -20,7 +20,8 @@ import {
 } from "lucide-react";
 import React, { useState, useEffect } from "react";
 import Cookies from "js-cookie";
-
+import Image from "next/image";
+import { useTranslation } from "@/hooks/useTranslation";
 interface UserData {
   id: string;
   name: string;
@@ -111,7 +112,7 @@ export default function EventNav() {
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
         <div className="flex items-center space-x-6">
           <Link href="/" className="text-2xl font-bold text-primary">
-            ScrutMan
+            <Image src="/logo.png" alt="ScrutMan" width={200} height={200} />
           </Link>
           
           {/* Navigation Links for logged in users */}
