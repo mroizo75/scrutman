@@ -17,6 +17,7 @@ import {
   AlertTriangle
 } from "lucide-react";
 import Link from "next/link";
+import { useTranslation } from "@/hooks/useTranslation";
 
 interface Class {
   id: string;
@@ -38,6 +39,7 @@ interface Event {
 }
 
 export default function WeightLimitsPage({ params }: { params: Promise<{ eventId: string }> }) {
+  const { t } = useTranslation();
   const router = useRouter();
   const [event, setEvent] = useState<Event | null>(null);
   const [classes, setClasses] = useState<Class[]>([]);
@@ -82,7 +84,7 @@ export default function WeightLimitsPage({ params }: { params: Promise<{ eventId
       ]);
 
       if (!eventRes.ok || !limitsRes.ok) {
-        throw new Error('Failed to fetch data');
+        throw new Error(t('weightControlDetails.couldNotFetchData'));
       }
 
       const eventData = await eventRes.json();
@@ -108,7 +110,7 @@ export default function WeightLimitsPage({ params }: { params: Promise<{ eventId
     const availableClass = classes.find(c => !usedClassIds.includes(c.id));
     
     if (!availableClass) {
-      setError('All classes already have weight limits configured');
+      setError(t('weightControlDetails.allClassesConfigured'));
       return;
     }
 
@@ -153,10 +155,10 @@ export default function WeightLimitsPage({ params }: { params: Promise<{ eventId
       // Validate data
       for (const limit of weightLimits) {
         if (limit.minWeight < 0 || limit.maxWeight < 0) {
-          throw new Error('Weight values cannot be negative');
+          throw new Error(t('weightControlDetails.weightCannotBeNegative'));
         }
         if (limit.minWeight >= limit.maxWeight) {
-          throw new Error('Minimum weight must be less than maximum weight');
+          throw new Error(t('weightControlDetails.minWeightMustBeLessThanMax'));
         }
       }
 
@@ -170,10 +172,10 @@ export default function WeightLimitsPage({ params }: { params: Promise<{ eventId
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to save weight limits');
+        throw new Error(errorData.error || t('weightControlDetails.failedToSaveWeightLimits'));
       }
 
-      setSuccess('Weight limits saved successfully!');
+      setSuccess(t('weightControlDetails.weightLimitsSavedSuccessfully'));
       setTimeout(() => setSuccess(null), 3000);
       
       // Refresh data
@@ -199,8 +201,8 @@ export default function WeightLimitsPage({ params }: { params: Promise<{ eventId
     return (
       <main className="container mx-auto px-4 py-8">
         <div className="text-center">
-          <h1 className="text-2xl font-bold mb-4">Weight Limits</h1>
-          <p className="text-muted-foreground">Event not found</p>
+          <h1 className="text-2xl font-bold mb-4">{t('weightControlDetails.weightLimits')}</h1>
+          <p className="text-muted-foreground">{t('weightControlDetails.eventNotFound')}</p>
         </div>
       </main>
     );
@@ -220,13 +222,13 @@ export default function WeightLimitsPage({ params }: { params: Promise<{ eventId
               <Button asChild variant="outline" size="sm">
                 <Link href={`/dashboard/events`}>
                   <ArrowLeft className="h-4 w-4 mr-2" />
-                  Back to Events
+                  {t('weightControlDetails.backToEvents')}
                 </Link>
               </Button>
             </div>
-            <h1 className="text-3xl font-bold mb-2">Weight Control Limits</h1>
+            <h1 className="text-3xl font-bold mb-2">{t('weightControlDetails.weightControlLimits')}</h1>
             <p className="text-muted-foreground">
-              {event.title} • Configure weight limits for each class
+              {event.title} • {t('weightControlDetails.configureWeightLimitsForEachClass')}
             </p>
           </div>
         </div>
@@ -248,20 +250,20 @@ export default function WeightLimitsPage({ params }: { params: Promise<{ eventId
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Weight className="h-5 w-5" />
-              Class Weight Limits
+              {t('weightControlDetails.classWeightLimits')}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             {weightLimits.length === 0 ? (
               <div className="text-center py-8">
                 <Weight className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-semibold mb-2">No Weight Limits Configured</h3>
+                <h3 className="text-lg font-semibold mb-2">{t('weightControlDetails.noWeightLimitsConfigured')}</h3>
                 <p className="text-muted-foreground mb-4">
-                  Add weight limits for your event classes to enable weight control.
+                  {t('weightControlDetails.addWeightLimitsDescription')}
                 </p>
                 <Button onClick={addWeightLimit} disabled={classes.length === 0}>
                   <Plus className="h-4 w-4 mr-2" />
-                  Add First Weight Limit
+                  {t('weightControlDetails.addFirstWeightLimit')}
                 </Button>
               </div>
             ) : (
@@ -270,7 +272,7 @@ export default function WeightLimitsPage({ params }: { params: Promise<{ eventId
                   <div key={index} className="p-4 border rounded-lg">
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
                       <div className="space-y-2">
-                        <Label htmlFor={`class-${index}`}>Class</Label>
+                        <Label htmlFor={`class-${index}`}>{t('weightControlDetails.class')}</Label>
                         <select
                           id={`class-${index}`}
                           value={limit.classId}
@@ -287,7 +289,7 @@ export default function WeightLimitsPage({ params }: { params: Promise<{ eventId
                       </div>
 
                       <div className="space-y-2">
-                        <Label htmlFor={`min-weight-${index}`}>Minimum Weight (kg)</Label>
+                        <Label htmlFor={`min-weight-${index}`}>{t('weightControlDetails.minimumWeight')}</Label>
                         <Input
                           id={`min-weight-${index}`}
                           type="number"
@@ -299,7 +301,7 @@ export default function WeightLimitsPage({ params }: { params: Promise<{ eventId
                       </div>
 
                       <div className="space-y-2">
-                        <Label htmlFor={`max-weight-${index}`}>Maximum Weight (kg)</Label>
+                        <Label htmlFor={`max-weight-${index}`}>{t('weightControlDetails.maximumWeight')}</Label>
                         <Input
                           id={`max-weight-${index}`}
                           type="number"
@@ -324,7 +326,7 @@ export default function WeightLimitsPage({ params }: { params: Promise<{ eventId
                     {limit.minWeight >= limit.maxWeight && (
                       <div className="mt-2 flex items-center gap-2 text-red-600 text-sm">
                         <AlertTriangle className="h-4 w-4" />
-                        Minimum weight must be less than maximum weight
+                        {t('weightControlDetails.minWeightMustBeLessThanMax')}
                       </div>
                     )}
                   </div>
@@ -337,7 +339,7 @@ export default function WeightLimitsPage({ params }: { params: Promise<{ eventId
                     disabled={availableClasses.length === 0}
                   >
                     <Plus className="h-4 w-4 mr-2" />
-                    Add Another Class
+                    {t('weightControlDetails.addAnotherClass')}
                   </Button>
                   
                   <Button
@@ -347,12 +349,12 @@ export default function WeightLimitsPage({ params }: { params: Promise<{ eventId
                     {saving ? (
                       <>
                         <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                        Saving...
+                        {t('weightControlDetails.saving')}
                       </>
                     ) : (
                       <>
                         <Save className="h-4 w-4 mr-2" />
-                        Save Weight Limits
+                        {t('weightControlDetails.saveWeightLimits')}
                       </>
                     )}
                   </Button>
@@ -362,7 +364,7 @@ export default function WeightLimitsPage({ params }: { params: Promise<{ eventId
 
             {availableClasses.length === 0 && weightLimits.length > 0 && (
               <div className="text-center py-4 text-muted-foreground">
-                All classes have weight limits configured
+                {t('weightControlDetails.allClassesHaveWeightLimits')}
               </div>
             )}
           </CardContent>
@@ -372,7 +374,7 @@ export default function WeightLimitsPage({ params }: { params: Promise<{ eventId
         {weightLimits.length > 0 && (
           <Card>
             <CardHeader>
-              <CardTitle>Summary</CardTitle>
+              <CardTitle>{t('weightControlDetails.summary')}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid gap-2">
