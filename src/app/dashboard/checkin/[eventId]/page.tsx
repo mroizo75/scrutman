@@ -315,10 +315,10 @@ export default function CheckInPage({ params }: { params: Promise<{ eventId: str
 
   const getStatusText = (status: string | null) => {
     switch (status) {
-      case 'OK': return 'Checked In';
-      case 'NOT_OK': return 'Issues Found';
-      case 'DNS': return 'Did Not Show';
-      default: return 'Pending';
+      case 'OK': return t('checkin.checkedIn');
+      case 'NOT_OK': return t('checkin.issuesFound');
+      case 'DNS': return t('checkin.didNotShow');
+      default: return t('checkin.pending');
     }
   };
 
@@ -336,8 +336,8 @@ export default function CheckInPage({ params }: { params: Promise<{ eventId: str
     return (
       <main className="container mx-auto px-4 py-8">
         <div className="text-center">
-          <h1 className="text-2xl font-bold mb-4">Event Check-In</h1>
-          <p className="text-muted-foreground">Event not found</p>
+          <h1 className="text-2xl font-bold mb-4">{t('checkin.eventCheckIn')}</h1>
+          <p className="text-muted-foreground">{t('checkin.eventNotFound')}</p>
         </div>
       </main>
     );
@@ -358,13 +358,13 @@ export default function CheckInPage({ params }: { params: Promise<{ eventId: str
               <Button asChild variant="outline" size="sm">
                 <Link href="/dashboard">
                   <ArrowLeft className="h-4 w-4 mr-2" />
-                  Back to Dashboard
+                  {t('checkin.backToDashboard')}
                 </Link>
               </Button>
             </div>
-            <h1 className="text-3xl font-bold mb-2">Event Check-In</h1>
+            <h1 className="text-3xl font-bold mb-2">{t('checkin.eventCheckIn')}</h1>
             <p className="text-muted-foreground">
-              {event.title} • {new Date(event.startDate).toLocaleDateString('en-US', {
+              {event.title} • {new Date(event.startDate).toLocaleDateString(language === 'fr' ? 'fr-FR' : 'en-US', {
                 year: 'numeric',
                 month: 'long',
                 day: 'numeric'
@@ -376,12 +376,12 @@ export default function CheckInPage({ params }: { params: Promise<{ eventId: str
             <div className="flex items-center gap-2 px-3 py-2 bg-green-50 rounded-lg">
               <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
               <span className="text-sm text-green-700 font-medium">
-                {realtimeManager.current?.isConnectionActive() ? 'Live Updates' : 'Fallback Mode'}
+                {realtimeManager.current?.isConnectionActive() ? t('checkin.liveUpdates') : t('checkin.fallbackMode')}
               </span>
             </div>
             <Button onClick={() => fetchData()}>
               <RefreshCw className="h-4 w-4 mr-2" />
-              Refresh Now
+              {t('checkin.refreshNow')}
             </Button>
           </div>
         </div>
@@ -406,7 +406,7 @@ export default function CheckInPage({ params }: { params: Promise<{ eventId: str
                 <CheckCircle2 className="h-6 w-6 text-green-600" />
               </div>
               <p className="text-2xl font-bold text-green-600">{checkedInCount}</p>
-              <p className="text-xs text-muted-foreground">Checked In</p>
+              <p className="text-xs text-muted-foreground">{t('checkin.checkedIn')}</p>
             </CardContent>
           </Card>
 
@@ -416,7 +416,7 @@ export default function CheckInPage({ params }: { params: Promise<{ eventId: str
                 <AlertTriangle className="h-6 w-6 text-red-600" />
               </div>
               <p className="text-2xl font-bold text-red-600">{issuesCount}</p>
-              <p className="text-xs text-muted-foreground">Issues Found</p>
+              <p className="text-xs text-muted-foreground">{t('checkin.issuesFound')}</p>
             </CardContent>
           </Card>
 
@@ -426,7 +426,7 @@ export default function CheckInPage({ params }: { params: Promise<{ eventId: str
                 <X className="h-6 w-6 text-gray-600" />
               </div>
               <p className="text-2xl font-bold text-gray-600">{dnsCount}</p>
-              <p className="text-xs text-muted-foreground">Did Not Show</p>
+              <p className="text-xs text-muted-foreground">{t('checkin.didNotShow')}</p>
             </CardContent>
           </Card>
 
@@ -436,7 +436,7 @@ export default function CheckInPage({ params }: { params: Promise<{ eventId: str
                 <Clock className="h-6 w-6 text-yellow-600" />
               </div>
               <p className="text-2xl font-bold text-yellow-600">{pendingCount}</p>
-              <p className="text-xs text-muted-foreground">Pending</p>
+              <p className="text-xs text-muted-foreground">{t('checkin.pending')}</p>
             </CardContent>
           </Card>
         </div>
@@ -456,7 +456,7 @@ export default function CheckInPage({ params }: { params: Promise<{ eventId: str
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
                     ref={searchInputRef}
-                    placeholder="Search: #123, John Doe, Toyota Corolla..."
+                    placeholder={t('checkin.searchPlaceholder')}
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="pl-10 text-lg"
@@ -466,8 +466,8 @@ export default function CheckInPage({ params }: { params: Promise<{ eventId: str
                 
                 {/* Quick search tips */}
                 <div className="flex flex-wrap gap-1 text-xs text-muted-foreground">
-                  <span className="bg-gray-100 px-2 py-1 rounded">Tip: Type #123 for exact start number</span>
-                  <span className="bg-gray-100 px-2 py-1 rounded">Or just 123 to search numbers</span>
+                  <span className="bg-gray-100 px-2 py-1 rounded">{t('checkin.searchTip1')}</span>
+                  <span className="bg-gray-100 px-2 py-1 rounded">{t('checkin.searchTip2')}</span>
                 </div>
               </div>
 
@@ -521,7 +521,7 @@ export default function CheckInPage({ params }: { params: Promise<{ eventId: str
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Car className="h-5 w-5" />
-                Check-In Details
+                {t('checkin.checkInDetails')}
                 {selectedParticipant && (
                   <span className="text-blue-600 font-mono">#{selectedParticipant.startNumber}</span>
                 )}
@@ -544,29 +544,29 @@ export default function CheckInPage({ params }: { params: Promise<{ eventId: str
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                       <div>
-                        <p><strong>Phone:</strong> {selectedParticipant.user.phone || 'N/A'}</p>
-                        <p><strong>License:</strong> {selectedParticipant.user.licenseNumber || 'N/A'}</p>
-                        <p><strong>Class:</strong> {selectedParticipant.class.name}</p>
+                        <p><strong>{t('checkin.phone')}:</strong> {selectedParticipant.user.phone || 'N/A'}</p>
+                        <p><strong>{t('checkin.license')}:</strong> {selectedParticipant.user.licenseNumber || 'N/A'}</p>
+                        <p><strong>{t('checkin.class')}:</strong> {selectedParticipant.class.name}</p>
                         {selectedParticipant.user.club && (
-                          <p><strong>Club:</strong> {selectedParticipant.user.club.name}</p>
+                          <p><strong>{t('checkin.club')}:</strong> {selectedParticipant.user.club.name}</p>
                         )}
                       </div>
                       <div>
-                        <p><strong>Vehicle:</strong> {selectedParticipant.userVehicle?.make || 'Unknown'} {selectedParticipant.userVehicle?.model || 'Vehicle'}</p>
-                        <p><strong>Year:</strong> {selectedParticipant.userVehicle?.year || 'N/A'}</p>
-                        <p><strong>License Plate:</strong> {selectedParticipant.userVehicle?.licensePlate || 'N/A'}</p>
-                        <p><strong>Color:</strong> {selectedParticipant.userVehicle?.color || 'N/A'}</p>
+                        <p><strong>{t('checkin.vehicle')}:</strong> {selectedParticipant.userVehicle?.make || 'Unknown'} {selectedParticipant.userVehicle?.model || 'Vehicle'}</p>
+                        <p><strong>{t('checkin.year')}:</strong> {selectedParticipant.userVehicle?.year || 'N/A'}</p>
+                        <p><strong>{t('checkin.licensePlate')}:</strong> {selectedParticipant.userVehicle?.licensePlate || 'N/A'}</p>
+                        <p><strong>{t('checkin.color')}:</strong> {selectedParticipant.userVehicle?.color || 'N/A'}</p>
                         {selectedParticipant.userVehicle?.weight && (
-                          <p><strong>Weight:</strong> {selectedParticipant.userVehicle.weight} kg</p>
+                          <p><strong>{t('checkin.weight')}:</strong> {selectedParticipant.userVehicle.weight} kg</p>
                         )}
                         {selectedParticipant.userVehicle?.engineVolume && (
-                          <p><strong>Engine:</strong> {selectedParticipant.userVehicle.engineVolume}L</p>
+                          <p><strong>{t('checkin.engine')}:</strong> {selectedParticipant.userVehicle.engineVolume}L</p>
                         )}
                         {selectedParticipant.userVehicle?.chassisNumber && (
-                          <p><strong>Chassis:</strong> {selectedParticipant.userVehicle.chassisNumber}</p>
+                          <p><strong>{t('checkin.chassis')}:</strong> {selectedParticipant.userVehicle.chassisNumber}</p>
                         )}
                         {selectedParticipant.userVehicle?.transponderNumber && (
-                          <p><strong>Transponder:</strong> {selectedParticipant.userVehicle.transponderNumber}</p>
+                          <p><strong>{t('checkin.transponder')}:</strong> {selectedParticipant.userVehicle.transponderNumber}</p>
                         )}
                       </div>
                     </div>
@@ -574,19 +574,19 @@ export default function CheckInPage({ params }: { params: Promise<{ eventId: str
                     {selectedParticipant.checkIn && (
                       <div className="mt-4 pt-4 border-t">
                         <p className="text-sm">
-                          <strong>Previous Status:</strong> <Badge className={getStatusColor(selectedParticipant.checkIn.status)}>
+                          <strong>{t('checkin.previousStatus')}:</strong> <Badge className={getStatusColor(selectedParticipant.checkIn.status)}>
                             {getStatusText(selectedParticipant.checkIn.status)}
                           </Badge>
                         </p>
                         <p className="text-sm">
-                          <strong>Checked by:</strong> {selectedParticipant.checkIn.checkedInBy.name}
+                          <strong>{t('checkin.checkedBy')}:</strong> {selectedParticipant.checkIn.checkedInBy.name}
                         </p>
                         <p className="text-sm">
-                          <strong>Time:</strong> {new Date(selectedParticipant.checkIn.checkedInAt).toLocaleString()}
+                          <strong>{t('checkin.time')}:</strong> {new Date(selectedParticipant.checkIn.checkedInAt).toLocaleString()}
                         </p>
                         {selectedParticipant.checkIn.notes && (
                           <p className="text-sm">
-                            <strong>Notes:</strong> {selectedParticipant.checkIn.notes}
+                            <strong>{t('checkin.notes')}:</strong> {selectedParticipant.checkIn.notes}
                           </p>
                         )}
                       </div>
@@ -597,35 +597,35 @@ export default function CheckInPage({ params }: { params: Promise<{ eventId: str
                   <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
                     <h4 className="text-sm font-medium mb-3 flex items-center gap-2">
                       <Shield className="h-4 w-4 text-blue-600" />
-                      License Verification
+                      {t('checkin.licenseVerification')}
                     </h4>
                     <div className="space-y-3 text-sm">
                       {/* License Number */}
                       <div className="flex items-center justify-between">
-                        <span className="text-muted-foreground">License Number:</span>
+                        <span className="text-muted-foreground">{t('checkin.licenseNumber')}:</span>
                         <span className={selectedParticipant.user.licenseNumber ? 'text-green-600 font-medium' : 'text-red-600'}>
-                          {selectedParticipant.user.licenseNumber || 'Missing'}
+                          {selectedParticipant.user.licenseNumber || t('checkin.missing')}
                         </span>
                       </div>
 
                       {/* License Expiry */}
                       {selectedParticipant.user.licenseExpiryDate && (
                         <div className="flex items-center justify-between">
-                          <span className="text-muted-foreground">Expires:</span>
+                          <span className="text-muted-foreground">{t('checkin.expires')}:</span>
                           <span className={
                             new Date(selectedParticipant.user.licenseExpiryDate) > new Date() 
                               ? 'text-green-600 font-medium' 
                               : 'text-red-600 font-medium'
                           }>
                             {new Date(selectedParticipant.user.licenseExpiryDate).toLocaleDateString()}
-                            {new Date(selectedParticipant.user.licenseExpiryDate) <= new Date() && ' (EXPIRED)'}
+                            {new Date(selectedParticipant.user.licenseExpiryDate) <= new Date() && ` (${t('checkin.expired')})`}
                           </span>
                         </div>
                       )}
 
                       {/* License Receipt */}
                       <div className="flex items-center justify-between">
-                        <span className="text-muted-foreground">Payment Receipt:</span>
+                        <span className="text-muted-foreground">{t('checkin.paymentReceipt')}:</span>
                         <div className="flex items-center gap-2">
                           {selectedParticipant.user.licenseReceiptUrl ? (
                             <>
@@ -636,13 +636,13 @@ export default function CheckInPage({ params }: { params: Promise<{ eventId: str
                                 rel="noopener noreferrer"
                                 className="text-blue-600 hover:underline text-sm"
                               >
-                                View Receipt
+                                {t('checkin.viewReceipt')}
                               </a>
                             </>
                           ) : (
                             <>
                               <X className="h-4 w-4 text-red-600" />
-                              <span className="text-red-600 font-medium">No Receipt</span>
+                              <span className="text-red-600 font-medium">{t('checkin.noReceipt')}</span>
                             </>
                           )}
                         </div>
@@ -650,7 +650,7 @@ export default function CheckInPage({ params }: { params: Promise<{ eventId: str
 
                       {/* Club Membership */}
                       <div className="flex items-center justify-between">
-                        <span className="text-muted-foreground">Club Member:</span>
+                        <span className="text-muted-foreground">{t('checkin.clubMember')}:</span>
                         <div className="flex items-center gap-2">
                           {selectedParticipant.user.memberClub || selectedParticipant.user.club ? (
                             <>
@@ -662,7 +662,7 @@ export default function CheckInPage({ params }: { params: Promise<{ eventId: str
                           ) : (
                             <>
                               <X className="h-4 w-4 text-red-600" />
-                              <span className="text-red-600 font-medium">No Club</span>
+                              <span className="text-red-600 font-medium">{t('checkin.noClub')}</span>
                             </>
                           )}
                         </div>
@@ -671,7 +671,7 @@ export default function CheckInPage({ params }: { params: Promise<{ eventId: str
                       {/* Overall License Status */}
                       <div className="pt-2 mt-2 border-t border-blue-200">
                         <div className="flex items-center gap-2">
-                          <span className="text-muted-foreground">License Status:</span>
+                          <span className="text-muted-foreground">{t('checkin.licenseStatus')}:</span>
                           {(() => {
                             const hasLicense = selectedParticipant.user.licenseNumber;
                             const hasReceipt = selectedParticipant.user.licenseReceiptUrl;
@@ -682,13 +682,13 @@ export default function CheckInPage({ params }: { params: Promise<{ eventId: str
                             if (hasLicense && hasReceipt && hasClub && !isExpired) {
                               return (
                                 <Badge className="bg-green-100 text-green-800 border-green-200">
-                                  ✓ Valid
+                                  ✓ {t('checkin.valid')}
                                 </Badge>
                               );
                             } else {
                               return (
                                 <Badge className="bg-red-100 text-red-800 border-red-200">
-                                  ⚠ Issues Found
+                                  ⚠ {t('checkin.issuesFound')}
                                 </Badge>
                               );
                             }
@@ -700,7 +700,7 @@ export default function CheckInPage({ params }: { params: Promise<{ eventId: str
 
                   {/* Status Selection */}
                   <div className="space-y-3">
-                    <label className="text-sm font-medium">Check-In Status</label>
+                    <label className="text-sm font-medium">{t('checkin.checkInStatus')}</label>
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                       <Button
                         variant={checkInStatus === 'OK' ? 'default' : 'outline'}
@@ -718,7 +718,7 @@ export default function CheckInPage({ params }: { params: Promise<{ eventId: str
                         size="lg"
                       >
                         <X className="h-4 w-4 mr-2" />
-                        Not OK
+                        {t('checkin.notOk')}
                       </Button>
                       <Button
                         variant={checkInStatus === 'DNS' ? 'default' : 'outline'}
@@ -727,16 +727,16 @@ export default function CheckInPage({ params }: { params: Promise<{ eventId: str
                         size="lg"
                       >
                         <Clock className="h-4 w-4 mr-2" />
-                        DNS
+                        {t('checkin.dns')}
                       </Button>
                     </div>
                   </div>
 
                   {/* Notes */}
                   <div className="space-y-2">
-                    <label className="text-sm font-medium">Notes (optional)</label>
+                    <label className="text-sm font-medium">{t('checkin.notes')} (optional)</label>
                     <Textarea
-                      placeholder="Add any notes about the check-in..."
+                      placeholder={t('checkin.addNotes')}
                       value={notes}
                       onChange={(e) => setNotes(e.target.value)}
                       rows={3}
@@ -753,12 +753,12 @@ export default function CheckInPage({ params }: { params: Promise<{ eventId: str
                     {processing ? (
                       <>
                         <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                        Processing...
+                        {t('checkin.processing')}
                       </>
                     ) : (
                       <>
                         <CheckCircle2 className="h-4 w-4 mr-2" />
-                        Complete Check-In
+                        {t('checkin.completeCheckIn')}
                       </>
                     )}
                   </Button>
@@ -766,9 +766,9 @@ export default function CheckInPage({ params }: { params: Promise<{ eventId: str
               ) : (
                 <div className="text-center py-12">
                   <User className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold mb-2">Select a Participant</h3>
+                  <h3 className="text-lg font-semibold mb-2">{t('checkin.selectParticipant')}</h3>
                   <p className="text-muted-foreground">
-                    Search and click on a participant to begin check-in process.
+                    {t('checkin.selectParticipantDescription')}
                   </p>
                 </div>
               )}
