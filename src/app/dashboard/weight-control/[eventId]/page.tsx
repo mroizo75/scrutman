@@ -368,12 +368,12 @@ export default function WeightControlPage({ params }: { params: Promise<{ eventI
   const pendingCount = participants.length - controlledCount;
 
   const heatOptions = [
-    { value: 'TRAINING', label: 'Trening' },
-    { value: 'QUALIFYING', label: 'Kval' },
-    { value: 'FINAL1', label: 'Finale 1' },
-    { value: 'FINAL2', label: 'Finale 2' },
-    { value: 'FINAL3', label: 'Finale 3' },
-    { value: 'FINAL4', label: 'Finale 4' }
+    { value: 'TRAINING', label: language === 'fr' ? 'Entraînement' : 'Training' },
+    { value: 'QUALIFYING', label: language === 'fr' ? 'Qualifications' : 'Qualifying' },
+    { value: 'FINAL1', label: language === 'fr' ? 'Finale 1' : 'Final 1' },
+    { value: 'FINAL2', label: language === 'fr' ? 'Finale 2' : 'Final 2' },
+    { value: 'FINAL3', label: language === 'fr' ? 'Finale 3' : 'Final 3' },
+    { value: 'FINAL4', label: language === 'fr' ? 'Finale 4' : 'Final 4' }
   ];
 
   const getHeatLabel = (heat: string) => {
@@ -577,7 +577,7 @@ export default function WeightControlPage({ params }: { params: Promise<{ eventI
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Scale className="h-5 w-5" />
-                Weight Control
+                {t('weightControlDetails.weightControl')}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -597,19 +597,19 @@ export default function WeightControlPage({ params }: { params: Promise<{ eventI
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
                       <div>
-                        <p><strong>Class:</strong> {selectedParticipant.class.name}</p>
-                        <p><strong>Vehicle:</strong> {selectedParticipant.userVehicle?.make || 'Unknown'} {selectedParticipant.userVehicle?.model || 'Vehicle'}</p>
-                        <p><strong>Year:</strong> {selectedParticipant.userVehicle?.year || 'N/A'}</p>
-                        <p><strong>License Plate:</strong> {selectedParticipant.userVehicle?.licensePlate || 'N/A'}</p>
+                        <p><strong>{t('weightControlDetails.class')}:</strong> {selectedParticipant.class.name}</p>
+                        <p><strong>{t('weightControlDetails.vehicle')}:</strong> {selectedParticipant.userVehicle?.make || 'Unknown'} {selectedParticipant.userVehicle?.model || 'Vehicle'}</p>
+                        <p><strong>{t('weightControlDetails.year')}:</strong> {selectedParticipant.userVehicle?.year || 'N/A'}</p>
+                        <p><strong>{t('weightControlDetails.licensePlate')}:</strong> {selectedParticipant.userVehicle?.licensePlate || 'N/A'}</p>
                       </div>
                       <div>
-                        <p><strong>Declared Weight:</strong> {selectedParticipant.userVehicle?.weight || 'N/A'} kg</p>
+                        <p><strong>{t('weightControlDetails.declaredWeight')}:</strong> {selectedParticipant.userVehicle?.weight || 'N/A'} kg</p>
                         {(() => {
                           const limit = weightLimits.find(wl => wl.classId === selectedParticipant.class.id);
                           return limit ? (
-                            <p><strong>Weight Limit:</strong> {limit.minWeight} - {limit.maxWeight} kg</p>
+                            <p><strong>{t('weightControlDetails.weightLimit')}:</strong> {limit.minWeight} - {limit.maxWeight} kg</p>
                           ) : (
-                            <p><strong>Weight Limit:</strong> No limit set</p>
+                            <p><strong>{t('weightControlDetails.weightLimit')}:</strong> {t('weightControlDetails.noLimitSet')}</p>
                           );
                         })()}
                       </div>
@@ -617,7 +617,7 @@ export default function WeightControlPage({ params }: { params: Promise<{ eventI
 
                     {selectedParticipant.weightControls && selectedParticipant.weightControls.length > 0 && (
                       <div className="mt-4 pt-4 border-t">
-                        <p className="text-sm font-medium mb-2">Previous Weight Controls:</p>
+                        <p className="text-sm font-medium mb-2">{t('weightControlDetails.previousWeightControls')}:</p>
                         <div className="space-y-2">
                           {selectedParticipant.weightControls.map((wc, index) => (
                             <div key={index} className="text-sm bg-gray-100 p-2 rounded">
@@ -627,10 +627,10 @@ export default function WeightControlPage({ params }: { params: Promise<{ eventI
                                   {getResultText(wc.result)}
                                 </Badge>
                               </div>
-                              <p><strong>Weight:</strong> {wc.measuredWeight} kg</p>
-                              <p><strong>By:</strong> {wc.controller.name}</p>
-                              <p><strong>Time:</strong> {new Date(wc.controlledAt).toLocaleString()}</p>
-                              {wc.notes && <p><strong>Notes:</strong> {wc.notes}</p>}
+                              <p><strong>{t('weightControlDetails.weight')}:</strong> {wc.measuredWeight} kg</p>
+                              <p><strong>{t('weightControlDetails.by')}:</strong> {wc.controller.name}</p>
+                              <p><strong>{t('weightControlDetails.time')}:</strong> {new Date(wc.controlledAt).toLocaleString()}</p>
+                              {wc.notes && <p><strong>{t('weightControlDetails.notes')}:</strong> {wc.notes}</p>}
                             </div>
                           ))}
                         </div>
@@ -640,7 +640,7 @@ export default function WeightControlPage({ params }: { params: Promise<{ eventI
 
                   {/* Heat Selection */}
                   <div className="space-y-2">
-                    <Label htmlFor="heat-select">Heat/Session *</Label>
+                    <Label htmlFor="heat-select">{t('weightControlDetails.heatSession')} *</Label>
                     <Select value={selectedHeat} onValueChange={(value) => {
                       setSelectedHeat(value);
                       // Update form based on existing control for this heat
@@ -649,7 +649,7 @@ export default function WeightControlPage({ params }: { params: Promise<{ eventI
                       setNotes(existingControl?.notes || "");
                     }}>
                       <SelectTrigger>
-                        <SelectValue placeholder="Select heat" />
+                        <SelectValue placeholder={t('weightControlDetails.selectHeat')} />
                       </SelectTrigger>
                       <SelectContent>
                         {heatOptions.map((heat) => (
@@ -661,26 +661,26 @@ export default function WeightControlPage({ params }: { params: Promise<{ eventI
                     </Select>
                     {selectedParticipant.weightControls?.find(wc => wc.heat === selectedHeat) && (
                       <p className="text-sm text-blue-600">
-                        This heat already has weight control - updating existing record
+                        {t('weightControlDetails.thisHeatAlreadyHas')}
                       </p>
                     )}
                   </div>
 
                   {/* Weight Input */}
                   <div className="space-y-2">
-                    <Label htmlFor="measured-weight">Measured Weight (kg) *</Label>
+                    <Label htmlFor="measured-weight">{t('weightControlDetails.measuredWeight')} *</Label>
                     <Input
                       id="measured-weight"
                       type="number"
                       step="0.1"
                       min="0"
-                      placeholder="Enter measured weight..."
+                      placeholder={t('weightControlDetails.enterMeasuredWeight')}
                       value={measuredWeight}
                       onChange={(e) => setMeasuredWeight(e.target.value)}
                     />
                     {measuredWeight && (
                       <div className="text-sm">
-                        <strong>Expected Result:</strong>{" "}
+                        <strong>{t('weightControlDetails.expectedResult')}:</strong>{" "}
                         <Badge className={getResultColor(getWeightResult(selectedParticipant, parseFloat(measuredWeight) || 0))}>
                           {getResultText(getWeightResult(selectedParticipant, parseFloat(measuredWeight) || 0))}
                         </Badge>
@@ -690,10 +690,10 @@ export default function WeightControlPage({ params }: { params: Promise<{ eventI
 
                   {/* Notes */}
                   <div className="space-y-2">
-                    <Label htmlFor="notes">Notes (optional)</Label>
+                    <Label htmlFor="notes">{t('weightControlDetails.notes')} (optional)</Label>
                     <Textarea
                       id="notes"
-                      placeholder="Add any notes about the weight control..."
+                      placeholder={t('weightControlDetails.addNotes')}
                       value={notes}
                       onChange={(e) => setNotes(e.target.value)}
                       rows={3}
@@ -710,12 +710,12 @@ export default function WeightControlPage({ params }: { params: Promise<{ eventI
                     {processing ? (
                       <>
                         <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                        Processing...
+                        {t('weightControlDetails.processing')}
                       </>
                     ) : (
                       <>
                         <Save className="h-4 w-4 mr-2" />
-                        Complete Weight Control
+                        {t('weightControlDetails.completeWeightControl')}
                       </>
                     )}
                   </Button>
@@ -723,9 +723,9 @@ export default function WeightControlPage({ params }: { params: Promise<{ eventI
               ) : (
                 <div className="text-center py-12">
                   <Car className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold mb-2">Select a Participant</h3>
+                  <h3 className="text-lg font-semibold mb-2">{t('weightControlDetails.selectParticipant')}</h3>
                   <p className="text-muted-foreground">
-                    Search and click on a participant to begin weight control process.
+                    {t('weightControlDetails.selectParticipantDescription')}
                   </p>
                 </div>
               )}
