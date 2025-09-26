@@ -1,3 +1,5 @@
+import AthleteNav from "@/components/AthleteNav";
+
 export default function AthleteLayout({
   children,
 }: {
@@ -5,6 +7,7 @@ export default function AthleteLayout({
 }) {
   return (
     <div className="min-h-screen bg-background">
+      <AthleteNav />
       {children}
     </div>
   );

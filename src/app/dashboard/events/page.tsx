@@ -384,7 +384,7 @@ export default function EventsPage() {
   }
 
   return (
-    <main className="container mx-auto px-4 py-8">
+    <main className="p-6">
       <div className="space-y-8">
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
           <div>

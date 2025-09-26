@@ -136,7 +136,7 @@ export default function ClubsPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <main className="container mx-auto px-4 py-8">
+      <main className="p-6">
         {isLoading ? (
           <div className="flex justify-center items-center h-64">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>

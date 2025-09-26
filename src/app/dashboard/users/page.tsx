@@ -113,7 +113,7 @@ export default function UsersPage() {
   };
 
   return (
-    <main className="container mx-auto px-4 py-8">
+    <main className="p-6">
       <div className="space-y-8">
         <div className="flex justify-between items-center">
           <h1 className="text-3xl font-bold">{t('users.title')}</h1>

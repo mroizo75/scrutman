@@ -61,11 +61,18 @@ export default function DashboardLayout({
   const showAdminNav = !showSuperAdminNav && !showFederationNav;
 
   return (
-    <div className="min-h-screen bg-background">
-      {showFederationNav && <FederationNav />}
-      {showSuperAdminNav && <SuperAdminNav />}
-      {showAdminNav && <AdminNav />}
-      {children}
+    <div className="h-screen bg-background flex overflow-hidden">
+      {/* Sidebar */}
+      <div className="w-64 bg-white border-r border-gray-200 flex-shrink-0 h-full">
+        {showFederationNav && <FederationNav />}
+        {showSuperAdminNav && <SuperAdminNav />}
+        {showAdminNav && <AdminNav />}
+      </div>
+      
+      {/* Main content */}
+      <div className="flex-1 overflow-auto">
+        {children}
+      </div>
     </div>
   );
 } 
