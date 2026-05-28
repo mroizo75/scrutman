@@ -3,9 +3,8 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { Building2, Users, Calendar, Menu, X, LogOut, BarChart3 } from "lucide-react";
+import { Building2, Users, Calendar, LogOut, BarChart3, Globe, UserCog } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
 import Cookies from "js-cookie";
 import { useTranslation } from "@/hooks/useTranslation";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
@@ -15,8 +14,6 @@ export default function SuperAdminNav() {
   const { t } = useTranslation();
   const pathname = usePathname();
   const router = useRouter();
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-
   const handleSignOut = async () => {
     Cookies.remove("user");
     router.push("/");
@@ -42,6 +39,16 @@ export default function SuperAdminNav() {
       href: "/dashboard/users",
       label: t('common.users'),
       icon: Users
+    },
+    {
+      href: "/dashboard/superadmin/federations",
+      label: "Federations",
+      icon: Globe
+    },
+    {
+      href: "/dashboard/superadmin/fia-delegates",
+      label: "FIA Delegates",
+      icon: UserCog
     }
   ];
 
@@ -50,7 +57,7 @@ export default function SuperAdminNav() {
       {/* Header */}
       <div className="p-4 border-b flex-shrink-0">
         <Link href="/dashboard/superadmin" className="block">
-          <Image src="/logo.png" alt="ScrutMan" width={200} height={200} />
+          <Image src="/logo.png" alt="ScrutMan" width={300} height={90} className="w-full h-auto" style={{maxWidth:"200px"}} />
           <span className="text-sm font-normal text-muted-foreground">{t('common.superAdmin')}</span>
         </Link>
       </div>
@@ -65,7 +72,7 @@ export default function SuperAdminNav() {
               href={link.href}
               className={cn(
                 "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
-                pathname === link.href
+                (link.href === "/dashboard/superadmin" ? pathname === link.href : pathname?.startsWith(link.href))
                   ? "bg-primary text-primary-foreground"
                   : "hover:bg-muted"
               )}

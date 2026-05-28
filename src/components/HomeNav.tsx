@@ -66,6 +66,8 @@ export default function HomeNav() {
       case "WEIGHT_CONTROLLER":
       case "RACE_OFFICIAL":
         return "/dashboard";
+      case "FIA_DELEGATE":
+        return "/dashboard/fia";
       default:
         return "/";
     }
@@ -89,6 +91,8 @@ export default function HomeNav() {
         return t('common.weightController');
       case "RACE_OFFICIAL":
         return t('common.raceOfficial');
+      case "FIA_DELEGATE":
+        return t('common.fiaDelegate');
       default:
         return user.role;
     }
@@ -99,7 +103,7 @@ export default function HomeNav() {
       <nav className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container mx-auto px-4 h-16 flex items-center justify-between">
           <Link href="/" className="text-2xl font-bold text-primary">
-            <Image src="/logo.png" alt="ScrutMan" width={200} height={200} />
+            <Image src="/logo.png" alt="ScrutMan" width={240} height={72} className="h-16 w-auto object-contain" />
           </Link>
           <div className="h-10 w-24 bg-muted animate-pulse rounded"></div>
         </div>
@@ -111,7 +115,7 @@ export default function HomeNav() {
     <nav className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
         <Link href="/" className="text-2xl font-bold text-primary">
-          <Image src="/logo.png" alt="ScrutMan" width={200} height={200} />
+          <Image src="/logo.png" alt="ScrutMan" width={240} height={72} className="h-16 w-auto object-contain" />
         </Link>
 
         <div className="flex items-center gap-4">

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { Home, Menu, X, LogOut, CheckCircle, Eye, Users } from "lucide-react";
+import { Home, Menu, X, LogOut, CheckCircle, Eye, Users, ShieldCheck, Gauge } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import React, { useState } from "react";
 import Cookies from "js-cookie";
@@ -38,6 +38,16 @@ export default function FederationNav() {
       icon: Users
     },
     {
+      href: "/dashboard/federation/approved-tires",
+      label: "Godkjente dekk",
+      icon: ShieldCheck
+    },
+    {
+      href: "/dashboard/federation/tire-limits",
+      label: "Dekkgrenser",
+      icon: Gauge
+    },
+    {
       href: "/",
       label: t('common.events'),
       icon: Eye
@@ -49,7 +59,7 @@ export default function FederationNav() {
       {/* Header */}
       <div className="p-4 border-b flex-shrink-0">
         <Link href="/dashboard/federation" className="block">
-          <Image src="/logo.png" alt="ScrutMan" width={200} height={200} />
+          <Image src="/logo.png" alt="ScrutMan" width={300} height={90} className="w-full h-auto" style={{maxWidth:"200px"}} />
         </Link>
       </div>
 

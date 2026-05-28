@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Cookies from "js-cookie";
-import AdminNav from "@/components/AdminNav";
 import { countries } from "@/lib/countries";
 
 interface Club {
@@ -130,10 +129,8 @@ export default function ClubAdminPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      <AdminNav />
-      <main className="py-10">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+    <div className="py-10">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center mb-6">
             <h1 className="text-2xl font-bold">Club Administration</h1>
             <button
@@ -341,7 +338,6 @@ export default function ClubAdminPage() {
             </div>
           )}
         </div>
-      </main>
     </div>
   );
 } 

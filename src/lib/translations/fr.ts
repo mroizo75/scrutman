@@ -37,7 +37,17 @@ export const fr = {
     upload: "Téléverser",
     confirm: "Confirmer",
     yes: "Oui",
-    no: "Non"
+    no: "Non",
+    profile: "Profil",
+    myVehicles: "Mes véhicules",
+    myTyres: "Mes pneus",
+    athlete: "Athlète",
+    administrator: "Administrateur",
+    superAdmin: "Super Administrateur",
+    technicalInspector: "Inspecteur technique",
+    weightController: "Contrôleur de poids",
+    raceOfficial: "Officiel de course",
+    fiaDelegate: "Délégué FIA"
   },
   navigation: {
     home: "Accueil",
@@ -641,5 +651,92 @@ export const fr = {
     submit: "Soumettre",
     alreadyHaveAccount: "Vous avez déjà un compte ?",
     signIn: "Se connecter"
+  },
+  tyres: {
+    title: "Pneus",
+    myTyres: "Mes pneus",
+    addTyre: "Ajouter un pneu",
+    registerTyre: "Enregistrer un pneu",
+    tyre: "Pneu",
+    rfidEpc: "EPC RFID",
+    barcodeNumber: "Numéro de code-barres",
+    manufacturer: "Fabricant",
+    model: "Modèle",
+    size: "Taille",
+    compound: "Composé",
+    discipline: "Discipline",
+    subDiscipline: "Sous-discipline",
+    season: "Saison",
+    status: "Statut",
+    owner: "Propriétaire",
+    isNew: "Nouveau pour le propriétaire",
+    transferTyre: "Transférer le pneu",
+    transferTo: "Transférer à",
+    transferReason: "Motif du transfert",
+    document: "Document",
+    uploadDocument: "Télécharger un document",
+    history: "Historique de propriété",
+    noTyres: "Aucun pneu enregistré",
+    scan: {
+      green: "Approuvé — conforme FIA LT54",
+      red: "Refusé — pneu non enregistré ou invalide",
+      yellow: "Avertissement — pneu non enregistré pour cet événement",
+      rfidMode: "Mode RFID",
+      barcodeMode: "Mode code-barres"
+    },
+    reasons: {
+      SUPPLIER_DELIVERY: "Livraison fournisseur",
+      INSPECTION_REPLACEMENT: "Remplacement après inspection",
+      SEASON_REGISTRATION: "Inscription de saison",
+      CONFISCATION: "Confiscation",
+      OTHER: "Autre"
+    }
+  },
+  disciplines: {
+    AUTOCROSS: "Autocross",
+    BILCROSS: "Bilcross",
+    RACING: "Course",
+    RALLYCROSS: "Rallycross",
+    DRIFTING: "Drift",
+    TIME_ATTACK: "Time Attack",
+    DRAG_RACING: "Drag Racing",
+    CIRCUIT: "Circuit",
+    HILLCLIMB: "Montée",
+    OTHER: "Autre"
+  },
+  roles: {
+    SUPERADMIN: "Super Administrateur",
+    CLUBADMIN: "Administrateur de club",
+    ATHLETE: "Athlète",
+    TECHNICAL_INSPECTOR: "Inspecteur technique",
+    WEIGHT_CONTROLLER: "Contrôleur de poids",
+    RACE_OFFICIAL: "Officiel de course",
+    FEDERATION_ADMIN: "Administrateur fédéral",
+    FIA_DELEGATE: "Délégué FIA"
+  },
+  fiaAdmin: {
+    title: "Portail délégué FIA",
+    overview: "Vue d'ensemble",
+    allClubs: "Tous les clubs",
+    allEvents: "Tous les événements",
+    approvedTyres: "Pneus approuvés",
+    subDisciplines: "Sous-disciplines",
+    tyreAssignments: "Affectation de pneus",
+    rfidScan: "Scan RFID",
+    importExcel: "Importer Excel / CSV",
+    downloadTemplate: "Télécharger le modèle",
+    crossClubAccess: "Vous avez accès à tous les événements et clubs"
+  },
+  subdisciplines: {
+    title: "Sous-disciplines",
+    addSubDiscipline: "Ajouter une sous-discipline",
+    name: "Nom",
+    shortCode: "Code court",
+    category: "Catégorie",
+    maxTotal: "Maximum total de pneus",
+    maxNew: "Maximum de nouveaux pneus",
+    season: "Saison",
+    active: "Actif",
+    inactive: "Inactif"
   }
 };

@@ -14,13 +14,14 @@ datasource db {
 }
 
 enum UserRole {
-  SUPERADMIN      // System administrator
-  CLUBADMIN       // Club administrator
-  ATHLETE         // Participant/driver
-  TECHNICAL_INSPECTOR // Technical control officer
-  WEIGHT_CONTROLLER   // Weight control officer  
-  RACE_OFFICIAL      // Race official/marshal
-  FEDERATION_ADMIN    // Federation administrator (approves events)
+  SUPERADMIN           // System administrator
+  CLUBADMIN            // Club administrator
+  ATHLETE              // Participant/driver
+  TECHNICAL_INSPECTOR  // Technical control officer
+  WEIGHT_CONTROLLER    // Weight control officer
+  RACE_OFFICIAL        // Race official/marshal
+  FEDERATION_ADMIN     // Federation administrator (approves events)
+  FIA_DELEGATE         // FIA official — cross-club access, manages tyres and approved lists
 }
 
 model User {
@@ -29,31 +30,51 @@ model User {
   name          String?
   password      String
   phone         String?
-  licenseNumber String?   // Lisensnummer for utøvere
-  licenseReceiptUrl String? // URL til kvittering for betalt lisens
-  licenseExpiryDate DateTime? // Utløpsdato for lisens
-  memberClub    String?   // Manuelt klubbnavn for utøvere
-  dateOfBirth   DateTime? // Fødselsdato
-  address       String?   // Adresse
-  city          String?   // By
-  postalCode    String?   // Postnummer
-  country       String?   // Land
-  emergencyContact String? // Nødkontakt
-  emergencyPhone String?   // Nødkontakt telefon
+  licenseNumber String?
+  licenseReceiptUrl String?
+  licenseExpiryDate DateTime?
+  memberClub    String?
+  dateOfBirth   DateTime?
+  address       String?
+  city          String?
+  postalCode    String?
+  country       String?
+  emergencyContact String?
+  emergencyPhone String?
   role          UserRole
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
   club          Club?     @relation(fields: [clubId], references: [id])
   clubId        String?
+  federation    Federation? @relation("FederationMembers", fields: [federationId], references: [id])
+  federationId  String?
   registrations Registration[]
-  vehicles      UserVehicle[] // Brukerens kjøretøy
-  technicalInspections TechnicalInspection[] // Inspections performed by this user
-  weightControls WeightControl[] // Weight controls performed by this user
-  reviewedEvents Event[]  @relation("EventReviewer") // Events reviewed by this federation admin
-  checkIns      CheckIn[] // Check-ins performed by this user
-  checkInStaff  CheckIn[] @relation("CheckInStaff") // Check-ins processed by this staff member
+  vehicles      UserVehicle[]
+  technicalInspections TechnicalInspection[]
+  weightControls WeightControl[]
+  reviewedEvents Event[]  @relation("EventReviewer")
+  checkIns      CheckIn[]
+  checkInStaff  CheckIn[] @relation("CheckInStaff")
+  approvedTires ApprovedTire[] @relation("ApprovedTireAdmin")
+  ownedTires    Tire[]    @relation("TireOwner")
+  tireHistory   TireOwnership[] @relation("TireOwnerHistory")
+  tireLimits    DisciplineTireLimit[] @relation("TireLimitAdmin")
+  officialTransfers TireOwnership[] @relation("OfficialTransferBy")
+  tyreScanSessions  TyreScanSession[] @relation("ScanSessionBy")
 
   @@index([clubId])
+  @@index([federationId])
+  @@index([role])
+}
+
+model Federation {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  country     String?
+  website     String?
+  members     User[]   @relation("FederationMembers")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
 
 model Club {
@@ -96,10 +117,13 @@ model Event {
   files                 EventFile[]
   images                EventImage[]
   technicalInspections  TechnicalInspection[] // Technical inspections for this event
+  tyreScanSessions      TyreScanSession[]
   weightControls        WeightControl[] // Weight controls for this event
   checkIns              CheckIn[] // Check-ins for this event
   weightLimits          WeightLimit[] // Weight limits for this event
-  
+  tireRegistrations     EventTireRegistration[]
+  scanLogs              ScanLog[]
+
   // Federation approval fields
   submittedAt           DateTime?     // When submitted for approval
   reviewedAt            DateTime?     // When reviewed by federation
@@ -174,6 +198,8 @@ model Registration {
   technicalCheck TechnicalCheck?
   weightCheck   WeightCheck?
   checkIn       CheckIn? // Check-in record for this registration
+  tireRegistrations EventTireRegistration[]
+  tyreScanSessions  TyreScanSession[]
 
   createdAt     DateTime            @default(now())
   updatedAt     DateTime            @updatedAt
@@ -463,4 +489,203 @@ enum HeatType {
   FINAL2       // Finale 2
   FINAL3       // Finale 3
   FINAL4       // Finale 4
+}
+
+// Sub-disciplines per category (e.g. SuperBuggy, Buggy 1600 within AUTOCROSS)
+model SubDiscipline {
+  id             String          @id @default(cuid())
+  parentCategory VehicleCategory
+  name           String          // e.g. "SuperBuggy", "Buggy 1600"
+  shortCode      String          // e.g. "SB", "B1600"
+  season         Int?            // null = all seasons
+  maxNew         Int?            // max new tyres per season
+  maxTotal       Int?            // max total tyres
+  isActive       Boolean         @default(true)
+  approvedTires  ApprovedTire[]
+  tireLimits     DisciplineTireLimit[]
+  tires          Tire[]
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  @@unique([parentCategory, shortCode, season])
+  @@index([parentCategory])
+  @@index([isActive])
+}
+
+// Approved tire specifications managed by Federation Admin
+// Compliant with FIA Technical List No. 54 (LT54)
+model ApprovedTire {
+  id                  String          @id @default(cuid())
+  manufacturer        String
+  model               String
+  size                String
+  compound            String?
+  euRegRef            String?
+  disciplines         String          @db.Text // JSON array of VehicleCategory values
+  subDisciplineId     String?
+  subDiscipline       SubDiscipline?  @relation(fields: [subDisciplineId], references: [id])
+  // FIA LT54 fields
+  fiaManufacturerCode Int?
+  rfidChipModel       String?
+  barcodeSupplier     String?
+  isActive            Boolean         @default(true)
+  approvedById        String
+  approvedBy          User            @relation("ApprovedTireAdmin", fields: [approvedById], references: [id])
+  tires               Tire[]
+  createdAt           DateTime        @default(now())
+  updatedAt           DateTime        @updatedAt
+
+  @@index([isActive])
+  @@index([approvedById])
+  @@index([fiaManufacturerCode])
+  @@index([subDisciplineId])
+}
+
+// Physical tire with FIA-compliant RFID chip and barcode (LT54)
+model Tire {
+  id              String          @id @default(cuid())
+  rfidEpc         String?         @unique
+  barcodeNumber   String?         @unique
+  approvedTireId  String
+  approvedTire    ApprovedTire    @relation(fields: [approvedTireId], references: [id])
+  serialNumber    String?
+  discipline      VehicleCategory
+  subDisciplineId String?
+  subDiscipline   SubDiscipline?  @relation(fields: [subDisciplineId], references: [id])
+  season          Int             @default(2026)
+  currentOwnerId  String
+  currentOwner    User            @relation("TireOwner", fields: [currentOwnerId], references: [id])
+  isNewForOwner   Boolean         @default(true)
+  status          TireStatus      @default(ACTIVE)
+  ownerships      TireOwnership[]
+  eventRegistrations EventTireRegistration[]
+  scanLogs           ScanLog[]
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  @@index([currentOwnerId])
+  @@index([approvedTireId])
+  @@index([discipline])
+  @@index([barcodeNumber])
+  @@index([subDisciplineId])
+  @@index([season])
+}
+
+enum TireStatus {
+  ACTIVE
+  RETIRED
+  LOST
+}
+
+// Ownership history per tire
+model TireOwnership {
+  id                      String    @id @default(cuid())
+  tireId                  String
+  tire                    Tire      @relation(fields: [tireId], references: [id], onDelete: Cascade)
+  ownerId                 String
+  owner                   User      @relation("TireOwnerHistory", fields: [ownerId], references: [id])
+  acquiredAt              DateTime  @default(now())
+  transferredAt           DateTime?
+  isNewAtAcquisition      Boolean   @default(true)
+  notes                   String?   @db.Text
+  season                  Int?
+  // Official transfer documentation
+  transferReason          String?   // SUPPLIER_DELIVERY | INSPECTION_REPLACEMENT | SEASON_REGISTRATION | CONFISCATION | OTHER
+  transferDocumentUrl     String?
+  transferDocumentType    String?   // image/jpeg | image/png | application/pdf etc.
+  transferInitiatedByRole String?   // Role of user who initiated the transfer
+  officialTransferById    String?
+  officialTransferBy      User?     @relation("OfficialTransferBy", fields: [officialTransferById], references: [id])
+
+  @@index([tireId])
+  @@index([ownerId])
+  @@index([season])
+  @@index([officialTransferById])
+}
+
+// Federation-set maximum tire count per discipline / sub-discipline
+model DisciplineTireLimit {
+  id              String          @id @default(cuid())
+  discipline      VehicleCategory
+  subDisciplineId String?
+  subDiscipline   SubDiscipline?  @relation(fields: [subDisciplineId], references: [id])
+  maxTires        Int
+  maxNewTires     Int?
+  setById         String
+  setBy           User            @relation("TireLimitAdmin", fields: [setById], references: [id])
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  @@unique([discipline, subDisciplineId])
+  @@index([setById])
+  @@index([subDisciplineId])
+}
+
+// Scan log — stores every RFID/barcode scan (online and synced offline)
+model ScanLog {
+  id             String    @id @default(cuid())
+  // localId is set by scanner node for idempotent offline sync
+  localId        String    @unique @default(cuid())
+  eventId        String
+  event          Event     @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  scanMode       String    @default("RFID")  // "RFID" | "BARCODE"
+  identifier     String                       // rfidEpc or barcodeNumber
+  outcome        String                       // "GREEN" | "RED" | "YELLOW"
+  reason         String    @db.Text
+  tireId         String?
+  tire           Tire?     @relation(fields: [tireId], references: [id])
+  registrationId String?
+  scannedAt      DateTime
+  nodeId         String?   // Physical scanner node identifier
+  nodeName       String?
+  createdAt      DateTime  @default(now())
+
+  @@index([eventId])
+  @@index([tireId])
+  @@index([outcome])
+  @@index([scannedAt])
+  @@index([nodeId])
+}
+
+// Groups a full 4-wheel tyre scan session for one vehicle at an event
+model TyreScanSession {
+  id              String    @id @default(cuid())
+  eventId         String
+  event           Event     @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  registrationId  String?
+  registration    Registration? @relation(fields: [registrationId], references: [id])
+  startNumber     String
+  driverName      String
+  vehicleName     String?
+  subDiscipline   String?
+  overallResult   String    // "PASS" | "FAIL"
+  // JSON array: [{pos,outcome,label,detail,rfidEpc,barcodeNumber,tireId}]
+  wheelResults    String    @db.Text
+  notes           String?   @db.Text
+  scannedById     String
+  scannedBy       User      @relation("ScanSessionBy", fields: [scannedById], references: [id])
+  createdAt       DateTime  @default(now())
+
+  @@index([eventId])
+  @@index([registrationId])
+  @@index([scannedById])
+  @@index([overallResult])
+}
+
+// Tires registered by a driver for a specific event
+model EventTireRegistration {
+  id             String       @id @default(cuid())
+  eventId        String
+  event          Event        @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  registrationId String
+  registration   Registration @relation(fields: [registrationId], references: [id], onDelete: Cascade)
+  tireId         String
+  tire           Tire         @relation(fields: [tireId], references: [id])
+  registeredAt   DateTime     @default(now())
+
+  @@unique([eventId, tireId])
+  @@unique([registrationId, tireId])
+  @@index([eventId])
+  @@index([registrationId])
+  @@index([tireId])
 }

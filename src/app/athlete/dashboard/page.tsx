@@ -15,11 +15,13 @@ import {
   AlertCircle,
   User,
   Car,
-  FileText
+  FileText,
+  Package,
+  ArrowRight,
+  ShoppingCart
 } from "lucide-react";
 import Link from "next/link";
 import Cookies from "js-cookie";
-import AthleteNav from "@/components/AthleteNav";
 import { useTranslation } from "@/hooks/useTranslation";
 
 interface User {
@@ -156,9 +158,6 @@ export default function AthleteDashboard() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Navigation */}
-      <AthleteNav />
-      
       {/* Header */}
       <div className="border-b bg-white">
         <div className="container mx-auto px-4 py-4">
@@ -234,6 +233,54 @@ export default function AthleteDashboard() {
               <p className="text-xs text-muted-foreground">{t('athlete.awaitingConfirmation')}</p>
             </CardContent>
           </Card>
+        </div>
+
+        {/* Quick Actions */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+          <Link href="/athlete/dashboard/tires" className="group">
+            <Card className="h-full border-2 hover:border-primary transition-colors cursor-pointer">
+              <CardContent className="p-6 flex items-center gap-4">
+                <div className="p-3 rounded-xl bg-primary/10 group-hover:bg-primary/20 transition-colors">
+                  <Package className="h-6 w-6 text-primary" />
+                </div>
+                <div className="flex-1">
+                  <div className="font-semibold text-base">My Tyres</div>
+                  <div className="text-sm text-muted-foreground">Register, manage and transfer tyres</div>
+                </div>
+                <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
+              </CardContent>
+            </Card>
+          </Link>
+
+          <Link href="/profile/vehicles" className="group">
+            <Card className="h-full border-2 hover:border-primary transition-colors cursor-pointer">
+              <CardContent className="p-6 flex items-center gap-4">
+                <div className="p-3 rounded-xl bg-blue-500/10 group-hover:bg-blue-500/20 transition-colors">
+                  <Car className="h-6 w-6 text-blue-500" />
+                </div>
+                <div className="flex-1">
+                  <div className="font-semibold text-base">My Vehicles</div>
+                  <div className="text-sm text-muted-foreground">Manage your registered vehicles</div>
+                </div>
+                <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-blue-500 transition-colors" />
+              </CardContent>
+            </Card>
+          </Link>
+
+          <Link href="/" className="group">
+            <Card className="h-full border-2 hover:border-primary transition-colors cursor-pointer">
+              <CardContent className="p-6 flex items-center gap-4">
+                <div className="p-3 rounded-xl bg-green-500/10 group-hover:bg-green-500/20 transition-colors">
+                  <ShoppingCart className="h-6 w-6 text-green-500" />
+                </div>
+                <div className="flex-1">
+                  <div className="font-semibold text-base">Browse Events</div>
+                  <div className="text-sm text-muted-foreground">Find and register for upcoming events</div>
+                </div>
+                <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-green-500 transition-colors" />
+              </CardContent>
+            </Card>
+          </Link>
         </div>
 
         {/* Upcoming Events */}

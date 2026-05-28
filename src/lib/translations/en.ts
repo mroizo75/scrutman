@@ -37,7 +37,17 @@ export const en = {
     upload: "Upload",
     confirm: "Confirm",
     yes: "Yes",
-    no: "No"
+    no: "No",
+    profile: "Profile",
+    myVehicles: "My Vehicles",
+    myTyres: "My Tyres",
+    athlete: "Athlete",
+    administrator: "Administrator",
+    superAdmin: "Super Admin",
+    technicalInspector: "Technical Inspector",
+    weightController: "Weight Controller",
+    raceOfficial: "Race Official",
+    fiaDelegate: "FIA Delegate"
   },
   navigation: {
     home: "Home",
@@ -641,5 +651,92 @@ export const en = {
     submit: "Submit",
     alreadyHaveAccount: "Already have an account?",
     signIn: "Sign In"
+  },
+  tyres: {
+    title: "Tyres",
+    myTyres: "My Tyres",
+    addTyre: "Add Tyre",
+    registerTyre: "Register Tyre",
+    tyre: "Tyre",
+    rfidEpc: "RFID EPC",
+    barcodeNumber: "Barcode Number",
+    manufacturer: "Manufacturer",
+    model: "Model",
+    size: "Size",
+    compound: "Compound",
+    discipline: "Discipline",
+    subDiscipline: "Sub-discipline",
+    season: "Season",
+    status: "Status",
+    owner: "Owner",
+    isNew: "New for owner",
+    transferTyre: "Transfer Tyre",
+    transferTo: "Transfer to",
+    transferReason: "Transfer Reason",
+    document: "Document",
+    uploadDocument: "Upload Document",
+    history: "Ownership History",
+    noTyres: "No tyres registered yet",
+    scan: {
+      green: "Approved — FIA LT54 compliant",
+      red: "Rejected — tyre not registered or invalid",
+      yellow: "Warning — tyre not registered for this event",
+      rfidMode: "RFID Mode",
+      barcodeMode: "Barcode Mode"
+    },
+    reasons: {
+      SUPPLIER_DELIVERY: "Supplier Delivery",
+      INSPECTION_REPLACEMENT: "Inspection Replacement",
+      SEASON_REGISTRATION: "Season Registration",
+      CONFISCATION: "Confiscation",
+      OTHER: "Other"
+    }
+  },
+  disciplines: {
+    AUTOCROSS: "Autocross",
+    BILCROSS: "Bilcross",
+    RACING: "Racing",
+    RALLYCROSS: "Rallycross",
+    DRIFTING: "Drifting",
+    TIME_ATTACK: "Time Attack",
+    DRAG_RACING: "Drag Racing",
+    CIRCUIT: "Circuit",
+    HILLCLIMB: "Hillclimb",
+    OTHER: "Other"
+  },
+  roles: {
+    SUPERADMIN: "Super Admin",
+    CLUBADMIN: "Club Admin",
+    ATHLETE: "Athlete",
+    TECHNICAL_INSPECTOR: "Technical Inspector",
+    WEIGHT_CONTROLLER: "Weight Controller",
+    RACE_OFFICIAL: "Race Official",
+    FEDERATION_ADMIN: "Federation Admin",
+    FIA_DELEGATE: "FIA Delegate"
+  },
+  fiaAdmin: {
+    title: "FIA Delegate Portal",
+    overview: "Overview",
+    allClubs: "All Clubs",
+    allEvents: "All Events",
+    approvedTyres: "Approved Tyres",
+    subDisciplines: "Sub-disciplines",
+    tyreAssignments: "Tyre Assignments",
+    rfidScan: "RFID Scan",
+    importExcel: "Import Excel / CSV",
+    downloadTemplate: "Download Template",
+    crossClubAccess: "You have cross-club access to all events and clubs"
+  },
+  subdisciplines: {
+    title: "Sub-disciplines",
+    addSubDiscipline: "Add Sub-discipline",
+    name: "Name",
+    shortCode: "Short Code",
+    category: "Category",
+    maxTotal: "Max Total Tyres",
+    maxNew: "Max New Tyres",
+    season: "Season",
+    active: "Active",
+    inactive: "Inactive"
   }
 };

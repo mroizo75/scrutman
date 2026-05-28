@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Cookies from "js-cookie";
-import AdminNav from "@/components/AdminNav";
 import { use } from "react";
 
 interface User {
@@ -142,44 +141,36 @@ export default function ClubAdminsPage({ params }: { params: Promise<{ clubId: s
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-100">
-        <AdminNav />
-        <main className="p-6">
-          <div className="max-w-4xl mx-auto">
-            <div className="animate-pulse">
-              <div className="h-8 bg-gray-200 rounded w-1/4 mb-6"></div>
-              <div className="space-y-4">
-                <div className="h-10 bg-gray-200 rounded"></div>
-                <div className="h-10 bg-gray-200 rounded"></div>
-                <div className="h-10 bg-gray-200 rounded"></div>
-              </div>
+      <div className="p-6">
+        <div className="max-w-4xl mx-auto">
+          <div className="animate-pulse">
+            <div className="h-8 bg-gray-200 rounded w-1/4 mb-6"></div>
+            <div className="space-y-4">
+              <div className="h-10 bg-gray-200 rounded"></div>
+              <div className="h-10 bg-gray-200 rounded"></div>
+              <div className="h-10 bg-gray-200 rounded"></div>
             </div>
           </div>
-        </main>
+        </div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-100">
-        <AdminNav />
-        <main className="p-6">
-          <div className="max-w-4xl mx-auto">
-            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
-              {error}
-            </div>
+      <div className="p-6">
+        <div className="max-w-4xl mx-auto">
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+            {error}
           </div>
-        </main>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-100">
-      <AdminNav />
-      <main className="p-6">
-        <div className="max-w-4xl mx-auto">
+    <div className="p-6">
+      <div className="max-w-4xl mx-auto">
           <div className="flex justify-between items-center mb-6">
             <h1 className="text-2xl font-bold text-gray-900">
               Manage Admins - {club?.name}
@@ -293,7 +284,6 @@ export default function ClubAdminsPage({ params }: { params: Promise<{ clubId: s
             )}
           </div>
         </div>
-      </main>
     </div>
   );
 } 

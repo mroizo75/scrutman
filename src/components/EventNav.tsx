@@ -112,7 +112,7 @@ export default function EventNav() {
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
         <div className="flex items-center space-x-6">
           <Link href="/" className="text-2xl font-bold text-primary">
-            <Image src="/logo.png" alt="ScrutMan" width={200} height={200} />
+            <Image src="/logo.png" alt="ScrutMan" width={240} height={72} className="h-16 w-auto object-contain" />
           </Link>
           
           {/* Navigation Links for logged in users */}
@@ -126,12 +126,20 @@ export default function EventNav() {
               </Button>
               
               {user.role === "ATHLETE" && (
-                <Button asChild variant="ghost" size="sm">
-                  <Link href="/profile/vehicles">
-                    <Car className="h-4 w-4 mr-2" />
-                    My Vehicles
-                  </Link>
-                </Button>
+                <>
+                  <Button asChild variant="ghost" size="sm">
+                    <Link href="/profile/vehicles">
+                      <Car className="h-4 w-4 mr-2" />
+                      Mine kjøretøy
+                    </Link>
+                  </Button>
+                  <Button asChild variant="ghost" size="sm">
+                    <Link href="/athlete/dashboard/tires">
+                      <Car className="h-4 w-4 mr-2" />
+                      Mine dekk
+                    </Link>
+                  </Button>
+                </>
               )}
             </div>
           )}
@@ -168,12 +176,20 @@ export default function EventNav() {
                   </DropdownMenuItem>
                   
                   {user.role === "ATHLETE" && (
-                    <DropdownMenuItem asChild>
-                      <Link href="/profile/vehicles" className="flex items-center">
-                        <Car className="h-4 w-4 mr-2" />
-                        My Vehicles
-                      </Link>
-                    </DropdownMenuItem>
+                    <>
+                      <DropdownMenuItem asChild>
+                        <Link href="/profile/vehicles" className="flex items-center">
+                          <Car className="h-4 w-4 mr-2" />
+                          Mine kjøretøy
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem asChild>
+                        <Link href="/athlete/dashboard/tires" className="flex items-center">
+                          <Car className="h-4 w-4 mr-2" />
+                          Mine dekk
+                        </Link>
+                      </DropdownMenuItem>
+                    </>
                   )}
 
                   <DropdownMenuItem asChild>

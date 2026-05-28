@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { Calendar, Users, Home, Menu, X, LogOut, Wrench, Target, CheckCircle, ClipboardCheck, Scale } from "lucide-react";
+import { Calendar, Users, Home, Menu, X, LogOut, Wrench, Target, CheckCircle, ClipboardCheck, Scale, ScanLine } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import React, { useState } from "react";
 import Cookies from "js-cookie";
@@ -86,6 +86,12 @@ export default function AdminNav() {
       label: t('common.federation'),
       icon: CheckCircle,
       roles: ["FEDERATION_ADMIN"]
+    },
+    {
+      href: "/dashboard/tyre-scan-demo",
+      label: "Tyre Scan",
+      icon: ScanLine,
+      roles: ["CLUBADMIN", "TECHNICAL_INSPECTOR", "SUPERADMIN", "FEDERATION_ADMIN", "FIA_DELEGATE"]
     }
   ];
 
@@ -99,7 +105,7 @@ export default function AdminNav() {
       {/* Header */}
       <div className="p-4 border-b flex-shrink-0">
         <Link href="/dashboard" className="block">
-          <Image src="/logo.png" alt="ScrutMan" width={200} height={200} />
+          <Image src="/logo.png" alt="ScrutMan" width={300} height={90} className="w-full h-auto" style={{maxWidth:"200px"}} />
         </Link>
       </div>
 

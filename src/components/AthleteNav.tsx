@@ -12,7 +12,7 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
-import { User, Settings, LogOut, Home, UserCircle, Car } from "lucide-react";
+import { User, LogOut, Home, UserCircle, Car, Package, ArrowRightLeft } from "lucide-react";
 import { useTranslation } from "@/hooks/useTranslation";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
 import Image from "next/image";
@@ -58,14 +58,26 @@ export default function AthleteNav() {
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
         <div className="flex items-center space-x-6">
           <Link href="/" className="text-xl font-bold text-primary">
-            <Image src="/logo.png" alt="ScrutMan" width={200} height={200} />
+            <Image src="/logo.png" alt="ScrutMan" width={240} height={72} className="h-16 w-auto object-contain" />
           </Link>
           
-          <div className="hidden md:flex items-center space-x-4">
+          <div className="hidden md:flex items-center space-x-1">
             <Button asChild variant="ghost" size="sm">
               <Link href="/athlete/dashboard">
                 <Home className="h-4 w-4 mr-2" />
-                {t('common.dashboard')}
+                Dashboard
+              </Link>
+            </Button>
+            <Button asChild variant="ghost" size="sm">
+              <Link href="/athlete/dashboard/tires">
+                <Package className="h-4 w-4 mr-2" />
+                My Tyres
+              </Link>
+            </Button>
+            <Button asChild variant="ghost" size="sm">
+              <Link href="/profile/vehicles">
+                <Car className="h-4 w-4 mr-2" />
+                My Vehicles
               </Link>
             </Button>
           </div>
@@ -91,7 +103,12 @@ export default function AthleteNav() {
                   Profile
                 </Link>
               </DropdownMenuItem>
-              
+              <DropdownMenuItem asChild>
+                <Link href="/athlete/dashboard/tires" className="flex items-center">
+                  <Package className="h-4 w-4 mr-2" />
+                  My Tyres
+                </Link>
+              </DropdownMenuItem>
               <DropdownMenuItem asChild>
                 <Link href="/profile/vehicles" className="flex items-center">
                   <Car className="h-4 w-4 mr-2" />

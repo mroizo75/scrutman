@@ -793,9 +793,28 @@ export default function EventsPage() {
 
                     {event.registrations.length > 0 && (
                       <div className="space-y-2">
-                        <p className="text-sm font-medium">{t('events.registeredUsers')}:</p>
+                        <div className="flex items-center justify-between">
+                          <p className="text-sm font-medium">{t('events.registeredUsers')}:</p>
+                          <Link
+                            href={`/dashboard/events/${event.id}/registrations`}
+                            className="text-xs text-blue-600 hover:underline flex items-center gap-1"
+                          >
+                            {event.registrations.filter((r: any) => r.status === 'PENDING').length > 0 && (
+                              <span className="bg-yellow-500 text-white text-xs px-1.5 py-0.5 rounded-full font-medium">
+                                {event.registrations.filter((r: any) => r.status === 'PENDING').length} pending
+                              </span>
+                            )}
+                            Manage registrations →
+                          </Link>
+                          <Link
+                            href={`/dashboard/events/${event.id}/tyre-report`}
+                            className="text-xs text-blue-600 hover:underline flex items-center gap-1"
+                          >
+                            🔍 Tyre inspection report →
+                          </Link>
+                        </div>
                         <div className="max-h-40 overflow-y-auto space-y-1">
-                          {event.registrations.map((registration) => (
+                          {event.registrations.map((registration: any) => (
                             <div
                               key={registration.id}
                               className="flex items-center justify-between text-sm p-2 bg-muted rounded"
@@ -808,7 +827,8 @@ export default function EventsPage() {
                                 variant="outline"
                                 className={
                                   registration.status === 'CONFIRMED' ? 'text-green-600' :
-                                  registration.status === 'WAITLIST' ? 'text-yellow-600' :
+                                  registration.status === 'PENDING' ? 'text-yellow-600 border-yellow-400' :
+                                  registration.status === 'WAITLISTED' ? 'text-orange-600' :
                                   'text-red-600'
                                 }
                               >

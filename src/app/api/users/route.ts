@@ -57,9 +57,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    const { email, name, phone, role } = await request.json();
+    const { email, name, phone, role, licenseNumber, federationId } = await request.json();
 
-    // Generer et tilfeldig passord
     const tempPassword = Math.random().toString(36).slice(-8);
     const hashedPassword = await bcrypt.hash(tempPassword, 10);
 
@@ -67,19 +66,19 @@ export async function POST(request: Request) {
       data: {
         email,
         name,
-        phone,
+        phone: phone ?? null,
         role,
-        clubId: user.role === "SUPERADMIN" ? null : user.clubId, // SUPERADMIN kan opprette brukere uten clubId
+        licenseNumber: licenseNumber ?? null,
+        federationId: federationId ?? null,
+        clubId: user.role === "SUPERADMIN" ? null : user.clubId,
         password: hashedPassword
       }
     });
 
-    // TODO: Send e-post til brukeren med midlertidig passord
-    console.log('Temporary password for new user:', tempPassword);
-
     return NextResponse.json({
       ...newUser,
-      password: undefined // Fjern passordet fra responsen
+      password: undefined,
+      tempPassword,
     });
   } catch (error) {
     console.error('Error creating user:', error);
