@@ -6,7 +6,13 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start -p 3017",
-    "lint": "next lint"
+    "lint": "next lint",
+    "seed": "node scripts/seed.js",
+    "seed:global": "node scripts/seed-global-classes.js",
+    "seed:clubs": "node scripts/seed-default-club-classes.js",
+    "seed:all": "node scripts/seed.js && node scripts/seed-global-classes.js && node scripts/seed-default-club-classes.js",
+    "seed:clear": "node scripts/clear-demo.js",
+    "seed:reset": "node scripts/clear-demo.js && node scripts/seed.js"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.9.1",

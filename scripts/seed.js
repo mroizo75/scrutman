@@ -13,7 +13,7 @@ async function hash(pw) {
 }
 
 async function main() {
-  console.log("🌱 Seeder demo-data...\n");
+  console.log("🌱 Seeding demo data...\n");
 
   // ─── 1. Brukere ───────────────────────────────────────────────────────────
   const [superadmin, fedAdmin, clubAdmin, inspector, athlete1, athlete2, athlete3] =
@@ -108,7 +108,7 @@ async function main() {
         },
       }),
     ]);
-  console.log("✅ Brukere opprettet");
+  console.log("✅ Users created");
 
   // ─── 2. Klubb ─────────────────────────────────────────────────────────────
   const club = await p.club.upsert({
@@ -133,7 +133,7 @@ async function main() {
     where: { id: { in: [clubAdmin.id, inspector.id, athlete1.id, athlete2.id, athlete3.id] } },
     data: { clubId: club.id },
   });
-  console.log("✅ Klubb opprettet");
+  console.log("✅ Club created and users linked");
 
   // ─── 3. Sub-disciplines (Autocross — per INFO TYRES 2026/2025) ───────────
   //  Must be created before approved tires so we can link them
@@ -295,8 +295,10 @@ async function main() {
   // ─── 6. Vehicles ─────────────────────────────────────────────────────────
   //  Realistic buggy/crosscar vehicles matching the sub-disciplines
   const [car1, car2, car3] = await Promise.all([
-    p.userVehicle.create({
-      data: {
+    p.userVehicle.upsert({
+      where: { userId_startNumber: { userId: athlete1.id, startNumber: "11" } },
+      update: {},
+      create: {
         userId: athlete1.id,
         startNumber: "11",
         make: "Speedcar",
@@ -308,8 +310,10 @@ async function main() {
         transponderNumber: "TRX-001",
       },
     }),
-    p.userVehicle.create({
-      data: {
+    p.userVehicle.upsert({
+      where: { userId_startNumber: { userId: athlete2.id, startNumber: "22" } },
+      update: {},
+      create: {
         userId: athlete2.id,
         startNumber: "22",
         make: "PH Motorsport",
@@ -321,8 +325,10 @@ async function main() {
         transponderNumber: "TRX-002",
       },
     }),
-    p.userVehicle.create({
-      data: {
+    p.userVehicle.upsert({
+      where: { userId_startNumber: { userId: athlete3.id, startNumber: "33" } },
+      update: {},
+      create: {
         userId: athlete3.id,
         startNumber: "33",
         make: "Margard",
@@ -339,71 +345,45 @@ async function main() {
 
   // ─── 7. Event ─────────────────────────────────────────────────────────────
   const now = new Date();
-  const event = await p.event.create({
-    data: {
-      title: "Oslo Autocross Cup 2026 — Round 1",
-      description: "First round of the Oslo Autocross Cup 2026 season at Rudskogen. Classes: SuperBuggy, Buggy 1600, Junior Buggy, CrossCar and CrossCar Junior.",
-      startDate: new Date(now.getFullYear(), now.getMonth() + 1, 14, 9, 0),
-      endDate:   new Date(now.getFullYear(), now.getMonth() + 1, 14, 18, 0),
-      location: "Rudskogen Motorsenter, Øyern",
-      status: "PUBLISHED",
-      maxParticipants: 80,
-      registrationStartDate: new Date(),
-      registrationEndDate: new Date(now.getFullYear(), now.getMonth() + 1, 10),
-      requiresVehicle: true,
-      clubId: club.id,
-    },
-  });
+  let event = await p.event.findFirst({ where: { title: "Oslo Autocross Cup 2026 — Round 1", clubId: club.id } });
+  if (!event) {
+    event = await p.event.create({
+      data: {
+        title: "Oslo Autocross Cup 2026 — Round 1",
+        description: "First round of the Oslo Autocross Cup 2026 season at Rudskogen. Classes: SuperBuggy, Buggy 1600, Junior Buggy, CrossCar and CrossCar Junior.",
+        startDate: new Date(now.getFullYear(), now.getMonth() + 1, 14, 9, 0),
+        endDate:   new Date(now.getFullYear(), now.getMonth() + 1, 14, 18, 0),
+        location: "Rudskogen Motorsenter, Øyern",
+        status: "PUBLISHED",
+        maxParticipants: 80,
+        registrationStartDate: new Date(),
+        registrationEndDate: new Date(now.getFullYear(), now.getMonth() + 1, 10),
+        requiresVehicle: true,
+        clubId: club.id,
+      },
+    });
+  }
 
-  // Classes per sub-discipline
-  const [klasseSB, klasseB1600, klasseCC] = await Promise.all([
-    p.class.create({
-      data: { name: "SuperBuggy", eventId: event.id, minWeight: 390, maxWeight: 450 },
-    }),
-    p.class.create({
-      data: { name: "Buggy 1600 / Junior Buggy", eventId: event.id, minWeight: 330, maxWeight: 390 },
-    }),
-    p.class.create({
-      data: { name: "CrossCar / CrossCar Junior", eventId: event.id, minWeight: 260, maxWeight: 310 },
-    }),
-  ]);
+  // Classes per sub-discipline (skip if already exist for this event)
+  const existingClasses = await p.class.findMany({ where: { eventId: event.id } });
+  const klasseSB = existingClasses.find(c => c.name === "SuperBuggy")
+    ?? await p.class.create({ data: { name: "SuperBuggy", eventId: event.id, minWeight: 390, maxWeight: 450 } });
+  const klasseB1600 = existingClasses.find(c => c.name === "Buggy 1600 / Junior Buggy")
+    ?? await p.class.create({ data: { name: "Buggy 1600 / Junior Buggy", eventId: event.id, minWeight: 330, maxWeight: 390 } });
+  const klasseCC = existingClasses.find(c => c.name === "CrossCar / CrossCar Junior")
+    ?? await p.class.create({ data: { name: "CrossCar / CrossCar Junior", eventId: event.id, minWeight: 260, maxWeight: 310 } });
   console.log("✅ Event and classes created");
 
   // ─── 8. Registrations ────────────────────────────────────────────────────
+  const makeReg = async (startNumber, status, userId, classId, vehicleId, depot) => {
+    const existing = await p.registration.findFirst({ where: { eventId: event.id, startNumber } });
+    if (existing) return existing;
+    return p.registration.create({ data: { startNumber, status, userId, eventId: event.id, classId, userVehicleId: vehicleId, depotSize: depot } });
+  };
   const [reg1, reg2, reg3] = await Promise.all([
-    p.registration.create({
-      data: {
-        startNumber: 11,
-        status: "CONFIRMED",
-        userId: athlete1.id,
-        eventId: event.id,
-        classId: klasseSB.id,
-        userVehicleId: car1.id,
-        depotSize: "MEDIUM",
-      },
-    }),
-    p.registration.create({
-      data: {
-        startNumber: 22,
-        status: "CONFIRMED",
-        userId: athlete2.id,
-        eventId: event.id,
-        classId: klasseB1600.id,
-        userVehicleId: car2.id,
-        depotSize: "MEDIUM",
-      },
-    }),
-    p.registration.create({
-      data: {
-        startNumber: 33,
-        status: "WAITLISTED",
-        userId: athlete3.id,
-        eventId: event.id,
-        classId: klasseCC.id,
-        userVehicleId: car3.id,
-        depotSize: "SMALL",
-      },
-    }),
+    makeReg(11, "CONFIRMED",  athlete1.id, klasseSB.id,    car1.id, "MEDIUM"),
+    makeReg(22, "CONFIRMED",  athlete2.id, klasseB1600.id, car2.id, "MEDIUM"),
+    makeReg(33, "WAITLISTED", athlete3.id, klasseCC.id,    car3.id, "SMALL"),
   ]);
   console.log("✅ Registrations created");
 
@@ -445,26 +425,29 @@ async function main() {
 
   const tires = [];
   for (const t of tireData) {
-    const tire = await p.tire.create({
-      data: {
-        rfidEpc: t.rfidEpc,
-        barcodeNumber: t.barcodeNumber,
-        approvedTireId: t.approvedTireId,
-        currentOwnerId: t.ownerId,
-        serialNumber: t.serialNumber,
-        discipline: t.discipline,
-        subDisciplineId: t.subId,
-        isNewForOwner: t.isNew,
-        season: 2026,
-        status: "ACTIVE",
-      },
-    });
-    await p.tireOwnership.create({
-      data: { tireId: tire.id, ownerId: t.ownerId, isNewAtAcquisition: t.isNew },
-    });
+    let tire = await p.tire.findUnique({ where: { rfidEpc: t.rfidEpc } });
+    if (!tire) {
+      tire = await p.tire.create({
+        data: {
+          rfidEpc: t.rfidEpc,
+          barcodeNumber: t.barcodeNumber,
+          approvedTireId: t.approvedTireId,
+          currentOwnerId: t.ownerId,
+          serialNumber: t.serialNumber,
+          discipline: t.discipline,
+          subDisciplineId: t.subId,
+          isNewForOwner: t.isNew,
+          season: 2026,
+          status: "ACTIVE",
+        },
+      });
+      await p.tireOwnership.create({
+        data: { tireId: tire.id, ownerId: t.ownerId, isNewAtAcquisition: t.isNew },
+      });
+    }
     tires.push(tire);
   }
-  console.log(`✅ Tyres created (${tires.length} tyres with RFID + FIA barcode)`);
+  console.log(`✅ Tyres: ${tires.length} tyres with RFID + FIA barcode`);
 
   // ─── 10. Register tyres for event ────────────────────────────────────────
   //  James (SuperBuggy): 10 tyres on reg1 (indices 0-9)
@@ -476,20 +459,31 @@ async function main() {
   ];
   for (const { reg, tireIdx } of regTirePairs) {
     for (const idx of tireIdx) {
-      await p.eventTireRegistration.create({
-        data: { eventId: event.id, registrationId: reg.id, tireId: tires[idx].id },
+      const exists = await p.eventTireRegistration.findUnique({
+        where: { registrationId_tireId: { registrationId: reg.id, tireId: tires[idx].id } },
       });
+      if (!exists) {
+        await p.eventTireRegistration.create({
+          data: { eventId: event.id, registrationId: reg.id, tireId: tires[idx].id },
+        });
+      }
     }
   }
   console.log("✅ Tyres registered for event");
 
   // ─── 11. Technical check + weight check (James Wilson) ───────────────────
-  await p.technicalCheck.create({
-    data: { registrationId: reg1.id, status: true, notes: "All checks passed — SuperBuggy class" },
-  });
-  await p.weightCheck.create({
-    data: { registrationId: reg1.id, weight: 412.0, status: true, notes: "Within SuperBuggy weight limit (390–450 kg)" },
-  });
+  const existingTech = await p.technicalCheck.findUnique({ where: { registrationId: reg1.id } });
+  if (!existingTech) {
+    await p.technicalCheck.create({
+      data: { registrationId: reg1.id, status: true, notes: "All checks passed — SuperBuggy class" },
+    });
+  }
+  const existingWeight = await p.weightCheck.findUnique({ where: { registrationId: reg1.id } });
+  if (!existingWeight) {
+    await p.weightCheck.create({
+      data: { registrationId: reg1.id, weight: 412.0, status: true, notes: "Within SuperBuggy weight limit (390–450 kg)" },
+    });
+  }
   console.log("✅ Technical check and weight check created");
 
   // ─── 12. Federation + FIA delegate ───────────────────────────────────────
@@ -518,6 +512,7 @@ async function main() {
   console.log("✅ Federation and FIA delegate created");
 
   // ─── 13. Sample scan logs ─────────────────────────────────────────────────
+  await p.scanLog.deleteMany({ where: { localId: { in: ["demo-scan-1","demo-scan-2","demo-scan-3","demo-scan-4"] } } });
   await p.scanLog.createMany({
     data: [
       // Green: James Wilson SuperBuggy tyre scanned via portal
@@ -532,7 +527,7 @@ async function main() {
   });
   console.log("✅ Sample scan logs created");
 
-  // ─── Oppsummering ─────────────────────────────────────────────────────────
+  // ─── Summary ──────────────────────────────────────────────────────────────
   console.log(`
 ╔══════════════════════════════════════════════════════════════╗
 ║              ScrutMan — Demo seed complete!                  ║
@@ -563,5 +558,5 @@ async function main() {
 }
 
 main()
-  .catch((e) => { console.error("❌ Seed feilet:", e); process.exit(1); })
+  .catch((e) => { console.error("❌ Seed failed:", e); process.exit(1); })
   .finally(() => p.$disconnect());
