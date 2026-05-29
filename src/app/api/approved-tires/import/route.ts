@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { prisma } from "@/lib/prisma";
 import { FIA_ROLES } from "@/lib/auth";
-import * as XLSX from "xlsx";
+import ExcelJS from "exceljs";
 
 async function requireFiaOrFedAdmin() {
   const cookieStore = await cookies();
@@ -12,18 +12,18 @@ async function requireFiaOrFedAdmin() {
   return (FIA_ROLES as readonly string[]).includes(user.role) ? user : null;
 }
 
-interface ImportRow {
-  manufacturer?: string;
-  model?: string;
-  size?: string;
-  compound?: string;
-  discipline?: string;
-  subDiscipline?: string;
-  fiaCode?: string | number;
-  rfidChip?: string;
-  barcodeSupplier?: string;
-  maxNew?: string | number;
-  maxTotal?: string | number;
+function cellStr(cell: ExcelJS.Cell): string {
+  const v = cell.value;
+  if (v === null || v === undefined) return "";
+  if (typeof v === "object") {
+    // RichText: { richText: [...] }
+    if ("richText" in v) return (v as ExcelJS.CellRichTextValue).richText.map((r) => r.text).join("").trim();
+    // Hyperlink: { text, hyperlink }
+    if ("text" in v) return String((v as { text: unknown }).text ?? "").trim();
+    // Formula result: { formula, result }
+    if ("result" in v) return String((v as ExcelJS.CellFormulaValue).result ?? "").trim();
+  }
+  return String(v).trim();
 }
 
 export async function POST(req: NextRequest) {
@@ -42,28 +42,53 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Only .xlsx, .xls or .csv files are accepted" }, { status: 400 });
   }
 
-  const buffer = Buffer.from(await file.arrayBuffer());
-  const workbook = XLSX.read(buffer, { type: "buffer" });
-  const sheet = workbook.Sheets[workbook.SheetNames[0]];
-  const rows: ImportRow[] = XLSX.utils.sheet_to_json(sheet, { defval: "" });
+  const arrayBuffer = await file.arrayBuffer();
+  const wb = new ExcelJS.Workbook();
+  // ExcelJS type definitions don't reflect Node.js Buffer<ArrayBufferLike> correctly
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  await wb.xlsx.load(Buffer.from(arrayBuffer) as any);
+
+  const ws = wb.worksheets[0];
+  if (!ws) {
+    return NextResponse.json({ error: "No worksheet found in file" }, { status: 400 });
+  }
+
+  // Build column-index map from header row
+  const headerRow = ws.getRow(1);
+  const colMap: Record<string, number> = {};
+  headerRow.eachCell((cell, colNum) => {
+    const key = cellStr(cell).toLowerCase().trim();
+    if (key) colMap[key] = colNum;
+  });
+
+  const get = (row: ExcelJS.Row, name: string): string =>
+    colMap[name] ? cellStr(row.getCell(colMap[name])) : "";
 
   let imported = 0;
   let updated = 0;
   let skipped = 0;
   const errors: string[] = [];
 
-  for (const [idx, row] of rows.entries()) {
-    const rowNum = idx + 2;
-    const manufacturer = String(row.manufacturer ?? "").trim();
-    const model = String(row.model ?? "").trim();
-    const size = String(row.size ?? "").trim();
-    const compound = String(row.compound ?? "").trim() || null;
-    const disciplineRaw = String(row.discipline ?? "").trim().toUpperCase();
-    const subDisciplineCode = String(row.subDiscipline ?? "").trim().toUpperCase();
-    const euRegRef = String(row.fiaCode ?? "").trim() || null;
-    const rfidChipModel = String(row.rfidChip ?? "").trim() || null;
-    const barcodeSupplier = String(row.barcodeSupplier ?? "").trim() || null;
-    const fiaManufacturerCode = row.fiaCode ? Number(row.fiaCode) : null;
+  const validCategories = [
+    "AUTOCROSS", "BILCROSS", "RACING", "RALLYCROSS", "DRIFTING",
+    "TIME_ATTACK", "DRAG_RACING", "CIRCUIT", "HILLCLIMB", "OTHER",
+  ];
+
+  const rows: { row: ExcelJS.Row; rowNum: number }[] = [];
+  ws.eachRow((row, rowNum) => { if (rowNum > 1) rows.push({ row, rowNum }); });
+
+  for (const { row, rowNum } of rows) {
+    const manufacturer = get(row, "manufacturer");
+    const model        = get(row, "model");
+    const size         = get(row, "size");
+    const compound     = get(row, "compound") || null;
+    const disciplineRaw = get(row, "discipline").toUpperCase();
+    const subDisciplineCode = get(row, "subdiscipline").toUpperCase();
+    const fiaCodeRaw   = get(row, "fiacode");
+    const euRegRef     = fiaCodeRaw || null;
+    const rfidChipModel    = get(row, "rfidchip") || null;
+    const barcodeSupplier  = get(row, "barcodesupplier") || null;
+    const fiaManufacturerCode = fiaCodeRaw ? Number(fiaCodeRaw) : null;
 
     if (!manufacturer || !model || !size) {
       errors.push(`Row ${rowNum}: manufacturer, model and size are required`);
@@ -71,10 +96,6 @@ export async function POST(req: NextRequest) {
       continue;
     }
 
-    const validCategories = [
-      "AUTOCROSS", "BILCROSS", "RACING", "RALLYCROSS", "DRIFTING",
-      "TIME_ATTACK", "DRAG_RACING", "CIRCUIT", "HILLCLIMB", "OTHER",
-    ];
     if (disciplineRaw && !validCategories.includes(disciplineRaw)) {
       errors.push(`Row ${rowNum}: unknown discipline "${disciplineRaw}"`);
       skipped++;
