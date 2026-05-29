@@ -282,6 +282,7 @@ export function IncidentReportPdf({
               License: {licenseNum}
               {session.scannedBy.name ? `  ·  Inspector: ${session.scannedBy.name}` : ""}
               {event.club ? `  ·  Club: ${event.club.name}` : ""}
+              {"\n"}Scan registered: {fmtDateTime(session.createdAt)}
             </Text>
           </View>
           <View style={[s.resultBadge, s.resultFail]}>

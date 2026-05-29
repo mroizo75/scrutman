@@ -441,6 +441,9 @@ function SessionCard({
           <Badge variant="outline" className="text-xs border-border text-muted-foreground">
             Heat {session.heat}
           </Badge>
+          <span className="text-xs text-muted-foreground tabular-nums hidden sm:block">
+            {new Date(session.createdAt).toLocaleTimeString("en", { hour: "2-digit", minute: "2-digit" })}
+          </span>
           {!passed && onDownloadIncident && (
             <Button
               size="sm"
@@ -509,7 +512,7 @@ function SessionCard({
 
         <div className="mt-2 flex items-center justify-between text-xs text-muted-foreground">
           <span>Scanned by: {session.scannedBy.name ?? session.scannedBy.email}</span>
-          <span>{new Date(session.createdAt).toLocaleString("en")}</span>
+          <span>{new Date(session.createdAt).toLocaleString("en", { dateStyle: "medium", timeStyle: "short" })}</span>
         </div>
       </div>
     </div>
