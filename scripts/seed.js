@@ -16,7 +16,7 @@ async function main() {
   console.log("🌱 Seeding demo data...\n");
 
   // ─── 1. Brukere ───────────────────────────────────────────────────────────
-  const [superadmin, fedAdmin, clubAdmin, inspector, athlete1, athlete2, athlete3] =
+  const [superadmin, fedAdmin, clubAdmin, inspector, athlete1, athlete2, athlete3, athlete4] =
     await Promise.all([
       p.user.upsert({
         where: { email: "superadmin@scrutman.no" },
@@ -107,6 +107,21 @@ async function main() {
           country: "Norway",
         },
       }),
+      p.user.upsert({
+        where: { email: "forer4@scrutman.no" },
+        update: {},
+        create: {
+          email: "forer4@scrutman.no",
+          name: "Lucas Berger",
+          password: await hash("Forer123!"),
+          role: "ATHLETE",
+          phone: "+47 900 00 005",
+          licenseNumber: "NMF-2024-004",
+          dateOfBirth: new Date("1993-11-28"),
+          city: "Stavanger",
+          country: "Norway",
+        },
+      }),
     ]);
   console.log("✅ Users created");
 
@@ -130,7 +145,7 @@ async function main() {
 
   // Knytt brukere til klubb
   await p.user.updateMany({
-    where: { id: { in: [clubAdmin.id, inspector.id, athlete1.id, athlete2.id, athlete3.id] } },
+    where: { id: { in: [clubAdmin.id, inspector.id, athlete1.id, athlete2.id, athlete3.id, athlete4.id] } },
     data: { clubId: club.id },
   });
   console.log("✅ Club created and users linked");
@@ -294,7 +309,7 @@ async function main() {
 
   // ─── 6. Vehicles ─────────────────────────────────────────────────────────
   //  Realistic buggy/crosscar vehicles matching the sub-disciplines
-  const [car1, car2, car3] = await Promise.all([
+  const [car1, car2, car3, car4] = await Promise.all([
     p.userVehicle.upsert({
       where: { userId_startNumber: { userId: athlete1.id, startNumber: "11" } },
       update: {},
@@ -340,6 +355,21 @@ async function main() {
         transponderNumber: "TRX-003",
       },
     }),
+    p.userVehicle.upsert({
+      where: { userId_startNumber: { userId: athlete4.id, startNumber: "44" } },
+      update: {},
+      create: {
+        userId: athlete4.id,
+        startNumber: "44",
+        make: "Speedcar",
+        model: "SuperBuggy XTREM",
+        year: 2022,
+        color: "Green/Black",
+        licensePlate: "SB-044",
+        category: "AUTOCROSS",
+        transponderNumber: "TRX-004",
+      },
+    }),
   ]);
   console.log("✅ Vehicles created");
 
@@ -380,10 +410,11 @@ async function main() {
     if (existing) return existing;
     return p.registration.create({ data: { startNumber, status, userId, eventId: event.id, classId, userVehicleId: vehicleId, depotSize: depot } });
   };
-  const [reg1, reg2, reg3] = await Promise.all([
+  const [reg1, reg2, reg3, reg4] = await Promise.all([
     makeReg(11, "CONFIRMED",  athlete1.id, klasseSB.id,    car1.id, "MEDIUM"),
     makeReg(22, "CONFIRMED",  athlete2.id, klasseB1600.id, car2.id, "MEDIUM"),
     makeReg(33, "WAITLISTED", athlete3.id, klasseCC.id,    car3.id, "SMALL"),
+    makeReg(44, "CONFIRMED",  athlete4.id, klasseSB.id,    car4.id, "MEDIUM"),
   ]);
   console.log("✅ Registrations created");
 
@@ -421,6 +452,12 @@ async function main() {
     { rfidEpc: "E28011700000030000000004", barcodeNumber: "13000004", approvedTireId: tireC9203.id, ownerId: athlete3.id, serialNumber: "CC-R-26-004", discipline: "AUTOCROSS", subId: subCC.id, isNew: true },
     { rfidEpc: "E28011700000030000000005", barcodeNumber: "13000005", approvedTireId: tireC9203.id, ownerId: athlete3.id, serialNumber: "CC-R-26-005", discipline: "AUTOCROSS", subId: subCC.id, isNew: true },
     { rfidEpc: "E28011700000030000000006", barcodeNumber: "13000006", approvedTireId: tireC9203.id, ownerId: athlete3.id, serialNumber: "CC-R-25-006", discipline: "AUTOCROSS", subId: subCC.id, isNew: false },
+    // Lucas Berger — SuperBuggy — Michelin R800K71 — 4 registered tyres (2 new, 2 used)
+    // NOTE: tires[24..27] — front-left (idx 24) is the one swapped illegally before heat 1
+    { rfidEpc: "E28011700000040000000001", barcodeNumber: "14000001", approvedTireId: tireR800K71.id, ownerId: athlete4.id, serialNumber: "SB-26-041", discipline: "AUTOCROSS", subId: subSB.id, isNew: true },
+    { rfidEpc: "E28011700000040000000002", barcodeNumber: "14000002", approvedTireId: tireR800K71.id, ownerId: athlete4.id, serialNumber: "SB-26-042", discipline: "AUTOCROSS", subId: subSB.id, isNew: true },
+    { rfidEpc: "E28011700000040000000003", barcodeNumber: "14000003", approvedTireId: tireR800K71.id, ownerId: athlete4.id, serialNumber: "SB-25-043", discipline: "AUTOCROSS", subId: subSB.id, isNew: false },
+    { rfidEpc: "E28011700000040000000004", barcodeNumber: "14000004", approvedTireId: tireR800K71.id, ownerId: athlete4.id, serialNumber: "SB-25-044", discipline: "AUTOCROSS", subId: subSB.id, isNew: false },
   ];
 
   const tires = [];
@@ -456,6 +493,7 @@ async function main() {
   const regTirePairs = [
     { reg: reg1, tireIdx: [0,1,2,3,4,5,6,7,8,9] },
     { reg: reg2, tireIdx: [10,11,12,13,14,15,16,17] },
+    { reg: reg4, tireIdx: [24,25,26,27] },
   ];
   for (const { reg, tireIdx } of regTirePairs) {
     for (const idx of tireIdx) {
@@ -527,6 +565,148 @@ async function main() {
   });
   console.log("✅ Sample scan logs created");
 
+  // ─── 14. Tyre Scan Sessions (portal scan results per heat) ────────────────
+  // Clear existing demo sessions so re-seeding is idempotent
+  await p.tyreScanSession.deleteMany({ where: { eventId: event.id } });
+
+  const wheel = (pos, label, outcome, detail, epc, make, model, serial) => ({
+    pos, label, outcome,
+    resultLabel: outcome === "GREEN" ? "OK — Registered" : "FAIL",
+    detail: detail ?? "",
+    rfidEpc: epc ?? null,
+    manufacturer: make ?? null,
+    model: model ?? null,
+    serialNumber: serial ?? null,
+  });
+
+  // Convenience: all-green set for James (uses first 4 registered tires)
+  const jamesWheelsOK = JSON.stringify([
+    wheel("FL", "Front Left",  "GREEN", null, tires[0].rfidEpc, "Michelin", "R800K71", tires[0].serialNumber),
+    wheel("FR", "Front Right", "GREEN", null, tires[1].rfidEpc, "Michelin", "R800K71", tires[1].serialNumber),
+    wheel("RL", "Rear Left",   "GREEN", null, tires[2].rfidEpc, "Michelin", "R800K71", tires[2].serialNumber),
+    wheel("RR", "Rear Right",  "GREEN", null, tires[3].rfidEpc, "Michelin", "R800K71", tires[3].serialNumber),
+  ]);
+
+  // All-green set for Mark (uses first 4 of his tires)
+  const markWheelsOK = JSON.stringify([
+    wheel("FL", "Front Left",  "GREEN", null, tires[10].rfidEpc, "Michelin", "R800K33", tires[10].serialNumber),
+    wheel("FR", "Front Right", "GREEN", null, tires[11].rfidEpc, "Michelin", "R800K33", tires[11].serialNumber),
+    wheel("RL", "Rear Left",   "GREEN", null, tires[12].rfidEpc, "Michelin", "R800K33", tires[12].serialNumber),
+    wheel("RR", "Rear Right",  "GREEN", null, tires[13].rfidEpc, "Michelin", "R800K33", tires[13].serialNumber),
+  ]);
+
+  // Lucas — Heat 1: FRONT-LEFT fails (illegal RFID, not registered to this driver)
+  const lucasWheelsFail = JSON.stringify([
+    wheel("FL", "Front Left",  "RED",   "RFID tag not registered to this driver — tyre not in event registration", "E2801170DEADBEEF00000001", null, null, null),
+    wheel("FR", "Front Right", "GREEN", null, tires[25].rfidEpc, "Michelin", "R800K71", tires[25].serialNumber),
+    wheel("RL", "Rear Left",   "GREEN", null, tires[26].rfidEpc, "Michelin", "R800K71", tires[26].serialNumber),
+    wheel("RR", "Rear Right",  "GREEN", null, tires[27].rfidEpc, "Michelin", "R800K71", tires[27].serialNumber),
+  ]);
+
+  // Lucas — Heat 2: driver replaced front-left with his registered tyre — all PASS
+  const lucasWheelsOK = JSON.stringify([
+    wheel("FL", "Front Left",  "GREEN", null, tires[24].rfidEpc, "Michelin", "R800K71", tires[24].serialNumber),
+    wheel("FR", "Front Right", "GREEN", null, tires[25].rfidEpc, "Michelin", "R800K71", tires[25].serialNumber),
+    wheel("RL", "Rear Left",   "GREEN", null, tires[26].rfidEpc, "Michelin", "R800K71", tires[26].serialNumber),
+    wheel("RR", "Rear Right",  "GREEN", null, tires[27].rfidEpc, "Michelin", "R800K71", tires[27].serialNumber),
+  ]);
+
+  const baseTime = new Date(event.startDate);
+  baseTime.setHours(9, 0, 0, 0);
+  const t = (offsetMin) => new Date(baseTime.getTime() + offsetMin * 60 * 1000);
+
+  await p.tyreScanSession.createMany({
+    data: [
+      // ── Heat 1 ──
+      {
+        eventId: event.id,
+        registrationId: reg1.id,
+        startNumber: "11",
+        driverName: "James Wilson",
+        vehicleName: "Speedcar SuperBuggy XTREM",
+        subDiscipline: "SuperBuggy",
+        heat: "1",
+        overallResult: "PASS",
+        wheelResults: jamesWheelsOK,
+        notes: null,
+        scannedById: inspector.id,
+        createdAt: t(10),
+      },
+      {
+        eventId: event.id,
+        registrationId: reg2.id,
+        startNumber: "22",
+        driverName: "Mark Thompson",
+        vehicleName: "PH Motorsport Buggy 1600 RS",
+        subDiscipline: "Buggy 1600",
+        heat: "1",
+        overallResult: "PASS",
+        wheelResults: markWheelsOK,
+        notes: null,
+        scannedById: inspector.id,
+        createdAt: t(15),
+      },
+      {
+        eventId: event.id,
+        registrationId: reg4.id,
+        startNumber: "44",
+        driverName: "Lucas Berger",
+        vehicleName: "Speedcar SuperBuggy XTREM",
+        subDiscipline: "SuperBuggy",
+        heat: "1",
+        overallResult: "FAIL",
+        wheelResults: lucasWheelsFail,
+        notes: "Front-left tyre RFID (E2801170DEADBEEF00000001) is not registered to this driver. Tyre withheld by technical inspector pending FIA review. Driver notified and given 30 minutes to remedy.",
+        scannedById: inspector.id,
+        createdAt: t(20),
+      },
+      // ── Heat 2 — James and Mark pass again, Lucas now corrected ──
+      {
+        eventId: event.id,
+        registrationId: reg1.id,
+        startNumber: "11",
+        driverName: "James Wilson",
+        vehicleName: "Speedcar SuperBuggy XTREM",
+        subDiscipline: "SuperBuggy",
+        heat: "2",
+        overallResult: "PASS",
+        wheelResults: jamesWheelsOK,
+        notes: null,
+        scannedById: inspector.id,
+        createdAt: t(95),
+      },
+      {
+        eventId: event.id,
+        registrationId: reg2.id,
+        startNumber: "22",
+        driverName: "Mark Thompson",
+        vehicleName: "PH Motorsport Buggy 1600 RS",
+        subDiscipline: "Buggy 1600",
+        heat: "2",
+        overallResult: "PASS",
+        wheelResults: markWheelsOK,
+        notes: null,
+        scannedById: inspector.id,
+        createdAt: t(100),
+      },
+      {
+        eventId: event.id,
+        registrationId: reg4.id,
+        startNumber: "44",
+        driverName: "Lucas Berger",
+        vehicleName: "Speedcar SuperBuggy XTREM",
+        subDiscipline: "SuperBuggy",
+        heat: "2",
+        overallResult: "PASS",
+        wheelResults: lucasWheelsOK,
+        notes: "Front-left tyre replaced with registered tyre SB-26-041 (E28011700000040000000001). Cleared for Heat 2.",
+        scannedById: inspector.id,
+        createdAt: t(105),
+      },
+    ],
+  });
+  console.log("✅ Tyre scan sessions created (Heat 1 + Heat 2, Lucas FAIL → PASS)");
+
   // ─── Summary ──────────────────────────────────────────────────────────────
   console.log(`
 ╔══════════════════════════════════════════════════════════════╗
@@ -541,6 +721,7 @@ async function main() {
 ║  forer1@scrutman.no       Forer123!    James Wilson (SB #11) ║
 ║  forer2@scrutman.no       Forer123!    Mark Thompson (B1600) ║
 ║  forer3@scrutman.no       Forer123!    Emma Larsen (CC #33)  ║
+║  forer4@scrutman.no       Forer123!    Lucas Berger (SB #44) ║
 ╠══════════════════════════════════════════════════════════════╣
 ║  Autocross sub-disciplines (INFO TYRES 2026):                ║
 ║  SuperBuggy      — Michelin R800K71 — max 10 (6 new)        ║
@@ -553,6 +734,12 @@ async function main() {
 ║  BC   GREEN:  12000001                 (Mark  — B1600)       ║
 ║  RFID YELLOW: E28011700000030000000001 (Emma  — waitlisted)  ║
 ║  RFID RED:    AABBCCDD00000000FFFFFFFF (unknown)             ║
+╠══════════════════════════════════════════════════════════════╣
+║  Scan sessions:                                              ║
+║  Heat 1: James #11 PASS, Mark #22 PASS, Lucas #44 FAIL      ║
+║    └─ Lucas FL: unregistered RFID (illegal tyre swap)        ║
+║  Heat 2: James #11 PASS, Mark #22 PASS, Lucas #44 PASS      ║
+║    └─ Lucas corrected front-left before heat 2               ║
 ╚══════════════════════════════════════════════════════════════╝
 `);
 }

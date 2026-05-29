@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
-  CheckCircle2, XCircle, Printer, Download,
+  CheckCircle2, XCircle, Download,
   ScanLine, AlertTriangle, Calendar, MapPin, Building2,
+  FileText, Loader2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -76,7 +77,7 @@ export default function TyreReportPage() {
   const [heats, setHeats] = useState<string[]>([]);
   const [activeHeat, setActiveHeat] = useState<string>("all");
   const [loading, setLoading] = useState(true);
-  const printRef = useRef<HTMLDivElement>(null);
+  const [pdfLoading, setPdfLoading] = useState(false);
 
   useEffect(() => {
     fetch(`/api/events/${eventId}/scan-sessions`)
@@ -89,7 +90,26 @@ export default function TyreReportPage() {
       .finally(() => setLoading(false));
   }, [eventId]);
 
-  const handlePrint = () => window.print();
+  const downloadPdf = async (heat?: string) => {
+    setPdfLoading(true);
+    try {
+      const heatParam = heat && heat !== "all" ? `?heat=${encodeURIComponent(heat)}` : "";
+      const res = await fetch(`/api/events/${eventId}/tyre-report${heatParam}`);
+      if (!res.ok) throw new Error("PDF generation failed");
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = res.headers.get("content-disposition")?.match(/filename="(.+)"/)?.[1]
+        ?? `tyre-report${heatParam ? `-heat-${heat}` : ""}.pdf`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      alert("Could not generate PDF. Please try again.");
+    } finally {
+      setPdfLoading(false);
+    }
+  };
 
   const parsedSessions = sessions.map((s) => ({
     ...s,
@@ -125,19 +145,34 @@ export default function TyreReportPage() {
             {event && <p className="text-xs text-muted-foreground">{event.title}</p>}
           </div>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline" size="sm" className="gap-2" onClick={handlePrint}>
-            <Printer className="w-4 h-4" /> Print / PDF
+        <div className="flex gap-2 flex-wrap">
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-2"
+            onClick={() => downloadPdf(activeHeat)}
+            disabled={pdfLoading || sessions.length === 0}
+          >
+            {pdfLoading
+              ? <><Loader2 className="w-4 h-4 animate-spin" /> Generating…</>
+              : <><FileText className="w-4 h-4" /> Download PDF{activeHeat !== "all" ? ` — Heat ${activeHeat}` : ""}</>
+            }
           </Button>
-          <a href={`/dashboard/events/${eventId}/tyre-report/export`}>
-            <Button variant="outline" size="sm" className="gap-2">
-              <Download className="w-4 h-4" /> Export CSV
+          {activeHeat !== "all" && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="gap-2 text-muted-foreground"
+              onClick={() => downloadPdf("all")}
+              disabled={pdfLoading}
+            >
+              <Download className="w-4 h-4" /> Full event PDF
             </Button>
-          </a>
+          )}
         </div>
       </div>
 
-      <div ref={printRef} className="max-w-5xl mx-auto p-8 space-y-8 print:p-4 print:space-y-4">
+      <div className="max-w-5xl mx-auto p-8 space-y-8">
 
         {/* Report header */}
         <div className="text-center border-b pb-6">
