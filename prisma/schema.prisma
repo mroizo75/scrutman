@@ -628,6 +628,7 @@ model ScanLog {
   localId        String    @unique @default(cuid())
   eventId        String
   event          Event     @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  heat           String    @default("1")  // "1" | "2" | "3" | "Final" etc.
   scanMode       String    @default("RFID")  // "RFID" | "BARCODE"
   identifier     String                       // rfidEpc or barcodeNumber
   outcome        String                       // "GREEN" | "RED" | "YELLOW"
@@ -641,6 +642,7 @@ model ScanLog {
   createdAt      DateTime  @default(now())
 
   @@index([eventId])
+  @@index([heat])
   @@index([tireId])
   @@index([outcome])
   @@index([scannedAt])
@@ -658,6 +660,7 @@ model TyreScanSession {
   driverName      String
   vehicleName     String?
   subDiscipline   String?
+  heat            String    @default("1")  // "1" | "2" | "3" | "Final" etc.
   overallResult   String    // "PASS" | "FAIL"
   // JSON array: [{pos,outcome,label,detail,rfidEpc,barcodeNumber,tireId}]
   wheelResults    String    @db.Text
@@ -670,6 +673,7 @@ model TyreScanSession {
   @@index([registrationId])
   @@index([scannedById])
   @@index([overallResult])
+  @@index([heat])
 }
 
 // Tires registered by a driver for a specific event

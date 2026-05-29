@@ -151,9 +151,12 @@ function WheelLamp({ pos, label, scannerLabel, result }: {
 
 type Phase = "idle" | "armed" | "scanning" | "done";
 
+const HEAT_OPTIONS = ["1", "2", "3", "4", "5", "Semi-final", "Final"];
+
 export default function TyreScanPage() {
   const [events, setEvents] = useState<EventOption[]>([]);
   const [selectedEventId, setSelectedEventId] = useState("");
+  const [selectedHeat, setSelectedHeat] = useState("1");
   const [startInput, setStartInput] = useState("");
 
   const [loading, setLoading] = useState(false);
@@ -258,6 +261,7 @@ export default function TyreScanPage() {
           driverName: driver.driver.name,
           vehicleName: driver.vehicle ?? "",
           subDiscipline: driver.class ?? "",
+          heat: selectedHeat,
           overallResult: allGreen ? "PASS" : "FAIL",
           wheelResults: POSITIONS.map((p) => ({
             pos: p.pos, label: p.label,
@@ -324,22 +328,38 @@ export default function TyreScanPage() {
         </CardHeader>
         <CardContent className="space-y-4">
 
-          {/* Event selector */}
-          <div className="space-y-1.5">
-            <label className="text-sm font-medium">Event</label>
-            <select
-              className="w-full border border-input rounded-lg px-3 py-2.5 text-sm bg-background disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-ring"
-              value={selectedEventId}
-              onChange={(e) => { setSelectedEventId(e.target.value); reset(); }}
-              disabled={phase !== "idle"}
-            >
-              <option value="">— Select event —</option>
-              {events.map((ev) => (
-                <option key={ev.id} value={ev.id}>
-                  {ev.title} · {new Date(ev.startDate).toLocaleDateString("en")}
-                </option>
-              ))}
-            </select>
+          {/* Event + Heat row */}
+          <div className="grid grid-cols-1 sm:grid-cols-[1fr_160px] gap-3">
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium">Event</label>
+              <select
+                className="w-full border border-input rounded-lg px-3 py-2.5 text-sm bg-background disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-ring"
+                value={selectedEventId}
+                onChange={(e) => { setSelectedEventId(e.target.value); reset(); }}
+                disabled={phase !== "idle"}
+              >
+                <option value="">— Select event —</option>
+                {events.map((ev) => (
+                  <option key={ev.id} value={ev.id}>
+                    {ev.title} · {new Date(ev.startDate).toLocaleDateString("en")}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium">Heat</label>
+              <select
+                className="w-full border border-input rounded-lg px-3 py-2.5 text-sm bg-background disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-ring"
+                value={selectedHeat}
+                onChange={(e) => setSelectedHeat(e.target.value)}
+                disabled={phase !== "idle"}
+              >
+                {HEAT_OPTIONS.map((h) => (
+                  <option key={h} value={h}>Heat {h}</option>
+                ))}
+              </select>
+            </div>
           </div>
 
           {/* Start number */}
@@ -384,7 +404,7 @@ export default function TyreScanPage() {
                   System armed · Start #{driver.startNumber} — {driver.driver.name}
                 </p>
                 <p className="text-green-700 text-xs mt-0.5">
-                  {driver.vehicle ?? "—"}{driver.class ? ` · ${driver.class}` : ""}
+                  {driver.vehicle ?? "—"}{driver.class ? ` · ${driver.class}` : ""} · <span className="font-semibold">Heat {selectedHeat}</span>
                 </p>
                 <p className="text-green-600 text-xs mt-1">
                   {driver.tyres.length} tyre{driver.tyres.length !== 1 ? "s" : ""} registered ·{" "}
@@ -539,8 +559,8 @@ export default function TyreScanPage() {
                 </p>
                 <p className={cn("text-sm", allGreen ? "text-green-600" : "text-red-600")}>
                   {allGreen
-                    ? `4/4 wheels verified for start #${driver.startNumber} ${driver.driver.name}`
-                    : `${failedPositions.map((p) => p.label).join(", ")} failed.`}
+                    ? `4/4 wheels verified for start #${driver.startNumber} ${driver.driver.name} · Heat ${selectedHeat}`
+                    : `Heat ${selectedHeat} · ${failedPositions.map((p) => p.label).join(", ")} failed.`}
                 </p>
 
                 {failedPositions.length > 0 && (
@@ -581,9 +601,9 @@ export default function TyreScanPage() {
                 {saved && (
                   <div className="pt-3 flex items-center gap-3 flex-wrap border-t border-black/10 mt-3">
                     <CheckCircle2 className="w-5 h-5 text-green-600 flex-shrink-0" />
-                    <span className="text-green-700 text-sm font-medium">
-                      Saved · Result: <strong>{allGreen ? "PASS" : "FAIL"}</strong>
-                    </span>
+                  <span className="text-green-700 text-sm font-medium">
+                    Saved · Heat {selectedHeat} · Result: <strong>{allGreen ? "PASS" : "FAIL"}</strong>
+                  </span>
                     <a
                       href={`/dashboard/events/${selectedEventId}/tyre-report`}
                       className="ml-auto flex items-center gap-1 text-primary hover:underline text-xs underline-offset-2"

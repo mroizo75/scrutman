@@ -31,6 +31,7 @@ interface ScanSession {
   driverName: string;
   vehicleName: string | null;
   subDiscipline: string | null;
+  heat: string;
   overallResult: "PASS" | "FAIL";
   wheelResults: string; // JSON
   notes: string | null;
@@ -72,6 +73,8 @@ export default function TyreReportPage() {
   const { eventId } = useParams<{ eventId: string }>();
   const [event, setEvent] = useState<EventInfo | null>(null);
   const [sessions, setSessions] = useState<ScanSession[]>([]);
+  const [heats, setHeats] = useState<string[]>([]);
+  const [activeHeat, setActiveHeat] = useState<string>("all");
   const [loading, setLoading] = useState(true);
   const printRef = useRef<HTMLDivElement>(null);
 
@@ -81,13 +84,10 @@ export default function TyreReportPage() {
       .then((d) => {
         setEvent(d.event ?? null);
         setSessions(Array.isArray(d.sessions) ? d.sessions : []);
+        setHeats(Array.isArray(d.heats) ? d.heats : []);
       })
       .finally(() => setLoading(false));
   }, [eventId]);
-
-  const passCount = sessions.filter((s) => s.overallResult === "PASS").length;
-  const failCount = sessions.filter((s) => s.overallResult === "FAIL").length;
-  const total = sessions.length;
 
   const handlePrint = () => window.print();
 
@@ -96,8 +96,22 @@ export default function TyreReportPage() {
     wheels: JSON.parse(s.wheelResults) as WheelResult[],
   }));
 
-  const failedSessions = parsedSessions.filter((s) => s.overallResult === "FAIL");
-  const passedSessions = parsedSessions.filter((s) => s.overallResult === "PASS");
+  const visibleSessions = activeHeat === "all"
+    ? parsedSessions
+    : parsedSessions.filter((s) => s.heat === activeHeat);
+
+  const passCount = visibleSessions.filter((s) => s.overallResult === "PASS").length;
+  const failCount = visibleSessions.filter((s) => s.overallResult === "FAIL").length;
+  const total = visibleSessions.length;
+
+  const failedSessions = visibleSessions.filter((s) => s.overallResult === "FAIL");
+  const passedSessions = visibleSessions.filter((s) => s.overallResult === "PASS");
+
+  // Group all parsed sessions by heat for the full summary view
+  const sessionsByHeat = heats.reduce<Record<string, typeof parsedSessions>>((acc, h) => {
+    acc[h] = parsedSessions.filter((s) => s.heat === h);
+    return acc;
+  }, {});
 
   return (
     <div className="min-h-screen bg-gray-50 print:bg-white">
@@ -155,6 +169,37 @@ export default function TyreReportPage() {
 
         {!loading && (
           <>
+            {/* Heat tabs */}
+            {heats.length > 0 && (
+              <div className="flex items-center gap-2 flex-wrap print:hidden">
+                <button
+                  onClick={() => setActiveHeat("all")}
+                  className={cn(
+                    "px-4 py-1.5 rounded-full text-sm font-medium border transition-colors",
+                    activeHeat === "all"
+                      ? "bg-primary text-primary-foreground border-primary"
+                      : "bg-background border-border text-muted-foreground hover:border-foreground/40"
+                  )}
+                >
+                  All heats
+                </button>
+                {heats.map((h) => (
+                  <button
+                    key={h}
+                    onClick={() => setActiveHeat(h)}
+                    className={cn(
+                      "px-4 py-1.5 rounded-full text-sm font-medium border transition-colors",
+                      activeHeat === h
+                        ? "bg-primary text-primary-foreground border-primary"
+                        : "bg-background border-border text-muted-foreground hover:border-foreground/40"
+                    )}
+                  >
+                    Heat {h}
+                  </button>
+                ))}
+              </div>
+            )}
+
             {/* Summary stats */}
             <div className="grid grid-cols-3 gap-4">
               <div className="bg-white border rounded-xl p-5 text-center">
@@ -180,7 +225,7 @@ export default function TyreReportPage() {
             {total === 0 && (
               <div className="bg-white border rounded-xl py-16 text-center text-muted-foreground">
                 <ScanLine className="w-12 h-12 mx-auto mb-3 opacity-20" />
-                <p>No scan sessions recorded for this event yet.</p>
+                <p>No scan sessions recorded{activeHeat !== "all" ? ` for Heat ${activeHeat}` : " for this event"} yet.</p>
                 <p className="text-xs mt-1">Use the Tyre Scan page to scan and save sessions.</p>
               </div>
             )}
@@ -215,44 +260,23 @@ export default function TyreReportPage() {
               </section>
             )}
 
-            {/* Final event summary */}
-            {total > 0 && (
-              <section className="border-t pt-6 space-y-3 print:break-inside-avoid">
-                <h2 className="text-lg font-bold">Event Summary</h2>
-                <table className="w-full text-sm border rounded-xl overflow-hidden">
-                  <thead className="bg-muted/40 text-muted-foreground border-b">
-                    <tr>
-                      <th className="px-4 py-2 text-left">#</th>
-                      <th className="px-4 py-2 text-left">Driver</th>
-                      <th className="px-4 py-2 text-left">Class</th>
-                      <th className="px-4 py-2 text-left">Vehicle</th>
-                      <th className="px-4 py-2 text-left">Scanned by</th>
-                      <th className="px-4 py-2 text-left">Time</th>
-                      <th className="px-4 py-2 text-left">Result</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y bg-white">
-                    {parsedSessions.map((s) => (
-                      <tr key={s.id} className={s.overallResult === "FAIL" ? "bg-red-50" : ""}>
-                        <td className="px-4 py-2 font-bold">{s.startNumber}</td>
-                        <td className="px-4 py-2">{s.driverName}</td>
-                        <td className="px-4 py-2 text-muted-foreground text-xs">{s.subDiscipline ?? s.registration?.class?.name ?? "—"}</td>
-                        <td className="px-4 py-2 text-muted-foreground text-xs">{s.vehicleName ?? "—"}</td>
-                        <td className="px-4 py-2 text-muted-foreground text-xs">{s.scannedBy.name ?? s.scannedBy.email}</td>
-                        <td className="px-4 py-2 text-muted-foreground text-xs">{new Date(s.createdAt).toLocaleTimeString("en")}</td>
-                        <td className="px-4 py-2">
-                          <Badge variant="outline" className={cn("text-xs font-semibold",
-                            s.overallResult === "PASS"
-                              ? "border-green-300 text-green-700 bg-green-50"
-                              : "border-red-300 text-red-700 bg-red-50"
-                          )}>
-                            {s.overallResult}
-                          </Badge>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+            {/* Full event summary — all heats grouped */}
+            {parsedSessions.length > 0 && (
+              <section className="border-t pt-6 space-y-6 print:break-inside-avoid">
+                <h2 className="text-lg font-bold">
+                  {activeHeat === "all" ? "Full Event Summary" : `Heat ${activeHeat} Summary`}
+                </h2>
+
+                {/* Per-heat tables when viewing "all heats" */}
+                {activeHeat === "all" && heats.length > 1
+                  ? heats.map((h) => (
+                    <div key={h} className="space-y-2">
+                      <h3 className="font-semibold text-muted-foreground uppercase tracking-wide text-xs">Heat {h}</h3>
+                      <HeatSummaryTable sessions={sessionsByHeat[h] ?? []} />
+                    </div>
+                  ))
+                  : <HeatSummaryTable sessions={visibleSessions} />
+                }
 
                 {/* Signature blocks */}
                 <div className="grid grid-cols-3 gap-6 mt-8 print:mt-12">
@@ -276,9 +300,53 @@ export default function TyreReportPage() {
   );
 }
 
+// ── Heat summary table ──────────────────────────────────────────────────────────
+
+type ParsedSession = ScanSession & { wheels: WheelResult[] };
+
+function HeatSummaryTable({ sessions }: { sessions: ParsedSession[] }) {
+  if (sessions.length === 0) return <p className="text-sm text-muted-foreground py-2">No sessions.</p>;
+  return (
+    <table className="w-full text-sm border rounded-xl overflow-hidden">
+      <thead className="bg-muted/40 text-muted-foreground border-b">
+        <tr>
+          <th className="px-4 py-2 text-left">#</th>
+          <th className="px-4 py-2 text-left">Driver</th>
+          <th className="px-4 py-2 text-left">Class</th>
+          <th className="px-4 py-2 text-left">Vehicle</th>
+          <th className="px-4 py-2 text-left">Scanned by</th>
+          <th className="px-4 py-2 text-left">Time</th>
+          <th className="px-4 py-2 text-left">Result</th>
+        </tr>
+      </thead>
+      <tbody className="divide-y bg-white">
+        {sessions.map((s) => (
+          <tr key={s.id} className={s.overallResult === "FAIL" ? "bg-red-50" : ""}>
+            <td className="px-4 py-2 font-bold">{s.startNumber}</td>
+            <td className="px-4 py-2">{s.driverName}</td>
+            <td className="px-4 py-2 text-muted-foreground text-xs">{s.subDiscipline ?? s.registration?.class?.name ?? "—"}</td>
+            <td className="px-4 py-2 text-muted-foreground text-xs">{s.vehicleName ?? "—"}</td>
+            <td className="px-4 py-2 text-muted-foreground text-xs">{s.scannedBy.name ?? s.scannedBy.email}</td>
+            <td className="px-4 py-2 text-muted-foreground text-xs">{new Date(s.createdAt).toLocaleTimeString("en")}</td>
+            <td className="px-4 py-2">
+              <Badge variant="outline" className={cn("text-xs font-semibold",
+                s.overallResult === "PASS"
+                  ? "border-green-300 text-green-700 bg-green-50"
+                  : "border-red-300 text-red-700 bg-red-50"
+              )}>
+                {s.overallResult}
+              </Badge>
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  );
+}
+
 // ── Session card ───────────────────────────────────────────────────────────────
 
-function SessionCard({ session }: { session: ReturnType<typeof parseSession> }) {
+function SessionCard({ session }: { session: ParsedSession }) {
   const passed = session.overallResult === "PASS";
   return (
     <div className={cn(
@@ -301,6 +369,9 @@ function SessionCard({ session }: { session: ReturnType<typeof parseSession> }) 
           </div>
         </div>
         <div className="flex items-center gap-3">
+          <Badge variant="outline" className="text-xs border-border text-muted-foreground">
+            Heat {session.heat}
+          </Badge>
           <div className={cn(
             "w-10 h-10 rounded-full flex items-center justify-center",
             passed ? "bg-green-500 shadow-[0_0_16px_4px_rgba(34,197,94,0.4)]"
@@ -362,8 +433,3 @@ function SessionCard({ session }: { session: ReturnType<typeof parseSession> }) 
   );
 }
 
-// Needed for typing parseSession return value in SessionCard
-type ParsedSession = ReturnType<typeof parseSession>;
-function parseSession(s: ScanSession) {
-  return { ...s, wheels: JSON.parse(s.wheelResults) as WheelResult[] };
-}

@@ -14,8 +14,9 @@ const ALLOWED_ROLES = [
 ];
 
 // GET /api/events/[eventId]/scan-sessions — all sessions for an event
+// Optional query: ?heat=2  to filter by heat
 export async function GET(
-  _req: NextRequest,
+  req: NextRequest,
   { params }: { params: Promise<{ eventId: string }> }
 ) {
   const user = await getSession();
@@ -24,10 +25,15 @@ export async function GET(
   }
 
   const { eventId } = await params;
+  const { searchParams } = new URL(req.url);
+  const heatFilter = searchParams.get("heat");
 
   const [sessions, event] = await Promise.all([
     prisma.tyreScanSession.findMany({
-      where: { eventId },
+      where: {
+        eventId,
+        ...(heatFilter ? { heat: heatFilter } : {}),
+      },
       include: {
         scannedBy: { select: { id: true, name: true, email: true } },
         registration: {
@@ -38,7 +44,7 @@ export async function GET(
           },
         },
       },
-      orderBy: { createdAt: "desc" },
+      orderBy: [{ heat: "asc" }, { createdAt: "asc" }],
     }),
     prisma.event.findUnique({
       where: { id: eventId },
@@ -46,5 +52,8 @@ export async function GET(
     }),
   ]);
 
-  return NextResponse.json({ event, sessions });
+  // Build available heats list for the UI
+  const allHeats = [...new Set(sessions.map((s) => s.heat))].sort();
+
+  return NextResponse.json({ event, sessions, heats: allHeats });
 }

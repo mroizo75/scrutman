@@ -23,7 +23,7 @@ export async function POST(req: NextRequest) {
   const body = await req.json();
   const {
     eventId, registrationId, startNumber, driverName,
-    vehicleName, subDiscipline, overallResult, wheelResults, notes,
+    vehicleName, subDiscipline, heat, overallResult, wheelResults, notes,
   } = body;
 
   if (!eventId || !startNumber || !driverName || !overallResult || !wheelResults) {
@@ -38,6 +38,7 @@ export async function POST(req: NextRequest) {
       driverName,
       vehicleName: vehicleName ?? null,
       subDiscipline: subDiscipline ?? null,
+      heat: heat ?? "1",
       overallResult,
       wheelResults: JSON.stringify(wheelResults),
       notes: notes ?? null,
