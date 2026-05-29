@@ -63,6 +63,27 @@ const POSITIONS: { pos: WheelPos; label: string; scannerLabel: string }[] = [
 
 const UNKNOWN_EPC = "AABBCCDDEE000000FFFFFFFF";
 
+// A "slot" entry in the per-wheel selector: either a registered tyre or "unknown"
+interface WheelSlot {
+  rfidEpc: string;          // EPC the scanner will read
+  label: string;            // display label
+  isRegistered: boolean;    // true = belongs to driver, false = foreign/unknown
+}
+
+function buildSlots(driver: PortalDriver): WheelSlot[] {
+  const registered: WheelSlot[] = driver.tyres
+    .filter((t) => t.rfidEpc)
+    .map((t) => ({
+      rfidEpc: t.rfidEpc!,
+      label: `${t.manufacturer} ${t.model}${t.serialNumber ? ` · ${t.serialNumber}` : ""} (registered)`,
+      isRegistered: true,
+    }));
+  return [
+    ...registered,
+    { rfidEpc: UNKNOWN_EPC, label: "Unknown / unregistered tyre", isRegistered: false },
+  ];
+}
+
 // ── RFID identity check ────────────────────────────────────────────────────────
 
 function checkRfid(
@@ -168,7 +189,11 @@ export default function TyreScanPage() {
     FL: emptyWheel(), FR: emptyWheel(), RL: emptyWheel(), RR: emptyWheel(),
   });
 
-  const [badWheels, setBadWheels] = useState<Set<WheelPos>>(new Set());
+  // What RFID each scanner will actually read (simulates physical tyre in each position)
+  const [selectedRfid, setSelectedRfid] = useState<Record<WheelPos, string>>({
+    FL: "", FR: "", RL: "", RR: "",
+  });
+
   const [notes, setNotes] = useState("");
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState<string | null>(null);
@@ -193,7 +218,6 @@ export default function TyreScanPage() {
     setDriver(null);
     setSaved(null);
     setSaveError("");
-    setBadWheels(new Set());
     setWheels({ FL: emptyWheel(), FR: emptyWheel(), RL: emptyWheel(), RR: emptyWheel() });
     try {
       const res = await fetch(`/api/events/${selectedEventId}/portal-lookup?startNumber=${encodeURIComponent(num)}`);
@@ -201,6 +225,14 @@ export default function TyreScanPage() {
       if (!res.ok) { setLookupError(data.error ?? "Driver not found"); return; }
       if (data.tyres.length === 0) { setLookupError(`Driver #${num} has no tyres registered for this event.`); return; }
       setDriver(data);
+      // Pre-fill each wheel with the first 4 registered RFID codes (happy path)
+      const rfids = (data.tyres as PortalTyre[]).filter((t) => t.rfidEpc).map((t) => t.rfidEpc!);
+      setSelectedRfid({
+        FL: rfids[0] ?? UNKNOWN_EPC,
+        FR: rfids[1] ?? UNKNOWN_EPC,
+        RL: rfids[2] ?? UNKNOWN_EPC,
+        RR: rfids[3] ?? UNKNOWN_EPC,
+      });
       setPhase("armed");
     } catch {
       setLookupError("Network error — could not reach server.");
@@ -218,7 +250,7 @@ export default function TyreScanPage() {
     setSaved(null);
     setSaveError("");
     setNotes("");
-    setBadWheels(new Set());
+    setSelectedRfid({ FL: "", FR: "", RL: "", RR: "" });
     setWheels({ FL: emptyWheel(), FR: emptyWheel(), RL: emptyWheel(), RR: emptyWheel() });
   };
 
@@ -232,7 +264,8 @@ export default function TyreScanPage() {
         setWheels((prev) => ({ ...prev, [pos]: { ...emptyWheel(), state: "reading" } }));
       }, delays[i]);
       setTimeout(() => {
-        const rfidEpc = badWheels.has(pos) ? UNKNOWN_EPC : (driver.tyres[i]?.rfidEpc ?? UNKNOWN_EPC);
+        // Use the RFID the user has selected for this wheel position
+        const rfidEpc = selectedRfid[pos] || UNKNOWN_EPC;
         const result = checkRfid(rfidEpc, driver);
         setWheels((prev) => ({
           ...prev,
@@ -478,37 +511,72 @@ export default function TyreScanPage() {
             {/* Controls (only when armed) */}
             {phase === "armed" && (
               <div className="space-y-4">
-                <div className="bg-muted/50 border border-border rounded-xl p-4 space-y-2">
-                  <div className="flex items-center gap-2">
-                    <Shield className="w-3.5 h-3.5 text-amber-500" />
-                    <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                      Simulation — mark wheels to produce a FAIL result
+                {/* Per-wheel RFID selector */}
+                <div className="border border-border rounded-xl overflow-hidden">
+                  <div className="bg-muted/60 px-4 py-2.5 flex items-center gap-2 border-b border-border">
+                    <Shield className="w-3.5 h-3.5 text-primary" />
+                    <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                      Select which tyre the scanner reads on each wheel
                     </p>
                   </div>
-                  <div className="flex gap-2 flex-wrap">
-                    {POSITIONS.map(({ pos, label }) => (
-                      <button
-                        key={pos}
-                        onClick={() => setBadWheels((prev) => {
-                          const n = new Set(prev);
-                          n.has(pos) ? n.delete(pos) : n.add(pos);
-                          return n;
-                        })}
-                        className={cn(
-                          "text-xs px-3 py-1.5 rounded-full border font-medium transition-colors",
-                          badWheels.has(pos)
-                            ? "bg-red-50 border-red-300 text-red-700"
-                            : "bg-background border-border text-muted-foreground hover:border-foreground/40 hover:text-foreground",
-                        )}
-                      >
-                        {label} {badWheels.has(pos) ? "✗ FAIL" : "✓ OK"}
-                      </button>
-                    ))}
+                  <div className="divide-y divide-border">
+                    {POSITIONS.map(({ pos, label, scannerLabel }) => {
+                      const slots = driver ? buildSlots(driver) : [];
+                      const current = selectedRfid[pos];
+                      const isUnknown = current === UNKNOWN_EPC || !driver?.tyres.find(t => t.rfidEpc === current);
+                      return (
+                        <div key={pos} className={cn(
+                          "flex items-center gap-3 px-4 py-3",
+                          isUnknown ? "bg-red-50" : "bg-green-50/40",
+                        )}>
+                          <div className={cn(
+                            "w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 text-[10px] font-bold",
+                            isUnknown ? "bg-red-500 text-white" : "bg-green-500 text-white",
+                          )}>
+                            {pos}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-xs font-medium text-muted-foreground">{label} · {scannerLabel}</p>
+                            <select
+                              className={cn(
+                                "mt-1 w-full text-xs border rounded-lg px-2 py-1.5 bg-background focus:outline-none focus:ring-2 focus:ring-ring",
+                                isUnknown ? "border-red-300 text-red-700" : "border-green-300 text-green-800",
+                              )}
+                              value={current}
+                              onChange={(e) => setSelectedRfid((prev) => ({ ...prev, [pos]: e.target.value }))}
+                            >
+                              {slots.map((slot) => (
+                                <option key={slot.rfidEpc} value={slot.rfidEpc}>
+                                  {slot.label}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                          <div className="text-[10px] font-bold flex-shrink-0">
+                            {isUnknown
+                              ? <span className="text-red-600">✗ FAIL</span>
+                              : <span className="text-green-700">✓ OK</span>}
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
-                  <p className="text-[10px] text-muted-foreground">
-                    Marked wheels receive an unknown RFID signal (not registered to this driver). Leave all unselected for a full pass.
-                  </p>
+                  <div className="px-4 py-2.5 bg-muted/30 border-t border-border">
+                    <p className="text-[10px] text-muted-foreground">
+                      This simulates what each physical RFID scanner reads as the car drives through. Default = registered tyres (pass). Change any to <em>Unknown / unregistered tyre</em> to simulate a wrong or foreign tyre on that wheel.
+                    </p>
+                  </div>
                 </div>
+
+                {driver?.startNumber === 44 && !Object.values(selectedRfid).some(rfid => rfid === UNKNOWN_EPC) && (
+                  <div className="flex items-start gap-2 text-xs text-amber-800 bg-amber-50 border border-amber-300 rounded-xl px-3 py-2.5">
+                    <AlertTriangle className="w-4 h-4 flex-shrink-0 mt-0.5 text-amber-600" />
+                    <span>
+                      <strong>Demo tip:</strong> Lucas Berger (#44) swapped his front-left tyre illegally before Heat 1.
+                      Change <strong>Front Left</strong> to <em>Unknown / unregistered tyre</em> above to recreate that scenario.
+                    </span>
+                  </div>
+                )}
 
                 <Button
                   size="lg"
