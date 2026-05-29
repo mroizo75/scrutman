@@ -5,9 +5,9 @@ import { useParams } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
-  CheckCircle2, XCircle, Download,
-  ScanLine, AlertTriangle, Calendar, MapPin, Building2,
-  FileText, Loader2, ShieldAlert,
+  CheckCircle2, XCircle, ScanLine, AlertTriangle,
+  Calendar, MapPin, Building2, FileText, Loader2,
+  ShieldAlert, ChevronLeft, ChevronRight, Download,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -20,7 +20,6 @@ interface WheelResult {
   resultLabel: string;
   detail: string;
   rfidEpc: string | null;
-  barcodeNumber: string | null;
   manufacturer: string | null;
   model: string | null;
   serialNumber: string | null;
@@ -34,7 +33,7 @@ interface ScanSession {
   subDiscipline: string | null;
   heat: string;
   overallResult: "PASS" | "FAIL";
-  wheelResults: string; // JSON
+  wheelResults: string;
   notes: string | null;
   scannedBy: { name: string | null; email: string };
   createdAt: string;
@@ -53,17 +52,239 @@ interface EventInfo {
   club: { name: string } | null;
 }
 
-// ── Wheel mini-lamp ────────────────────────────────────────────────────────────
+type ParsedSession = ScanSession & { wheels: WheelResult[] };
 
-function MiniLamp({ outcome }: { outcome: "GREEN" | "RED" }) {
+// ── Constants ──────────────────────────────────────────────────────────────────
+
+const PAGE_SIZE = 20;
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+
+function fmtTime(iso: string) {
+  return new Date(iso).toLocaleTimeString("en", { hour: "2-digit", minute: "2-digit" });
+}
+
+function fmtDateTime(iso: string) {
+  return new Date(iso).toLocaleString("en", { dateStyle: "medium", timeStyle: "short" });
+}
+
+// ── Wheel mini dots (4 in a row) ──────────────────────────────────────────────
+
+function WheelDots({ wheels }: { wheels: WheelResult[] }) {
   return (
-    <div className={cn(
-      "w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0",
-      outcome === "GREEN" ? "bg-green-500" : "bg-red-500"
-    )}>
-      {outcome === "GREEN"
-        ? <CheckCircle2 className="w-3 h-3 text-white" />
-        : <XCircle className="w-3 h-3 text-white" />}
+    <div className="flex gap-1">
+      {wheels.map((w) => (
+        <div
+          key={w.pos}
+          title={`${w.label}: ${w.resultLabel}`}
+          className={cn(
+            "w-4 h-4 rounded-full flex items-center justify-center",
+            w.outcome === "GREEN" ? "bg-green-500" : "bg-red-500",
+          )}
+        >
+          {w.outcome === "GREEN"
+            ? <CheckCircle2 className="w-2.5 h-2.5 text-white" />
+            : <XCircle      className="w-2.5 h-2.5 text-white" />}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ── Paginated heat table ───────────────────────────────────────────────────────
+
+function HeatTable({
+  heat,
+  sessions,
+  incidentLoading,
+  onDownloadIncident,
+}: {
+  heat: string;
+  sessions: ParsedSession[];
+  incidentLoading: string | null;
+  onDownloadIncident: (id: string, name: string) => void;
+}) {
+  const [page, setPage] = useState(0);
+
+  // Sort newest first
+  const sorted = [...sessions].sort(
+    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+  );
+
+  const totalPages = Math.ceil(sorted.length / PAGE_SIZE);
+  const slice = sorted.slice(page * PAGE_SIZE, page * PAGE_SIZE + PAGE_SIZE);
+
+  const passCount = sessions.filter((s) => s.overallResult === "PASS").length;
+  const failCount = sessions.filter((s) => s.overallResult === "FAIL").length;
+
+  return (
+    <div className="bg-white border rounded-xl overflow-hidden">
+      {/* Heat header */}
+      <div className="flex items-center justify-between px-5 py-3 border-b bg-muted/30">
+        <div className="flex items-center gap-3">
+          <span className="text-sm font-bold text-primary">Heat {heat}</span>
+          <span className="text-xs text-muted-foreground">{sessions.length} scan{sessions.length !== 1 ? "s" : ""}</span>
+        </div>
+        <div className="flex items-center gap-2">
+          {passCount > 0 && (
+            <span className="text-xs font-medium text-green-700 bg-green-50 border border-green-200 rounded-full px-2.5 py-0.5">
+              {passCount} PASS
+            </span>
+          )}
+          {failCount > 0 && (
+            <span className="text-xs font-medium text-red-700 bg-red-50 border border-red-200 rounded-full px-2.5 py-0.5 flex items-center gap-1">
+              <AlertTriangle className="w-3 h-3" /> {failCount} FAIL
+            </span>
+          )}
+        </div>
+      </div>
+
+      {/* Table */}
+      <table className="w-full text-sm">
+        <thead className="bg-muted/20 border-b">
+          <tr className="text-[11px] text-muted-foreground uppercase tracking-wider">
+            <th className="px-4 py-2.5 text-left w-12">#</th>
+            <th className="px-4 py-2.5 text-left">Driver</th>
+            <th className="px-4 py-2.5 text-left hidden md:table-cell">Class</th>
+            <th className="px-4 py-2.5 text-left hidden lg:table-cell">Scanned by</th>
+            <th className="px-4 py-2.5 text-center">Wheels</th>
+            <th className="px-4 py-2.5 text-center w-20">Time</th>
+            <th className="px-4 py-2.5 text-center w-24">Result</th>
+            <th className="px-4 py-2.5 w-10" />
+          </tr>
+        </thead>
+        <tbody className="divide-y">
+          {slice.map((s) => {
+            const pass = s.overallResult === "PASS";
+            return (
+              <tr
+                key={s.id}
+                className={cn(
+                  "hover:bg-muted/20 transition-colors",
+                  !pass && "bg-red-50 hover:bg-red-100/60",
+                )}
+              >
+                {/* Start # */}
+                <td className="px-4 py-3">
+                  <span className="font-bold tabular-nums">{s.startNumber}</span>
+                </td>
+
+                {/* Driver */}
+                <td className="px-4 py-3">
+                  <p className="font-medium leading-tight">{s.driverName}</p>
+                  {s.vehicleName && (
+                    <p className="text-xs text-muted-foreground truncate max-w-[160px]">{s.vehicleName}</p>
+                  )}
+                  {s.notes && (
+                    <p className="text-xs text-amber-700 italic truncate max-w-[200px] mt-0.5">
+                      {s.notes}
+                    </p>
+                  )}
+                </td>
+
+                {/* Class */}
+                <td className="px-4 py-3 hidden md:table-cell">
+                  <span className="text-xs text-muted-foreground">
+                    {s.subDiscipline ?? s.registration?.class?.name ?? "—"}
+                  </span>
+                </td>
+
+                {/* Scanned by */}
+                <td className="px-4 py-3 hidden lg:table-cell">
+                  <span className="text-xs text-muted-foreground">
+                    {s.scannedBy.name ?? s.scannedBy.email}
+                  </span>
+                </td>
+
+                {/* Wheels (4 dots) */}
+                <td className="px-4 py-3 text-center">
+                  <WheelDots wheels={s.wheels} />
+                </td>
+
+                {/* Time */}
+                <td className="px-4 py-3 text-center">
+                  <span
+                    className="text-xs tabular-nums text-muted-foreground"
+                    title={fmtDateTime(s.createdAt)}
+                  >
+                    {fmtTime(s.createdAt)}
+                  </span>
+                </td>
+
+                {/* Result badge */}
+                <td className="px-4 py-3 text-center">
+                  <Badge
+                    variant="outline"
+                    className={cn(
+                      "text-xs font-bold",
+                      pass
+                        ? "border-green-300 text-green-700 bg-green-50"
+                        : "border-red-300 text-red-700 bg-red-50",
+                    )}
+                  >
+                    {s.overallResult}
+                  </Badge>
+                </td>
+
+                {/* Incident PDF */}
+                <td className="px-2 py-3 text-center">
+                  {!pass && (
+                    <button
+                      title="Download Incident PDF"
+                      onClick={() => onDownloadIncident(s.id, s.driverName)}
+                      disabled={incidentLoading === s.id}
+                      className="p-1.5 rounded-lg text-red-600 hover:bg-red-100 disabled:opacity-50 transition-colors"
+                    >
+                      {incidentLoading === s.id
+                        ? <Loader2 className="w-4 h-4 animate-spin" />
+                        : <ShieldAlert className="w-4 h-4" />}
+                    </button>
+                  )}
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between px-5 py-3 border-t bg-muted/10">
+          <span className="text-xs text-muted-foreground">
+            Showing {page * PAGE_SIZE + 1}–{Math.min((page + 1) * PAGE_SIZE, sorted.length)} of {sorted.length}
+          </span>
+          <div className="flex items-center gap-1">
+            <button
+              onClick={() => setPage((p) => Math.max(0, p - 1))}
+              disabled={page === 0}
+              className="p-1.5 rounded border border-border hover:bg-muted disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+            {Array.from({ length: totalPages }, (_, i) => (
+              <button
+                key={i}
+                onClick={() => setPage(i)}
+                className={cn(
+                  "w-7 h-7 rounded border text-xs font-medium transition-colors",
+                  i === page
+                    ? "bg-primary text-primary-foreground border-primary"
+                    : "border-border hover:bg-muted",
+                )}
+              >
+                {i + 1}
+              </button>
+            ))}
+            <button
+              onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
+              disabled={page === totalPages - 1}
+              className="p-1.5 rounded border border-border hover:bg-muted disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -95,70 +316,67 @@ export default function TyreReportPage() {
     setIncidentLoading(sessionId);
     try {
       const res = await fetch(`/api/scan-sessions/${sessionId}/pdf`);
-      if (!res.ok) throw new Error("PDF generation failed");
+      if (!res.ok) throw new Error("failed");
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
       a.download = res.headers.get("content-disposition")?.match(/filename="(.+)"/)?.[1]
-        ?? `incident-report-${driverName.replace(/\s+/g, "-").toLowerCase()}.pdf`;
+        ?? `incident-${driverName.replace(/\s+/g, "-").toLowerCase()}.pdf`;
       a.click();
       URL.revokeObjectURL(url);
     } catch {
-      alert("Could not generate incident report PDF. Please try again.");
+      alert("Could not generate incident PDF.");
     } finally {
       setIncidentLoading(null);
     }
   };
 
-  const downloadPdf = async (heat?: string) => {
+  const downloadSummaryPdf = async (heat?: string) => {
     setPdfLoading(true);
     try {
-      const heatParam = heat && heat !== "all" ? `?heat=${encodeURIComponent(heat)}` : "";
-      const res = await fetch(`/api/events/${eventId}/tyre-report${heatParam}`);
-      if (!res.ok) throw new Error("PDF generation failed");
+      const q = heat && heat !== "all" ? `?heat=${encodeURIComponent(heat)}` : "";
+      const res = await fetch(`/api/events/${eventId}/tyre-report${q}`);
+      if (!res.ok) throw new Error("failed");
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
       a.download = res.headers.get("content-disposition")?.match(/filename="(.+)"/)?.[1]
-        ?? `tyre-report${heatParam ? `-heat-${heat}` : ""}.pdf`;
+        ?? `tyre-report${q ? `-heat-${heat}` : ""}.pdf`;
       a.click();
       URL.revokeObjectURL(url);
     } catch {
-      alert("Could not generate PDF. Please try again.");
+      alert("Could not generate summary PDF.");
     } finally {
       setPdfLoading(false);
     }
   };
 
-  const parsedSessions = sessions.map((s) => ({
+  const parsedSessions: ParsedSession[] = sessions.map((s) => ({
     ...s,
-    wheels: JSON.parse(s.wheelResults) as WheelResult[],
+    wheels: (() => { try { return JSON.parse(s.wheelResults); } catch { return []; } })(),
   }));
 
   const visibleSessions = activeHeat === "all"
     ? parsedSessions
     : parsedSessions.filter((s) => s.heat === activeHeat);
 
+  const total     = visibleSessions.length;
   const passCount = visibleSessions.filter((s) => s.overallResult === "PASS").length;
   const failCount = visibleSessions.filter((s) => s.overallResult === "FAIL").length;
-  const total = visibleSessions.length;
 
-  const failedSessions = visibleSessions.filter((s) => s.overallResult === "FAIL");
-  const passedSessions = visibleSessions.filter((s) => s.overallResult === "PASS");
-
-  // Group all parsed sessions by heat for the full summary view
-  const sessionsByHeat = heats.reduce<Record<string, typeof parsedSessions>>((acc, h) => {
-    acc[h] = parsedSessions.filter((s) => s.heat === h);
-    return acc;
-  }, {});
+  // For "All heats" view: group by heat; for single-heat view: just that heat
+  const heatGroups: { heat: string; sessions: ParsedSession[] }[] =
+    activeHeat === "all"
+      ? heats.map((h) => ({ heat: h, sessions: parsedSessions.filter((s) => s.heat === h) }))
+      : [{ heat: activeHeat, sessions: visibleSessions }];
 
   return (
-    <div className="min-h-screen bg-gray-50 print:bg-white">
+    <div className="min-h-screen bg-gray-50">
 
-      {/* Toolbar — hidden when printing */}
-      <div className="print:hidden bg-white border-b px-6 py-3 flex items-center justify-between sticky top-0 z-10">
+      {/* Sticky toolbar */}
+      <div className="bg-white border-b px-6 py-3 flex items-center justify-between sticky top-0 z-10">
         <div className="flex items-center gap-3">
           <ScanLine className="w-5 h-5 text-primary" />
           <div>
@@ -166,193 +384,154 @@ export default function TyreReportPage() {
             {event && <p className="text-xs text-muted-foreground">{event.title}</p>}
           </div>
         </div>
-        <div className="flex gap-2 flex-wrap">
-          <Button
-            variant="outline"
-            size="sm"
-            className="gap-2"
-            onClick={() => downloadPdf(activeHeat)}
-            disabled={pdfLoading || sessions.length === 0}
-          >
-            {pdfLoading
-              ? <><Loader2 className="w-4 h-4 animate-spin" /> Generating…</>
-              : <><FileText className="w-4 h-4" /> Final Event Summary PDF{activeHeat !== "all" ? ` — Heat ${activeHeat}` : ""}</>
-            }
-          </Button>
+        <div className="flex gap-2">
           {activeHeat !== "all" && (
-            <Button
-              variant="ghost"
-              size="sm"
-              className="gap-2 text-muted-foreground"
-              onClick={() => downloadPdf("all")}
-              disabled={pdfLoading}
-            >
-              <Download className="w-4 h-4" /> Full event summary PDF
+            <Button variant="ghost" size="sm" className="gap-1.5 text-muted-foreground"
+              onClick={() => downloadSummaryPdf("all")} disabled={pdfLoading}>
+              <Download className="w-4 h-4" /> All heats PDF
             </Button>
           )}
+          <Button variant="outline" size="sm" className="gap-1.5"
+            onClick={() => downloadSummaryPdf(activeHeat)}
+            disabled={pdfLoading || sessions.length === 0}>
+            {pdfLoading
+              ? <><Loader2 className="w-4 h-4 animate-spin" /> Generating…</>
+              : <><FileText className="w-4 h-4" /> Final Summary PDF{activeHeat !== "all" ? ` — Heat ${activeHeat}` : ""}</>}
+          </Button>
         </div>
       </div>
 
-      <div className="max-w-5xl mx-auto p-8 space-y-8">
+      <div className="max-w-5xl mx-auto p-6 space-y-6">
 
-        {/* Report header */}
-        <div className="text-center border-b pb-6">
-          <h1 className="text-2xl font-bold">Tyre Inspection Report</h1>
-          <p className="text-muted-foreground text-sm mt-1">FIA LT54 Tyre Verification — Official Record</p>
-          {event && (
-            <div className="mt-4 flex items-center justify-center gap-6 text-sm text-muted-foreground flex-wrap">
-              <span className="flex items-center gap-1.5">
-                <Calendar className="w-4 h-4" />
-                {new Date(event.startDate).toLocaleDateString("en", { dateStyle: "full" })}
-              </span>
-              {event.location && (
+        {/* Event info */}
+        <div className="flex items-start justify-between gap-4 flex-wrap">
+          <div>
+            <h1 className="text-xl font-bold">{event?.title ?? "Tyre Inspection Report"}</h1>
+            <div className="flex items-center gap-4 text-sm text-muted-foreground mt-1 flex-wrap">
+              {event?.startDate && (
                 <span className="flex items-center gap-1.5">
-                  <MapPin className="w-4 h-4" /> {event.location}
+                  <Calendar className="w-3.5 h-3.5" />
+                  {new Date(event.startDate).toLocaleDateString("en", { dateStyle: "long" })}
                 </span>
               )}
-              {event.club && (
+              {event?.location && (
                 <span className="flex items-center gap-1.5">
-                  <Building2 className="w-4 h-4" /> {event.club.name}
+                  <MapPin className="w-3.5 h-3.5" /> {event.location}
+                </span>
+              )}
+              {event?.club && (
+                <span className="flex items-center gap-1.5">
+                  <Building2 className="w-3.5 h-3.5" /> {event.club.name}
                 </span>
               )}
             </div>
-          )}
+          </div>
+          <p className="text-xs text-muted-foreground">FIA LT54 — Official Record</p>
         </div>
 
         {loading && (
-          <div className="text-center py-12 text-muted-foreground">Loading…</div>
+          <div className="text-center py-16 text-muted-foreground">
+            <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2" />
+            Loading sessions…
+          </div>
         )}
 
         {!loading && (
           <>
+            {/* Summary stats */}
+            <div className="grid grid-cols-3 gap-3">
+              <div className="bg-white border rounded-xl p-4 text-center">
+                <p className="text-3xl font-bold text-primary">{total}</p>
+                <p className="text-xs text-muted-foreground mt-1 uppercase tracking-wide">Inspected</p>
+              </div>
+              <div className="bg-green-50 border border-green-200 rounded-xl p-4 text-center">
+                <p className="text-3xl font-bold text-green-700">{passCount}</p>
+                <p className="text-xs text-green-700 mt-1 uppercase tracking-wide font-medium">Passed ✓</p>
+              </div>
+              <div className={cn(
+                "border rounded-xl p-4 text-center",
+                failCount > 0 ? "bg-red-50 border-red-200" : "bg-gray-50 border-gray-200",
+              )}>
+                <p className={cn("text-3xl font-bold", failCount > 0 ? "text-red-700" : "text-gray-400")}>{failCount}</p>
+                <p className={cn("text-xs mt-1 uppercase tracking-wide font-medium", failCount > 0 ? "text-red-700" : "text-gray-400")}>
+                  {failCount > 0 ? "Failed ✗" : "No failures"}
+                </p>
+              </div>
+            </div>
+
             {/* Heat tabs */}
             {heats.length > 0 && (
-              <div className="flex items-center gap-2 flex-wrap print:hidden">
+              <div className="flex items-center gap-2 flex-wrap">
                 <button
                   onClick={() => setActiveHeat("all")}
                   className={cn(
                     "px-4 py-1.5 rounded-full text-sm font-medium border transition-colors",
                     activeHeat === "all"
                       ? "bg-primary text-primary-foreground border-primary"
-                      : "bg-background border-border text-muted-foreground hover:border-foreground/40"
+                      : "bg-background border-border text-muted-foreground hover:border-foreground/40",
                   )}
                 >
                   All heats
                 </button>
-                {heats.map((h) => (
-                  <button
-                    key={h}
-                    onClick={() => setActiveHeat(h)}
-                    className={cn(
-                      "px-4 py-1.5 rounded-full text-sm font-medium border transition-colors",
-                      activeHeat === h
-                        ? "bg-primary text-primary-foreground border-primary"
-                        : "bg-background border-border text-muted-foreground hover:border-foreground/40"
-                    )}
-                  >
-                    Heat {h}
-                  </button>
-                ))}
+                {heats.map((h) => {
+                  const hFails = parsedSessions.filter((s) => s.heat === h && s.overallResult === "FAIL").length;
+                  return (
+                    <button
+                      key={h}
+                      onClick={() => setActiveHeat(h)}
+                      className={cn(
+                        "px-4 py-1.5 rounded-full text-sm font-medium border transition-colors flex items-center gap-1.5",
+                        activeHeat === h
+                          ? "bg-primary text-primary-foreground border-primary"
+                          : "bg-background border-border text-muted-foreground hover:border-foreground/40",
+                      )}
+                    >
+                      Heat {h}
+                      {hFails > 0 && (
+                        <span className={cn(
+                          "text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center",
+                          activeHeat === h ? "bg-white/30 text-white" : "bg-red-100 text-red-700",
+                        )}>
+                          {hFails}
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
               </div>
             )}
-
-            {/* Summary stats */}
-            <div className="grid grid-cols-3 gap-4">
-              <div className="bg-white border rounded-xl p-5 text-center">
-                <p className="text-3xl font-bold text-primary">{total}</p>
-                <p className="text-sm text-muted-foreground mt-1">Cars inspected</p>
-              </div>
-              <div className="bg-green-50 border border-green-200 rounded-xl p-5 text-center">
-                <p className="text-3xl font-bold text-green-700">{passCount}</p>
-                <p className="text-sm text-green-700 mt-1 font-medium">Passed ✓</p>
-              </div>
-              <div className={cn(
-                "border rounded-xl p-5 text-center",
-                failCount > 0 ? "bg-red-50 border-red-200" : "bg-gray-50 border-gray-200"
-              )}>
-                <p className={cn("text-3xl font-bold", failCount > 0 ? "text-red-700" : "text-gray-400")}>{failCount}</p>
-                <p className={cn("text-sm mt-1 font-medium", failCount > 0 ? "text-red-700" : "text-gray-400")}>
-                  {failCount > 0 ? "Failed ✗" : "No failures"}
-                </p>
-              </div>
-            </div>
 
             {/* Empty state */}
             {total === 0 && (
               <div className="bg-white border rounded-xl py-16 text-center text-muted-foreground">
-                <ScanLine className="w-12 h-12 mx-auto mb-3 opacity-20" />
-                <p>No scan sessions recorded{activeHeat !== "all" ? ` for Heat ${activeHeat}` : " for this event"} yet.</p>
-                <p className="text-xs mt-1">Use the Tyre Scan page to scan and save sessions.</p>
+                <ScanLine className="w-10 h-10 mx-auto mb-3 opacity-20" />
+                <p>No scan sessions recorded{activeHeat !== "all" ? ` for Heat ${activeHeat}` : ""} yet.</p>
+                <p className="text-xs mt-1 opacity-60">Use the Tyre Scan page to scan and save sessions.</p>
               </div>
             )}
 
-            {/* FAILED section */}
-            {failedSessions.length > 0 && (
-              <section>
-                <div className="flex items-center gap-2 mb-3">
-                  <AlertTriangle className="w-5 h-5 text-red-600" />
-                  <h2 className="text-lg font-bold text-red-700">Failed Inspections ({failedSessions.length})</h2>
-                </div>
-                <div className="space-y-4">
-                  {failedSessions.map((s) => (
-                    <SessionCard
-                      key={s.id}
-                      session={s}
-                      onDownloadIncident={() => downloadIncidentPdf(s.id, s.driverName)}
-                      incidentLoading={incidentLoading === s.id}
-                    />
-                  ))}
-                </div>
-              </section>
+            {/* Per-heat tables */}
+            {heatGroups.map(({ heat, sessions: hs }) =>
+              hs.length === 0 ? null : (
+                <HeatTable
+                  key={heat}
+                  heat={heat}
+                  sessions={hs}
+                  incidentLoading={incidentLoading}
+                  onDownloadIncident={downloadIncidentPdf}
+                />
+              ),
             )}
 
-            {/* PASSED section */}
-            {passedSessions.length > 0 && (
-              <section>
-                <div className="flex items-center gap-2 mb-3">
-                  <CheckCircle2 className="w-5 h-5 text-green-600" />
-                  <h2 className="text-lg font-bold text-green-700">Passed Inspections ({passedSessions.length})</h2>
-                </div>
-                <div className="space-y-3">
-                  {passedSessions.map((s) => (
-                    <SessionCard key={s.id} session={s} />
-                  ))}
-                </div>
-              </section>
-            )}
-
-            {/* Full event summary — all heats grouped */}
-            {parsedSessions.length > 0 && (
-              <section className="border-t pt-6 space-y-6 print:break-inside-avoid">
-                <h2 className="text-lg font-bold">
-                  {activeHeat === "all" ? "Full Event Summary" : `Heat ${activeHeat} Summary`}
-                </h2>
-
-                {/* Per-heat tables when viewing "all heats" */}
-                {activeHeat === "all" && heats.length > 1
-                  ? heats.map((h) => (
-                    <div key={h} className="space-y-2">
-                      <h3 className="font-semibold text-muted-foreground uppercase tracking-wide text-xs">Heat {h}</h3>
-                      <HeatSummaryTable sessions={sessionsByHeat[h] ?? []} />
-                    </div>
-                  ))
-                  : <HeatSummaryTable sessions={visibleSessions} />
-                }
-
-                {/* Signature blocks */}
-                <div className="grid grid-cols-3 gap-6 mt-8 print:mt-12">
-                  {["Technical Inspector", "FIA Delegate", "Event Director"].map((role) => (
-                    <div key={role} className="space-y-8">
-                      <div className="border-b border-gray-400" />
-                      <p className="text-xs text-muted-foreground text-center">{role} — Signature</p>
-                    </div>
-                  ))}
-                </div>
-
-                <p className="text-xs text-muted-foreground text-center pt-4 print:pt-2">
-                  Generated: {new Date().toLocaleString("en")} · ScrutMan — FIA LT54 Tyre Management System
-                </p>
-              </section>
+            {/* Legend */}
+            {total > 0 && (
+              <div className="flex items-center gap-4 text-xs text-muted-foreground border-t pt-4">
+                <span className="flex items-center gap-1.5">
+                  <ShieldAlert className="w-3.5 h-3.5 text-red-500" />
+                  Click the icon on a FAIL row to download the individual Incident Report PDF
+                </span>
+                <span className="ml-auto">Newest scans shown first per heat · max {PAGE_SIZE} per page</span>
+              </div>
             )}
           </>
         )}
@@ -360,162 +539,3 @@ export default function TyreReportPage() {
     </div>
   );
 }
-
-// ── Heat summary table ──────────────────────────────────────────────────────────
-
-type ParsedSession = ScanSession & { wheels: WheelResult[] };
-
-function HeatSummaryTable({ sessions }: { sessions: ParsedSession[] }) {
-  if (sessions.length === 0) return <p className="text-sm text-muted-foreground py-2">No sessions.</p>;
-  return (
-    <table className="w-full text-sm border rounded-xl overflow-hidden">
-      <thead className="bg-muted/40 text-muted-foreground border-b">
-        <tr>
-          <th className="px-4 py-2 text-left">#</th>
-          <th className="px-4 py-2 text-left">Driver</th>
-          <th className="px-4 py-2 text-left">Class</th>
-          <th className="px-4 py-2 text-left">Vehicle</th>
-          <th className="px-4 py-2 text-left">Scanned by</th>
-          <th className="px-4 py-2 text-left">Time</th>
-          <th className="px-4 py-2 text-left">Result</th>
-        </tr>
-      </thead>
-      <tbody className="divide-y bg-white">
-        {sessions.map((s) => (
-          <tr key={s.id} className={s.overallResult === "FAIL" ? "bg-red-50" : ""}>
-            <td className="px-4 py-2 font-bold">{s.startNumber}</td>
-            <td className="px-4 py-2">{s.driverName}</td>
-            <td className="px-4 py-2 text-muted-foreground text-xs">{s.subDiscipline ?? s.registration?.class?.name ?? "—"}</td>
-            <td className="px-4 py-2 text-muted-foreground text-xs">{s.vehicleName ?? "—"}</td>
-            <td className="px-4 py-2 text-muted-foreground text-xs">{s.scannedBy.name ?? s.scannedBy.email}</td>
-            <td className="px-4 py-2 text-muted-foreground text-xs">{new Date(s.createdAt).toLocaleTimeString("en")}</td>
-            <td className="px-4 py-2">
-              <Badge variant="outline" className={cn("text-xs font-semibold",
-                s.overallResult === "PASS"
-                  ? "border-green-300 text-green-700 bg-green-50"
-                  : "border-red-300 text-red-700 bg-red-50"
-              )}>
-                {s.overallResult}
-              </Badge>
-            </td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
-  );
-}
-
-// ── Session card ───────────────────────────────────────────────────────────────
-
-function SessionCard({
-  session,
-  onDownloadIncident,
-  incidentLoading,
-}: {
-  session: ParsedSession;
-  onDownloadIncident?: () => void;
-  incidentLoading?: boolean;
-}) {
-  const passed = session.overallResult === "PASS";
-  return (
-    <div className={cn(
-      "bg-white border rounded-xl overflow-hidden print:break-inside-avoid",
-      !passed && "border-red-200"
-    )}>
-      {/* Card header */}
-      <div className={cn(
-        "px-5 py-3 flex items-center justify-between border-b",
-        passed ? "bg-green-50" : "bg-red-50"
-      )}>
-        <div className="flex items-center gap-3">
-          <span className="text-xl font-bold">#{session.startNumber}</span>
-          <div>
-            <p className="font-semibold">{session.driverName}</p>
-            <p className="text-xs text-muted-foreground">
-              {session.subDiscipline ?? session.registration?.class?.name ?? "—"}
-              {session.vehicleName && ` · ${session.vehicleName}`}
-            </p>
-          </div>
-        </div>
-        <div className="flex items-center gap-3">
-          <Badge variant="outline" className="text-xs border-border text-muted-foreground">
-            Heat {session.heat}
-          </Badge>
-          <span className="text-xs text-muted-foreground tabular-nums hidden sm:block">
-            {new Date(session.createdAt).toLocaleTimeString("en", { hour: "2-digit", minute: "2-digit" })}
-          </span>
-          {!passed && onDownloadIncident && (
-            <Button
-              size="sm"
-              variant="destructive"
-              className="gap-1.5 text-xs h-8 print:hidden"
-              onClick={onDownloadIncident}
-              disabled={incidentLoading}
-            >
-              {incidentLoading
-                ? <Loader2 className="w-3 h-3 animate-spin" />
-                : <ShieldAlert className="w-3 h-3" />}
-              Incident PDF
-            </Button>
-          )}
-          <div className={cn(
-            "w-10 h-10 rounded-full flex items-center justify-center",
-            passed ? "bg-green-500 shadow-[0_0_16px_4px_rgba(34,197,94,0.4)]"
-                   : "bg-red-500 shadow-[0_0_16px_4px_rgba(239,68,68,0.4)]"
-          )}>
-            {passed ? <CheckCircle2 className="w-6 h-6 text-white" /> : <XCircle className="w-6 h-6 text-white" />}
-          </div>
-          <Badge variant="outline" className={cn("text-sm font-bold",
-            passed ? "border-green-300 text-green-700" : "border-red-300 text-red-700"
-          )}>
-            {passed ? "PASS" : "FAIL"}
-          </Badge>
-        </div>
-      </div>
-
-      {/* Wheel results */}
-      <div className="px-5 py-4">
-        <div className="grid grid-cols-2 gap-3">
-          {session.wheels.map((w) => (
-            <div key={w.pos} className={cn(
-              "flex items-start gap-3 p-3 rounded-lg border",
-              w.outcome === "GREEN" ? "bg-green-50 border-green-100" : "bg-red-50 border-red-200"
-            )}>
-              <MiniLamp outcome={w.outcome} />
-              <div className="min-w-0">
-                <p className="text-xs font-semibold text-muted-foreground uppercase">{w.label}</p>
-                <p className={cn("text-sm font-medium", w.outcome === "GREEN" ? "text-green-800" : "text-red-800")}>
-                  {w.resultLabel}
-                </p>
-                {w.outcome === "RED" && (
-                  <p className="text-xs text-red-700 mt-0.5">{w.detail}</p>
-                )}
-                {w.manufacturer && (
-                  <p className="text-xs text-muted-foreground mt-0.5">
-                    {w.manufacturer} {w.model}
-                    {w.serialNumber && ` · ${w.serialNumber}`}
-                  </p>
-                )}
-                {w.rfidEpc && (
-                  <p className="font-mono text-[10px] text-muted-foreground truncate">{w.rfidEpc.slice(0, 16)}…</p>
-                )}
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {session.notes && (
-          <div className="mt-3 text-sm border-t pt-3 text-muted-foreground italic">
-            Note: {session.notes}
-          </div>
-        )}
-
-        <div className="mt-2 flex items-center justify-between text-xs text-muted-foreground">
-          <span>Scanned by: {session.scannedBy.name ?? session.scannedBy.email}</span>
-          <span>{new Date(session.createdAt).toLocaleString("en", { dateStyle: "medium", timeStyle: "short" })}</span>
-        </div>
-      </div>
-    </div>
-  );
-}
-
