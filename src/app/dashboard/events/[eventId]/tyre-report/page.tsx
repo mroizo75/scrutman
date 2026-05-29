@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import {
   CheckCircle2, XCircle, Download,
   ScanLine, AlertTriangle, Calendar, MapPin, Building2,
-  FileText, Loader2,
+  FileText, Loader2, ShieldAlert,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -78,6 +78,7 @@ export default function TyreReportPage() {
   const [activeHeat, setActiveHeat] = useState<string>("all");
   const [loading, setLoading] = useState(true);
   const [pdfLoading, setPdfLoading] = useState(false);
+  const [incidentLoading, setIncidentLoading] = useState<string | null>(null);
 
   useEffect(() => {
     fetch(`/api/events/${eventId}/scan-sessions`)
@@ -89,6 +90,26 @@ export default function TyreReportPage() {
       })
       .finally(() => setLoading(false));
   }, [eventId]);
+
+  const downloadIncidentPdf = async (sessionId: string, driverName: string) => {
+    setIncidentLoading(sessionId);
+    try {
+      const res = await fetch(`/api/scan-sessions/${sessionId}/pdf`);
+      if (!res.ok) throw new Error("PDF generation failed");
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = res.headers.get("content-disposition")?.match(/filename="(.+)"/)?.[1]
+        ?? `incident-report-${driverName.replace(/\s+/g, "-").toLowerCase()}.pdf`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      alert("Could not generate incident report PDF. Please try again.");
+    } finally {
+      setIncidentLoading(null);
+    }
+  };
 
   const downloadPdf = async (heat?: string) => {
     setPdfLoading(true);
@@ -155,7 +176,7 @@ export default function TyreReportPage() {
           >
             {pdfLoading
               ? <><Loader2 className="w-4 h-4 animate-spin" /> Generating…</>
-              : <><FileText className="w-4 h-4" /> Download PDF{activeHeat !== "all" ? ` — Heat ${activeHeat}` : ""}</>
+              : <><FileText className="w-4 h-4" /> Final Event Summary PDF{activeHeat !== "all" ? ` — Heat ${activeHeat}` : ""}</>
             }
           </Button>
           {activeHeat !== "all" && (
@@ -166,7 +187,7 @@ export default function TyreReportPage() {
               onClick={() => downloadPdf("all")}
               disabled={pdfLoading}
             >
-              <Download className="w-4 h-4" /> Full event PDF
+              <Download className="w-4 h-4" /> Full event summary PDF
             </Button>
           )}
         </div>
@@ -274,7 +295,12 @@ export default function TyreReportPage() {
                 </div>
                 <div className="space-y-4">
                   {failedSessions.map((s) => (
-                    <SessionCard key={s.id} session={s} />
+                    <SessionCard
+                      key={s.id}
+                      session={s}
+                      onDownloadIncident={() => downloadIncidentPdf(s.id, s.driverName)}
+                      incidentLoading={incidentLoading === s.id}
+                    />
                   ))}
                 </div>
               </section>
@@ -381,7 +407,15 @@ function HeatSummaryTable({ sessions }: { sessions: ParsedSession[] }) {
 
 // ── Session card ───────────────────────────────────────────────────────────────
 
-function SessionCard({ session }: { session: ParsedSession }) {
+function SessionCard({
+  session,
+  onDownloadIncident,
+  incidentLoading,
+}: {
+  session: ParsedSession;
+  onDownloadIncident?: () => void;
+  incidentLoading?: boolean;
+}) {
   const passed = session.overallResult === "PASS";
   return (
     <div className={cn(
@@ -407,6 +441,20 @@ function SessionCard({ session }: { session: ParsedSession }) {
           <Badge variant="outline" className="text-xs border-border text-muted-foreground">
             Heat {session.heat}
           </Badge>
+          {!passed && onDownloadIncident && (
+            <Button
+              size="sm"
+              variant="destructive"
+              className="gap-1.5 text-xs h-8 print:hidden"
+              onClick={onDownloadIncident}
+              disabled={incidentLoading}
+            >
+              {incidentLoading
+                ? <Loader2 className="w-3 h-3 animate-spin" />
+                : <ShieldAlert className="w-3 h-3" />}
+              Incident PDF
+            </Button>
+          )}
           <div className={cn(
             "w-10 h-10 rounded-full flex items-center justify-center",
             passed ? "bg-green-500 shadow-[0_0_16px_4px_rgba(34,197,94,0.4)]"
