@@ -22,6 +22,7 @@ enum UserRole {
   RACE_OFFICIAL        // Race official/marshal
   FEDERATION_ADMIN     // Federation administrator (approves events)
   FIA_DELEGATE         // FIA official — cross-club access, manages tyres and approved lists
+  JURY_STEWARD         // Jury/steward — appointed per event by federation, handles complaints and protests
 }
 
 model User {
@@ -61,6 +62,11 @@ model User {
   tireLimits    DisciplineTireLimit[] @relation("TireLimitAdmin")
   officialTransfers TireOwnership[] @relation("OfficialTransferBy")
   tyreScanSessions  TyreScanSession[] @relation("ScanSessionBy")
+  complaintsReported  Complaint[] @relation("ComplaintReporter")
+  complaintsResolved  Complaint[] @relation("ComplaintResolver")
+  protestsSubmitted   Protest[]   @relation("ProtestSubmitter")
+  protestsResolved    Protest[]   @relation("ProtestResolver")
+  noticesPublished    OfficialNotice[] @relation("NoticePublisher")
 
   @@index([clubId])
   @@index([federationId])
@@ -123,6 +129,9 @@ model Event {
   weightLimits          WeightLimit[] // Weight limits for this event
   tireRegistrations     EventTireRegistration[]
   scanLogs              ScanLog[]
+  complaints            Complaint[]
+  protests              Protest[]
+  officialNotices       OfficialNotice[]
 
   // Federation approval fields
   submittedAt           DateTime?     // When submitted for approval
@@ -692,4 +701,125 @@ model EventTireRegistration {
   @@index([eventId])
   @@index([registrationId])
   @@index([tireId])
+}
+
+// ──────────────────────────────────────────────────────────────
+// JURY SYSTEM
+// ──────────────────────────────────────────────────────────────
+
+enum ComplaintType {
+  TIRE
+  TECHNICAL
+  WEIGHT
+  OTHER
+}
+
+enum ComplaintStatus {
+  OPEN
+  UNDER_REVIEW
+  RESOLVED
+  DISMISSED
+}
+
+enum ProtestType {
+  TIRE
+  TECHNICAL
+  WEIGHT
+  RACE_RESULT
+  OTHER
+}
+
+enum ProtestStatus {
+  PENDING_PAYMENT
+  OPEN
+  UNDER_REVIEW
+  UPHELD
+  DISMISSED
+  WITHDRAWN
+}
+
+enum NoticeType {
+  STEWARDS_DECISION
+  PROTEST_RESULT
+  TECHNICAL_BULLETIN
+  RACE_RESULT
+  PENALTY
+  GENERAL
+}
+
+// Report from staff (TECHNICAL_INSPECTOR, WEIGHT_CONTROLLER, RACE_OFFICIAL) to jury
+model Complaint {
+  id                 String          @id @default(cuid())
+  eventId            String
+  event              Event           @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  type               ComplaintType
+  description        String          @db.Text
+  targetStartNumber  Int?
+  reportedById       String
+  reportedBy         User            @relation("ComplaintReporter", fields: [reportedById], references: [id])
+  status             ComplaintStatus @default(OPEN)
+  juryDecision       String?
+  decisionNotes      String?         @db.Text
+  resolvedById       String?
+  resolvedBy         User?           @relation("ComplaintResolver", fields: [resolvedById], references: [id])
+  resolvedAt         DateTime?
+  officialNotices    OfficialNotice[]
+  createdAt          DateTime        @default(now())
+  updatedAt          DateTime        @updatedAt
+
+  @@index([eventId])
+  @@index([reportedById])
+  @@index([status])
+  @@index([type])
+}
+
+// Formal protest from an athlete, requires payment receipt
+model Protest {
+  id                  String        @id @default(cuid())
+  eventId             String
+  event               Event         @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  type                ProtestType
+  description         String        @db.Text
+  targetStartNumber   Int?
+  submittedById       String
+  submittedBy         User          @relation("ProtestSubmitter", fields: [submittedById], references: [id])
+  status              ProtestStatus @default(PENDING_PAYMENT)
+  paymentReceiptUrl   String?
+  paymentAmount       Float?
+  juryDecision        String?
+  decisionNotes       String?       @db.Text
+  resolvedById        String?
+  resolvedBy          User?         @relation("ProtestResolver", fields: [resolvedById], references: [id])
+  resolvedAt          DateTime?
+  officialNotices     OfficialNotice[]
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime      @updatedAt
+
+  @@index([eventId])
+  @@index([submittedById])
+  @@index([status])
+}
+
+// Official Notice Board — all published jury decisions and bulletins
+model OfficialNotice {
+  id                  String      @id @default(cuid())
+  eventId             String
+  event               Event       @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  type                NoticeType
+  title               String
+  content             String      @db.Text
+  linkedComplaintId   String?
+  linkedComplaint     Complaint?  @relation(fields: [linkedComplaintId], references: [id])
+  linkedProtestId     String?
+  linkedProtest       Protest?    @relation(fields: [linkedProtestId], references: [id])
+  publishedById       String
+  publishedBy         User        @relation("NoticePublisher", fields: [publishedById], references: [id])
+  isVisible           Boolean     @default(true)
+  publishedAt         DateTime    @default(now())
+  updatedAt           DateTime    @updatedAt
+
+  @@index([eventId])
+  @@index([publishedById])
+  @@index([type])
+  @@index([isVisible])
 }

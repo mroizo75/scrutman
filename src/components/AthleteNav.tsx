@@ -12,7 +12,7 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
-import { User, LogOut, Home, UserCircle, Car, Package, ArrowRightLeft } from "lucide-react";
+import { User, LogOut, Home, UserCircle, Car, Package, ArrowRightLeft, FileQuestion, Megaphone } from "lucide-react";
 import { useTranslation } from "@/hooks/useTranslation";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
 import Image from "next/image";
@@ -80,6 +80,18 @@ export default function AthleteNav() {
                 My Vehicles
               </Link>
             </Button>
+            <Button asChild variant="ghost" size="sm">
+              <Link href="/athlete/dashboard/protests">
+                <FileQuestion className="h-4 w-4 mr-2" />
+                Protests
+              </Link>
+            </Button>
+            <Button asChild variant="ghost" size="sm">
+              <Link href="/athlete/dashboard/notices">
+                <Megaphone className="h-4 w-4 mr-2" />
+                Notice Board
+              </Link>
+            </Button>
           </div>
         </div>
 
@@ -113,6 +125,19 @@ export default function AthleteNav() {
                 <Link href="/profile/vehicles" className="flex items-center">
                   <Car className="h-4 w-4 mr-2" />
                   My Vehicles
+                </Link>
+              </DropdownMenuItem>
+              
+              <DropdownMenuItem asChild>
+                <Link href="/athlete/dashboard/protests" className="flex items-center">
+                  <FileQuestion className="h-4 w-4 mr-2" />
+                  Protests
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href="/athlete/dashboard/notices" className="flex items-center">
+                  <Megaphone className="h-4 w-4 mr-2" />
+                  Notice Board
                 </Link>
               </DropdownMenuItem>
               

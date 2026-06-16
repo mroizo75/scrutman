@@ -15,6 +15,22 @@ export const ALL_STAFF_ROLES = [
   ...INSPECTOR_ROLES,
   "WEIGHT_CONTROLLER",
   "RACE_OFFICIAL",
+  "JURY_STEWARD",
+] as const;
+
+export const JURY_ROLES = [
+  "SUPERADMIN",
+  "FEDERATION_ADMIN",
+  "JURY_STEWARD",
+] as const;
+
+export const COMPLAINT_SENDER_ROLES = [
+  "SUPERADMIN",
+  "CLUBADMIN",
+  "FEDERATION_ADMIN",
+  "TECHNICAL_INSPECTOR",
+  "WEIGHT_CONTROLLER",
+  "RACE_OFFICIAL",
 ] as const;
 
 export type UserRole =
@@ -25,7 +41,8 @@ export type UserRole =
   | "WEIGHT_CONTROLLER"
   | "RACE_OFFICIAL"
   | "FEDERATION_ADMIN"
-  | "FIA_DELEGATE";
+  | "FIA_DELEGATE"
+  | "JURY_STEWARD";
 
 export function hasRole(role: string, allowed: readonly string[]): boolean {
   return allowed.includes(role);
@@ -41,4 +58,12 @@ export function isClubAdminOrAbove(role: string): boolean {
 
 export function isInspectorOrAbove(role: string): boolean {
   return hasRole(role, INSPECTOR_ROLES);
+}
+
+export function isJuryRole(role: string): boolean {
+  return hasRole(role, JURY_ROLES);
+}
+
+export function canSendComplaint(role: string): boolean {
+  return hasRole(role, COMPLAINT_SENDER_ROLES);
 }

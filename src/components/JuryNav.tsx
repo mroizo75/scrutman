@@ -3,21 +3,16 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { Home, Menu, X, LogOut, CheckCircle, Eye, Users, ShieldCheck, Gauge, Gavel } from "lucide-react";
+import { Home, LogOut, MessageSquareWarning, FileQuestion, Megaphone } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import React, { useState } from "react";
 import Cookies from "js-cookie";
-import { useTranslation } from "@/hooks/useTranslation";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
 import Image from "next/image";
 
-export default function FederationNav() {
-  const { t } = useTranslation();
+export default function JuryNav() {
   const pathname = usePathname();
   const router = useRouter();
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-  // Get user data for display
   const userData = Cookies.get("user");
   const user = userData ? JSON.parse(userData) : null;
 
@@ -27,76 +22,53 @@ export default function FederationNav() {
   };
 
   const links = [
-    {
-      href: "/dashboard/federation",
-      label: t('common.dashboard'),
-      icon: Home
-    },
-    {
-      href: "/dashboard/federation/admins",
-      label: t('common.users'),
-      icon: Users
-    },
-    {
-      href: "/dashboard/federation/approved-tires",
-      label: "Godkjente dekk",
-      icon: ShieldCheck
-    },
-    {
-      href: "/dashboard/federation/tire-limits",
-      label: "Dekkgrenser",
-      icon: Gauge
-    },
-    {
-      href: "/dashboard/federation/jury-stewards",
-      label: "Jury Stewards",
-      icon: Gavel
-    },
-    {
-      href: "/",
-      label: t('common.events'),
-      icon: Eye
-    }
+    { href: "/dashboard/jury", label: "Overview", icon: Home, exact: true },
+    { href: "/dashboard/jury/complaints", label: "Complaints", icon: MessageSquareWarning },
+    { href: "/dashboard/jury/protests", label: "Protests", icon: FileQuestion },
+    { href: "/dashboard/jury/notices", label: "Notice Board", icon: Megaphone },
   ];
 
   return (
     <div className="h-full flex flex-col">
-      {/* Header */}
       <div className="p-4 border-b flex-shrink-0">
-        <Link href="/dashboard/federation" className="block">
-          <Image src="/logo.png" alt="ScrutMan" width={300} height={90} className="w-full h-auto" style={{maxWidth:"200px"}} />
+        <Link href="/dashboard/jury" className="block">
+          <Image src="/logo.png" alt="ScrutMan" width={300} height={90} className="w-full h-auto" style={{ maxWidth: "200px" }} />
         </Link>
+        <p className="text-xs font-semibold text-orange-600 mt-1 uppercase tracking-wide">
+          Jury Steward
+        </p>
       </div>
 
-      {/* Navigation Links */}
-      <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
+      <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
         {links.map((link) => {
           const Icon = link.icon;
+          const isActive = link.exact
+            ? pathname === link.href
+            : pathname?.startsWith(link.href);
           return (
             <Link
               key={link.href}
               href={link.href}
               className={cn(
                 "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
-                pathname === link.href
+                isActive
                   ? "bg-primary text-primary-foreground"
                   : "hover:bg-muted"
               )}
             >
-              <Icon className="h-4 w-4" />
+              <Icon className="h-4 w-4 flex-shrink-0" />
               {link.label}
             </Link>
           );
         })}
       </nav>
 
-      {/* Footer */}
       <div className="p-4 border-t space-y-2 flex-shrink-0">
         <LanguageSwitcher />
         {user && (
           <div className="text-sm">
             <p className="font-medium">{user.name}</p>
-            <p className="text-xs text-muted-foreground">Federation Admin</p>
+            <p className="text-xs text-muted-foreground">Jury Steward</p>
           </div>
         )}
         <Button
@@ -106,7 +78,7 @@ export default function FederationNav() {
           onClick={handleLogout}
         >
           <LogOut className="h-4 w-4" />
-          {t('common.signOut')}
+          Sign Out
         </Button>
       </div>
     </div>

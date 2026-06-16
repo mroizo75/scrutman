@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Search, CheckCircle, AlertTriangle, XCircle, Clock, Car, Users, Flag } from "lucide-react";
 import { useTranslation } from "@/hooks/useTranslation";
+import SendToJuryDialog from "@/components/SendToJuryDialog";
 
 interface Event {
   id: string;
@@ -483,6 +484,15 @@ export default function TechnicalDashboard() {
                     >
                       {t('technical.updateInspection')}
                     </Button>
+                  )}
+
+                  {/* Send to Jury */}
+                  {selectedEvent && vehicle.inspectionStatus === 'REJECTED' && (
+                    <SendToJuryDialog
+                      eventId={selectedEvent}
+                      defaultType="TECHNICAL"
+                      defaultStartNumber={vehicle.startNumber}
+                    />
                   )}
                 </div>
               </CardContent>

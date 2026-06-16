@@ -7,6 +7,7 @@ import AdminNav from "@/components/AdminNav";
 import FederationNav from "@/components/FederationNav";
 import SuperAdminNav from "@/components/SuperAdminNav";
 import FiaDelegateNav from "@/components/FiaDelegateNav";
+import JuryNav from "@/components/JuryNav";
 import { ALL_STAFF_ROLES } from "@/lib/auth";
 
 export default function DashboardLayout({
@@ -37,6 +38,11 @@ export default function DashboardLayout({
         return;
       }
 
+      if (user.role === "JURY_STEWARD" && !pathname?.startsWith("/dashboard/jury")) {
+        router.push("/dashboard/jury");
+        return;
+      }
+
       const allowed = ALL_STAFF_ROLES as readonly string[];
       if (!allowed.includes(user.role)) {
         router.push("/login");
@@ -52,13 +58,15 @@ export default function DashboardLayout({
 
   const isSuperAdmin = user?.role === "SUPERADMIN";
   const isFiaDelegate = user?.role === "FIA_DELEGATE";
+  const isJurySteward = user?.role === "JURY_STEWARD";
   const isFederationAdmin = user?.role === "FEDERATION_ADMIN";
   const isFederationRoute = pathname?.startsWith("/dashboard/federation");
 
   const showSuperAdminNav = isSuperAdmin && !isFederationRoute;
   const showFederationNav = isFederationAdmin || (isFederationRoute && !isSuperAdmin && !isFiaDelegate);
   const showFiaDelegateNav = isFiaDelegate;
-  const showAdminNav = !showSuperAdminNav && !showFederationNav && !showFiaDelegateNav;
+  const showJuryNav = isJurySteward;
+  const showAdminNav = !showSuperAdminNav && !showFederationNav && !showFiaDelegateNav && !showJuryNav;
 
   return (
     <div className="h-screen bg-background flex overflow-hidden">
@@ -66,6 +74,7 @@ export default function DashboardLayout({
         {showFiaDelegateNav && <FiaDelegateNav />}
         {showFederationNav && <FederationNav />}
         {showSuperAdminNav && <SuperAdminNav />}
+        {showJuryNav && <JuryNav />}
         {showAdminNav && <AdminNav />}
       </div>
 

@@ -10,6 +10,7 @@ import {
   ShieldAlert, ChevronLeft, ChevronRight, Download,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import SendToJuryDialog from "@/components/SendToJuryDialog";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -98,11 +99,13 @@ function HeatTable({
   sessions,
   incidentLoading,
   onDownloadIncident,
+  eventId,
 }: {
   heat: string;
   sessions: ParsedSession[];
   incidentLoading: string | null;
   onDownloadIncident: (id: string, name: string) => void;
+  eventId: string;
 }) {
   const [page, setPage] = useState(0);
 
@@ -226,19 +229,26 @@ function HeatTable({
                   </Badge>
                 </td>
 
-                {/* Incident PDF */}
-                <td className="px-2 py-3 text-center">
+                {/* Incident PDF + Send to Jury */}
+                <td className="px-2 py-3">
                   {!pass && (
-                    <button
-                      title="Download Incident PDF"
-                      onClick={() => onDownloadIncident(s.id, s.driverName)}
-                      disabled={incidentLoading === s.id}
-                      className="p-1.5 rounded-lg text-red-600 hover:bg-red-100 disabled:opacity-50 transition-colors"
-                    >
-                      {incidentLoading === s.id
-                        ? <Loader2 className="w-4 h-4 animate-spin" />
-                        : <ShieldAlert className="w-4 h-4" />}
-                    </button>
+                    <div className="flex items-center gap-1">
+                      <button
+                        title="Download Incident PDF"
+                        onClick={() => onDownloadIncident(s.id, s.driverName)}
+                        disabled={incidentLoading === s.id}
+                        className="p-1.5 rounded-lg text-red-600 hover:bg-red-100 disabled:opacity-50 transition-colors"
+                      >
+                        {incidentLoading === s.id
+                          ? <Loader2 className="w-4 h-4 animate-spin" />
+                          : <ShieldAlert className="w-4 h-4" />}
+                      </button>
+                      <SendToJuryDialog
+                        eventId={eventId}
+                        defaultType="TIRE"
+                        defaultStartNumber={Number(s.startNumber) || undefined}
+                      />
+                    </div>
                   )}
                 </td>
               </tr>
@@ -519,6 +529,7 @@ export default function TyreReportPage() {
                   sessions={hs}
                   incidentLoading={incidentLoading}
                   onDownloadIncident={downloadIncidentPdf}
+                  eventId={eventId}
                 />
               ),
             )}

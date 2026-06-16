@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useTranslation } from "@/hooks/useTranslation";
+import SendToJuryDialog from "@/components/SendToJuryDialog";
 
 interface WeightControlEntry {
   id: string;
@@ -466,6 +467,7 @@ export default function WeightControlListPage({ params }: { params: Promise<{ ev
                         <th className="text-left p-4 font-medium">{t('weightControlList.limit')}</th>
                         <th className="text-left p-4 font-medium">{t('weightControlList.result')}</th>
                         <th className="text-left p-4 font-medium">{t('weightControlList.controller')}</th>
+                        <th className="p-4"></th>
                       </tr>
                     </thead>
                     <tbody>
@@ -524,6 +526,15 @@ export default function WeightControlListPage({ params }: { params: Promise<{ ev
                               {new Date(control.controlledAt).toLocaleString()}
                             </p>
                           </div>
+                        </td>
+                        <td className="p-4">
+                          {["FAIL", "UNDERWEIGHT", "OVERWEIGHT"].includes(control.result) && eventId && (
+                            <SendToJuryDialog
+                              eventId={eventId}
+                              defaultType="WEIGHT"
+                              defaultStartNumber={control.startNumber}
+                            />
+                          )}
                         </td>
                       </tr>
                     ))}
