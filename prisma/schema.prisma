@@ -67,6 +67,8 @@ model User {
   protestsSubmitted   Protest[]   @relation("ProtestSubmitter")
   protestsResolved    Protest[]   @relation("ProtestResolver")
   noticesPublished    OfficialNotice[] @relation("NoticePublisher")
+  juryAssignments     JuryEventAssignment[] @relation("JuryStewardAssignments")
+  juryAssignedBy      JuryEventAssignment[] @relation("JuryAssignedBy")
 
   @@index([clubId])
   @@index([federationId])
@@ -132,6 +134,7 @@ model Event {
   complaints            Complaint[]
   protests              Protest[]
   officialNotices       OfficialNotice[]
+  juryAssignments       JuryEventAssignment[]
 
   // Federation approval fields
   submittedAt           DateTime?     // When submitted for approval
@@ -822,4 +825,20 @@ model OfficialNotice {
   @@index([publishedById])
   @@index([type])
   @@index([isVisible])
+}
+
+// Jury steward assigned to a specific event by federation admin
+model JuryEventAssignment {
+  id           String   @id @default(cuid())
+  eventId      String
+  event        Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  stewardId    String
+  steward      User     @relation("JuryStewardAssignments", fields: [stewardId], references: [id])
+  assignedById String
+  assignedBy   User     @relation("JuryAssignedBy", fields: [assignedById], references: [id])
+  assignedAt   DateTime @default(now())
+
+  @@unique([eventId, stewardId])
+  @@index([eventId])
+  @@index([stewardId])
 }

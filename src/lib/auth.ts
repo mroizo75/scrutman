@@ -67,3 +67,10 @@ export function isJuryRole(role: string): boolean {
 export function canSendComplaint(role: string): boolean {
   return hasRole(role, COMPLAINT_SENDER_ROLES);
 }
+
+/** Roles that bypass the jury event assignment check (can see all events). */
+export const JURY_BYPASS_ROLES = ["SUPERADMIN", "FEDERATION_ADMIN"] as const;
+
+export function juryBypassesAssignment(role: string): boolean {
+  return hasRole(role, JURY_BYPASS_ROLES);
+}

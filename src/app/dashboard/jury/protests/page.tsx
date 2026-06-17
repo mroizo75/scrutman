@@ -63,7 +63,7 @@ export default function JuryProtestsPage() {
   }, [router]);
 
   useEffect(() => {
-    fetch("/api/events").then((r) => r.json()).then((d) => setEvents(d.events ?? []));
+    fetch("/api/jury/assigned-events").then((r) => r.json()).then((d) => setEvents(d.events ?? []));
   }, []);
 
   const load = (eventId: string) => {

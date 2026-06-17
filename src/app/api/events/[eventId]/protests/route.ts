@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { prisma } from "@/lib/prisma";
-import { JURY_ROLES } from "@/lib/auth";
+import { JURY_ROLES, juryBypassesAssignment } from "@/lib/auth";
 
 export async function GET(
   _req: NextRequest,
@@ -19,6 +19,15 @@ export async function GET(
     }
 
     const { eventId } = await params;
+
+    // Jury stewards must be assigned to this event
+    if (user.role === "JURY_STEWARD" && !juryBypassesAssignment(user.role)) {
+      const assignment = await prisma.juryEventAssignment.findUnique({
+        where: { eventId_stewardId: { eventId, stewardId: user.id } },
+        select: { id: true },
+      });
+      if (!assignment) return NextResponse.json({ error: "Not assigned to this event" }, { status: 403 });
+    }
 
     const where: Record<string, unknown> = { eventId };
     // Athletes only see their own protests

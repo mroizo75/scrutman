@@ -74,7 +74,7 @@ export default function JuryOverviewPage() {
   }, [router]);
 
   useEffect(() => {
-    fetch("/api/events")
+    fetch("/api/jury/assigned-events")
       .then((r) => r.json())
       .then((data) => setEvents(data.events ?? []))
       .catch(() => {});
